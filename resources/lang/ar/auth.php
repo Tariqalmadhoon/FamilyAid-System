@@ -1,0 +1,66 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Language Lines
+    |--------------------------------------------------------------------------
+    */
+
+    'failed' => 'بيانات الاعتماد هذه غير متطابقة مع البيانات المسجلة لدينا.',
+    'password' => 'كلمة المرور المُدخلة غير صحيحة.',
+    'throttle' => 'لقد تجاوزت الحد المسموح لعمليات الدخول. يرجى المحاولة مرة أخرى بعد :seconds ثانية.',
+
+    // Auth page labels
+    'login' => 'تسجيل الدخول',
+    'register' => 'إنشاء حساب',
+    'logout' => 'تسجيل الخروج',
+    'forgot_password' => 'نسيت كلمة المرور؟',
+    'reset_password' => 'إعادة تعيين كلمة المرور',
+    'confirm_password' => 'تأكيد كلمة المرور',
+    'remember_me' => 'تذكرني',
+    
+    // Form labels
+    'national_id' => 'رقم الهوية الوطنية',
+    'name' => 'الاسم الكامل',
+    'phone' => 'رقم الجوال',
+    'password_label' => 'كلمة المرور',
+    'password_confirmation' => 'تأكيد كلمة المرور',
+    'security_question' => 'سؤال الأمان',
+    'security_answer' => 'إجابة سؤال الأمان',
+    
+    // Security questions
+    'questions' => [
+        'mother_maiden_name' => 'ما هو اسم والدتك قبل الزواج؟',
+        'first_school' => 'ما هو اسم أول مدرسة درست فيها؟',
+        'birth_city' => 'ما هي المدينة التي ولدت فيها؟',
+        'favorite_teacher' => 'ما هو اسم معلمك المفضل؟',
+        'childhood_friend' => 'ما هو اسم صديق طفولتك؟',
+    ],
+    
+    // Buttons
+    'login_btn' => 'دخول',
+    'register_btn' => 'تسجيل',
+    'reset_btn' => 'إعادة تعيين',
+    'continue_btn' => 'متابعة',
+    'verify_btn' => 'تحقق',
+    
+    // Messages
+    'welcome_back' => 'مرحباً بعودتك',
+    'login_subtitle' => 'أدخل بياناتك للوصول إلى حسابك',
+    'register_subtitle' => 'أنشئ حسابك للاستفادة من خدماتنا',
+    'no_account' => 'ليس لديك حساب؟',
+    'have_account' => 'لديك حساب بالفعل؟',
+    'enter_national_id' => 'أدخل رقم الهوية الوطنية',
+    'answer_security' => 'أجب عن سؤال الأمان',
+    'set_new_password' => 'أدخل كلمة المرور الجديدة',
+    
+    // Success/Error
+    'login_success' => 'تم تسجيل الدخول بنجاح!',
+    'register_success' => 'تم إنشاء الحساب بنجاح!',
+    'password_reset_success' => 'تم تغيير كلمة المرور بنجاح!',
+    'invalid_credentials' => 'بيانات الدخول غير صحيحة',
+    'account_suspended' => 'تم تعليق حسابك. تواصل مع الدعم.',
+
+];
