@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('My Household Dashboard') }}
+                {{ __('messages.citizen.dashboard_title') }}
             </h2>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                 @if($household->status === 'verified') bg-green-100 text-green-800
@@ -10,7 +10,7 @@
                 @elseif($household->status === 'suspended') bg-red-100 text-red-800
                 @else bg-gray-100 text-gray-800
                 @endif">
-                {{ ucfirst($household->status) }}
+                {{ __('messages.status.' . $household->status) }}
             </span>
         </div>
     </x-slot>
@@ -49,7 +49,7 @@
                         <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        Last Benefit Received
+                        {{ __('messages.citizen.last_benefit_title') }}
                     </h3>
                     
                     @if($lastDistribution)
@@ -67,8 +67,8 @@
                             <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                             </svg>
-                            <p>No benefits received yet.</p>
-                            <p class="text-sm text-gray-400 mt-1">Benefits will appear here once distributed.</p>
+                            <p>{{ __('messages.citizen.no_benefits') }}</p>
+                            <p class="text-sm text-gray-400 mt-1">{{ __('messages.citizen.no_benefits_helper') }}</p>
                         </div>
                     @endif
                 </div>
@@ -84,8 +84,8 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-900">Update Household</p>
-                            <p class="text-xs text-gray-500">Edit address & contact info</p>
+                            <p class="text-sm font-medium text-gray-900">{{ __('messages.citizen.update_household') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('messages.citizen.update_household_sub') }}</p>
                         </div>
                     </div>
                 </a>
@@ -98,8 +98,8 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-900">Manage Members</p>
-                            <p class="text-xs text-gray-500">{{ $household->members->count() }} member(s)</p>
+                            <p class="text-sm font-medium text-gray-900">{{ __('messages.citizen.manage_members') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('messages.citizen.member_count', ['count' => $household->members->count()]) }}</p>
                         </div>
                     </div>
                 </a>
@@ -113,8 +113,8 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-900">{{ $household->region->name ?? 'Unknown Region' }}</p>
-                            <p class="text-xs text-gray-500">Your region</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $household->region->name ?? __('messages.general.unknown_region') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('messages.citizen.your_region') }}</p>
                         </div>
                     </div>
                 </div>
@@ -127,7 +127,7 @@
                         <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
-                        Benefit History
+                        {{ __('messages.citizen.benefit_history') }}
                     </h3>
                     
                     @if($distributions->count() > 0)
@@ -135,9 +135,9 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.tracking.program') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.tracking.date') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.tracking.notes') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -159,7 +159,7 @@
                         </div>
                     @else
                         <div class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                            <p>No benefit history available.</p>
+                            <p>{{ __('messages.citizen.benefit_history_empty') }}</p>
                         </div>
                     @endif
                 </div>
@@ -173,37 +173,39 @@
                             <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                             </svg>
-                            Household Information
+                            {{ __('messages.citizen.household_info') }}
                         </h3>
-                        <a href="{{ route('citizen.household.edit') }}" class="text-teal-600 hover:text-teal-800 text-sm font-medium">Edit</a>
+                        <a href="{{ route('citizen.household.edit') }}" class="text-teal-600 hover:text-teal-800 text-sm font-medium">{{ __('messages.actions.edit') }}</a>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-3">
                             <div>
-                                <span class="text-xs text-gray-500 uppercase">Head of Household</span>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.head_name') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->head_name }}</p>
                             </div>
                             <div>
-                                <span class="text-xs text-gray-500 uppercase">National ID</span>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.head_national_id') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->head_national_id }}</p>
                             </div>
                             <div>
-                                <span class="text-xs text-gray-500 uppercase">Primary Phone</span>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.phone') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->primary_phone ?? '-' }}</p>
                             </div>
                         </div>
                         <div class="space-y-3">
                             <div>
-                                <span class="text-xs text-gray-500 uppercase">Housing Type</span>
-                                <p class="text-sm font-medium text-gray-900 capitalize">{{ str_replace('_', ' ', $household->housing_type ?? '-') }}</p>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.housing_type') }}</span>
+                                <p class="text-sm font-medium text-gray-900 capitalize">
+                                    {{ $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '-' }}
+                                </p>
                             </div>
                             <div>
-                                <span class="text-xs text-gray-500 uppercase">Address</span>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.address') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->address_text ?? '-' }}</p>
                             </div>
                             <div>
-                                <span class="text-xs text-gray-500 uppercase">Registered</span>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.registered_at') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->created_at->format('M j, Y') }}</p>
                             </div>
                         </div>

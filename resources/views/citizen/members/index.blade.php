@@ -8,10 +8,10 @@
                     </svg>
                 </a>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Manage Family Members') }}
+                    {{ __('messages.members.manage_title') }}
                 </h2>
             </div>
-            <span class="text-sm text-gray-500">{{ $members->count() }} member(s)</span>
+            <span class="text-sm text-gray-500">{{ __('messages.members.count', ['count' => $members->count()]) }}</span>
         </div>
     </x-slot>
 
@@ -44,7 +44,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Add Member
+                    {{ __('messages.members.add_btn') }}
                 </button>
             </div>
 
@@ -61,16 +61,16 @@
                                         </div>
                                         <div class="ml-4">
                                             <p class="font-medium text-gray-900">{{ $member->full_name }}</p>
-                                            <p class="text-sm text-gray-500 capitalize">{{ $member->relation_to_head }}</p>
+                                            <p class="text-sm text-gray-500 capitalize">{{ $member->relation_to_head ? __('messages.relations.' . $member->relation_to_head) : '-' }}</p>
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-4">
                                         <div class="text-right text-sm text-gray-500 hidden sm:block">
                                             @if($member->national_id)
-                                                <p>ID: {{ $member->national_id }}</p>
+                                                <p>{{ __('messages.members.id_label') }}: {{ $member->national_id }}</p>
                                             @endif
                                             @if($member->birth_date)
-                                                <p>{{ $member->age }} years old</p>
+                                                <p>{{ __('messages.members.age_years', ['years' => $member->age]) }}</p>
                                             @endif
                                         </div>
                                         <div class="flex items-center space-x-2">
@@ -100,13 +100,13 @@
                             <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
-                            <h3 class="text-lg font-medium text-gray-900 mb-1">No Members Added</h3>
-                            <p class="text-gray-500 mb-4">Add your family members to complete your household profile.</p>
+                            <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('messages.members.none_title') }}</h3>
+                            <p class="text-gray-500 mb-4">{{ __('messages.members.none_helper') }}</p>
                             <button 
                                 @click="openAddModal"
                                 class="inline-flex items-center px-4 py-2 bg-teal-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-teal-700 transition"
                             >
-                                Add First Member
+                                {{ __('messages.members.add_first') }}
                             </button>
                         </div>
                     @endif
@@ -138,19 +138,19 @@
                     x-transition:leave-end="opacity-0 transform scale-95"
                     class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6"
                 >
-                    <h3 class="text-lg font-medium text-gray-900 mb-4" x-text="editingId ? 'Edit Member' : 'Add Member'"></h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4" x-text="editingId ? '{{ __('messages.members.edit_title') }}' : '{{ __('messages.members.add_btn') }}'"></h3>
                     
                     <form @submit.prevent="saveMember">
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.full_name') }} <span class="text-red-500">*</span></label>
                                 <input type="text" x-model="form.full_name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Relation <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.relation') }} <span class="text-red-500">*</span></label>
                                 <select x-model="form.relation_to_head" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
-                                    <option value="">-- Select --</option>
+                                    <option value="">{{ __('messages.actions.select') }}</option>
                                     @foreach($relations as $value => $label)
                                         <option value="{{ $value }}">{{ $label }}</option>
                                     @endforeach
@@ -158,21 +158,21 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">National ID (Optional)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.national_id_optional') }}</label>
                                 <input type="text" x-model="form.national_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                             </div>
                             
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.gender') }}</label>
                                     <select x-model="form.gender" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
-                                        <option value="">-- Select --</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
+                                        <option value="">{{ __('messages.actions.select') }}</option>
+                                        <option value="male">{{ __('messages.members.male') }}</option>
+                                        <option value="female">{{ __('messages.members.female') }}</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.birth_date') }}</label>
                                     <input type="date" x-model="form.birth_date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 </div>
                             </div>
@@ -180,11 +180,11 @@
 
                         <div class="mt-6 flex justify-end space-x-3">
                             <button type="button" @click="closeModal" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                                Cancel
+                                {{ __('messages.actions.cancel') }}
                             </button>
                             <button type="submit" :disabled="saving" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50">
-                                <span x-show="!saving" x-text="editingId ? 'Update' : 'Add Member'"></span>
-                                <span x-show="saving">Saving...</span>
+                                <span x-show="!saving" x-text="editingId ? '{{ __('messages.actions.update') }}' : '{{ __('messages.members.add_btn') }}'"></span>
+                                <span x-show="saving">{{ __('messages.members.saving') }}</span>
                             </button>
                         </div>
                     </form>
@@ -211,18 +211,18 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Remove Member</h3>
-                        <p class="text-sm text-gray-500 mb-4">Are you sure you want to remove <span class="font-medium" x-text="deletingName"></span>?</p>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('messages.members.remove_title') }}</h3>
+                        <p class="text-sm text-gray-500 mb-4" x-text="`{{ __('messages.members.remove_confirm', ['name' => ':name']) }}`.replace(':name', deletingName)"></p>
                         
                         <div class="flex justify-center space-x-3">
                             <button @click="showDeleteModal = false" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                                Cancel
+                                {{ __('messages.actions.cancel') }}
                             </button>
                             <form :action="'/citizen/members/' + deletingId" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition">
-                                    Remove
+                                    {{ __('messages.members.remove_title') }}
                                 </button>
                             </form>
                         </div>
@@ -308,10 +308,10 @@
                             this.closeModal();
                             window.location.reload();
                         } else {
-                            alert(data.error || 'An error occurred');
+                            alert(data.error || '{{ __('messages.error.general') }}');
                         }
                     } catch (error) {
-                        alert('An error occurred');
+                        alert('{{ __('messages.error.general') }}');
                     }
                     
                     this.saving = false;

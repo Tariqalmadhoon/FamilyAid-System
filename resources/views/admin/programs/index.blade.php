@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Aid Programs') }}</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('messages.programs.title') }}</h2>
             <a href="{{ route('admin.programs.create') }}" class="inline-flex items-center px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                New Program
+                {{ __('messages.programs.new') }}
             </a>
         </div>
     </x-slot>
@@ -24,11 +24,11 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Program Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Distributions</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.programs.table.name') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.programs.table.period') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.programs.table.distributions') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.programs.table.status') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('messages.programs.table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -37,24 +37,24 @@
                                 <td class="px-6 py-4">
                                     <a href="{{ route('admin.programs.show', $program) }}" class="font-medium text-gray-900 hover:text-teal-600">{{ $program->name }}</a>
                                     @if($program->allow_multiple)
-                                        <span class="ml-2 text-xs text-gray-400">(multi)</span>
+                                        <span class="ml-2 text-xs text-gray-400">{{ __('messages.programs.multi') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500">
                                     @if($program->start_date && $program->end_date)
-                                        {{ $program->start_date->format('M j') }} - {{ $program->end_date->format('M j, Y') }}
+                                        {{ __('messages.programs.period_range', ['from' => $program->start_date->format('M j'), 'to' => $program->end_date->format('M j, Y')]) }}
                                     @elseif($program->start_date)
-                                        From {{ $program->start_date->format('M j, Y') }}
+                                        {{ __('messages.programs.period_from', ['date' => $program->start_date->format('M j, Y')]) }}
                                     @else
-                                        Ongoing
+                                        {{ __('messages.programs.period_ongoing') }}
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500">{{ number_format($program->distributions_count) }}</td>
                                 <td class="px-6 py-4">
                                     @if($program->is_active)
-                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Active</span>
+                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">{{ __('messages.status.active') }}</span>
                                     @else
-                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Inactive</span>
+                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">{{ __('messages.status.inactive') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
@@ -66,7 +66,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">No programs yet</td></tr>
+                            <tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">{{ __('messages.programs.no_programs') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

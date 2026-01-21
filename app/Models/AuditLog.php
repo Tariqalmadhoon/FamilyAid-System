@@ -57,7 +57,7 @@ class AuditLog extends Model
     public static function log(
         string $action,
         string $entityType,
-        int $entityId,
+        ?int $entityId = null,
         ?array $before = null,
         ?array $after = null,
         ?int $actorId = null
@@ -66,7 +66,7 @@ class AuditLog extends Model
             'actor_user_id' => $actorId ?? auth()->id(),
             'action' => $action,
             'entity_type' => $entityType,
-            'entity_id' => $entityId,
+            'entity_id' => $entityId ?? 0,
             'before_json' => $before,
             'after_json' => $after,
             'ip_address' => request()->ip(),

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
@@ -81,7 +81,7 @@
             @csrf
             <input type="hidden" name="locale" value="{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}">
             <button type="submit" class="px-3 py-1.5 text-sm font-medium text-slate-600 bg-white/80 backdrop-blur rounded-lg border border-slate-200 hover:bg-white hover:border-slate-300 transition-all shadow-sm">
-                {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}
+                {{ app()->getLocale() === 'ar' ? __('messages.language.en') : __('messages.language.ar') }}
             </button>
         </form>
     </div>
