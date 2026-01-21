@@ -42,14 +42,14 @@ class DistributionsExport implements FromQuery, WithHeadings, WithMapping, WithS
     public function headings(): array
     {
         return [
-            'Date',
-            'Program',
-            'National ID',
-            'Head Name',
-            'Region',
-            'Phone',
-            'Recorded By',
-            'Notes',
+            __('messages.exports.distributions.date'),
+            __('messages.exports.distributions.program'),
+            __('messages.exports.distributions.national_id'),
+            __('messages.exports.distributions.head_name'),
+            __('messages.exports.distributions.region'),
+            __('messages.exports.distributions.phone'),
+            __('messages.exports.distributions.recorded_by'),
+            __('messages.exports.distributions.notes'),
         ];
     }
 
@@ -62,7 +62,7 @@ class DistributionsExport implements FromQuery, WithHeadings, WithMapping, WithS
             $distribution->household->head_name ?? '',
             $distribution->household->region->name ?? '',
             $distribution->household->primary_phone ?? '',
-            $distribution->distributor->name ?? 'System',
+            $distribution->distributor->name ?? __('messages.general.system'),
             $distribution->notes,
         ];
     }

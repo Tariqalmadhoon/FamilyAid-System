@@ -21,6 +21,8 @@
         /* RTL fixes */
         [dir="rtl"] .rtl\:text-right { text-align: right; }
         [dir="rtl"] .rtl\:space-x-reverse > :not([hidden]) ~ :not([hidden]) { --tw-space-x-reverse: 1; }
+        [dir="rtl"] table th,
+        [dir="rtl"] table td { text-align: right; }
         
         /* Animations */
         @keyframes fadeIn {

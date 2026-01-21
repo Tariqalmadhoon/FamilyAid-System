@@ -53,7 +53,7 @@
                     @csrf
                     <input type="hidden" name="locale" value="{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}">
                     <button type="submit" class="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">
-                        {{ app()->getLocale() === 'ar' ? 'EN' : 'ع' }}
+                        {{ app()->getLocale() === 'ar' ? __('messages.language.short_en') : __('messages.language.short_ar') }}
                     </button>
                 </form>
 

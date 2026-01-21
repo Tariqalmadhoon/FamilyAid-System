@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Distributions') }}</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('messages.distributions.title') }}</h2>
             <a href="{{ route('admin.distributions.create') }}" class="inline-flex items-center px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Record Distribution
+                {{ __('messages.distributions.record') }}
             </a>
         </div>
     </x-slot>
@@ -24,25 +24,25 @@
             <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
-                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Search household..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="{{ __('messages.distributions.search_placeholder') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
                     </div>
                     <div>
                         <select name="program_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
-                            <option value="">All Programs</option>
+                            <option value="">{{ __('messages.distributions.all_programs') }}</option>
                             @foreach($programs as $program)
                                 <option value="{{ $program->id }}" {{ ($filters['program_id'] ?? '') == $program->id ? 'selected' : '' }}>{{ $program->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <input type="date" name="from_date" value="{{ $filters['from_date'] ?? '' }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="From">
+                        <input type="date" name="from_date" value="{{ $filters['from_date'] ?? '' }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="{{ __('messages.distributions.from_date') }}">
                     </div>
                     <div>
-                        <input type="date" name="to_date" value="{{ $filters['to_date'] ?? '' }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="To">
+                        <input type="date" name="to_date" value="{{ $filters['to_date'] ?? '' }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="{{ __('messages.distributions.to_date') }}">
                     </div>
                     <div class="flex space-x-2">
-                        <button type="submit" class="flex-1 bg-teal-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-teal-700">Filter</button>
-                        <a href="{{ route('admin.distributions.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Clear</a>
+                        <button type="submit" class="flex-1 bg-teal-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.actions.filter') }}</button>
+                        <a href="{{ route('admin.distributions.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.clear') }}</a>
                     </div>
                 </form>
             </div>
@@ -52,25 +52,25 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Household</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Program</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recorded By</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.distributions.table.household') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.distributions.table.program') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.distributions.table.date') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.distributions.table.recorded_by') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ __('messages.distributions.table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($distributions as $dist)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4">
-                                    <a href="{{ route('admin.households.show', $dist->household_id) }}" class="font-medium text-gray-900 hover:text-teal-600">{{ $dist->household->head_name ?? 'Unknown' }}</a>
+                                    <a href="{{ route('admin.households.show', $dist->household_id) }}" class="font-medium text-gray-900 hover:text-teal-600">{{ $dist->household->head_name ?? __('messages.general.unknown') }}</a>
                                     <p class="text-sm text-gray-500">{{ $dist->household->head_national_id ?? '' }}</p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700">{{ $dist->aidProgram->name ?? '-' }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-500">{{ $dist->distribution_date->format('M j, Y') }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-500">{{ $dist->distributor->name ?? 'System' }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">{{ $dist->distributor->name ?? __('messages.general.system') }}</td>
                                 <td class="px-6 py-4 text-right">
-                                    <form action="{{ route('admin.distributions.destroy', $dist) }}" method="POST" class="inline" onsubmit="return confirm('Delete this distribution?')">
+                                    <form action="{{ route('admin.distributions.destroy', $dist) }}" method="POST" class="inline" onsubmit="return confirm('{{ __('messages.distributions.delete_confirm') }}')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-500 hover:text-red-700">
@@ -82,7 +82,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">No distributions found</td></tr>
+                            <tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">{{ __('messages.distributions.no_results') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

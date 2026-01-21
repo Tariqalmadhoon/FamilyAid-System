@@ -38,17 +38,17 @@ class HouseholdsExport implements FromQuery, WithHeadings, WithMapping, WithStyl
     public function headings(): array
     {
         return [
-            'National ID',
-            'Head Name',
-            'Region',
-            'Address',
-            'Housing Type',
-            'Primary Phone',
-            'Secondary Phone',
-            'Status',
-            'Members Count',
-            'Member Names',
-            'Registered Date',
+            __('messages.exports.households.national_id'),
+            __('messages.exports.households.head_name'),
+            __('messages.exports.households.region'),
+            __('messages.exports.households.address'),
+            __('messages.exports.households.housing_type'),
+            __('messages.exports.households.primary_phone'),
+            __('messages.exports.households.secondary_phone'),
+            __('messages.exports.households.status'),
+            __('messages.exports.households.members_count'),
+            __('messages.exports.households.member_names'),
+            __('messages.exports.households.registered_date'),
         ];
     }
 
@@ -59,12 +59,12 @@ class HouseholdsExport implements FromQuery, WithHeadings, WithMapping, WithStyl
             $household->head_name,
             $household->region->name ?? '',
             $household->address_text,
-            ucfirst(str_replace('_', ' ', $household->housing_type ?? '')),
+            $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '',
             $household->primary_phone,
             $household->secondary_phone,
-            ucfirst($household->status),
+            __('messages.status.' . $household->status),
             $household->members->count(),
-            $household->members->pluck('full_name')->implode(', '),
+            $household->members->pluck('full_name')->implode('، '),
             $household->created_at->format('Y-m-d'),
         ];
     }
