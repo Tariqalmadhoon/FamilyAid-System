@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Complete Your Household Registration') }}
+            {{ __('messages.onboarding_form.title') }}
         </h2>
     </x-slot>
 
@@ -46,11 +46,11 @@
                         x-transition:leave-end="opacity-0 transform -translate-x-4"
                         class="p-6"
                     >
-                        <h3 class="text-lg font-medium text-gray-900 mb-6">Region & Address</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-6">{{ __('messages.onboarding_form.section_region_address') }}</h3>
 
                         <!-- Region Select -->
                         <div class="mb-4">
-                            <label for="region_id" class="block text-sm font-medium text-gray-700 mb-1">Select Region <span class="text-red-500">*</span></label>
+                            <label for="region_id" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.select_region') }} <span class="text-red-500">*</span></label>
                             <select 
                                 id="region_id" 
                                 name="region_id" 
@@ -58,7 +58,7 @@
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                 required
                             >
-                                <option value="">-- Select Region --</option>
+                                <option value="">{{ __('messages.onboarding_form.select_region_placeholder') }}</option>
                                 @foreach($regions as $region)
                                     <optgroup label="{{ $region->name }}">
                                         @foreach($region->children as $child)
@@ -74,14 +74,14 @@
 
                         <!-- Address -->
                         <div class="mb-4">
-                            <label for="address_text" class="block text-sm font-medium text-gray-700 mb-1">Full Address <span class="text-red-500">*</span></label>
+                            <label for="address_text" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.full_address') }} <span class="text-red-500">*</span></label>
                             <textarea 
                                 id="address_text" 
                                 name="address_text" 
                                 x-model="formData.address_text"
                                 rows="3"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                placeholder="Enter your full address including street, building, floor, etc."
+                                placeholder="{{ __('messages.onboarding_form.full_address_placeholder') }}"
                                 required
                             ></textarea>
                             @error('address_text')
@@ -101,11 +101,11 @@
                         x-transition:leave-end="opacity-0 transform -translate-x-4"
                         class="p-6"
                     >
-                        <h3 class="text-lg font-medium text-gray-900 mb-6">Housing & Contact Information</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-6">{{ __('messages.onboarding_form.housing_contact') }}</h3>
 
                         <!-- Housing Type -->
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Housing Type <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('messages.onboarding_form.housing_type') }} <span class="text-red-500">*</span></label>
                             <div class="grid grid-cols-2 gap-3">
                                 @foreach($housingTypes as $value => $label)
                                     <label class="relative flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
@@ -122,14 +122,14 @@
 
                         <!-- Primary Phone -->
                         <div class="mb-4">
-                            <label for="primary_phone" class="block text-sm font-medium text-gray-700 mb-1">Primary Phone <span class="text-red-500">*</span></label>
+                            <label for="primary_phone" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.primary_phone') }} <span class="text-red-500">*</span></label>
                             <input 
                                 type="tel" 
                                 id="primary_phone" 
                                 name="primary_phone" 
                                 x-model="formData.primary_phone"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                placeholder="e.g., 0501234567"
+                                placeholder="{{ __('messages.onboarding_form.primary_phone_placeholder') }}"
                                 required
                             >
                             @error('primary_phone')
@@ -139,14 +139,14 @@
 
                         <!-- Secondary Phone -->
                         <div class="mb-4">
-                            <label for="secondary_phone" class="block text-sm font-medium text-gray-700 mb-1">Secondary Phone (Optional)</label>
+                            <label for="secondary_phone" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.secondary_phone') }}</label>
                             <input 
                                 type="tel" 
                                 id="secondary_phone" 
                                 name="secondary_phone" 
                                 x-model="formData.secondary_phone"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                placeholder="e.g., 0509876543"
+                                placeholder="{{ __('messages.onboarding_form.secondary_phone_placeholder') }}"
                             >
                         </div>
                     </div>
@@ -163,7 +163,7 @@
                         class="p-6"
                     >
                         <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-medium text-gray-900">Family Members</h3>
+                            <h3 class="text-lg font-medium text-gray-900">{{ __('messages.onboarding_form.family_members_title') }}</h3>
                             <button 
                                 type="button" 
                                 @click="addMember"
@@ -172,11 +172,11 @@
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Add Member
+                                {{ __('messages.onboarding_form.add_member') }}
                             </button>
                         </div>
 
-                        <p class="text-sm text-gray-500 mb-4">Add your household members (spouse, children, parents, etc.). You can skip this step and add members later.</p>
+                        <p class="text-sm text-gray-500 mb-4">{{ __('messages.onboarding_form.members_helper') }}</p>
 
                         <!-- Members List -->
                         <div class="space-y-4">
@@ -188,7 +188,7 @@
                                     x-transition:enter-end="opacity-100 transform scale-100"
                                 >
                                     <div class="flex items-center justify-between mb-3">
-                                        <span class="text-sm font-medium text-gray-700">Member <span x-text="index + 1"></span></span>
+                                        <span class="text-sm font-medium text-gray-700">{{ __('messages.onboarding_form.member_label') }} <span x-text="index + 1"></span></span>
                                         <button type="button" @click="removeMember(index)" class="text-red-500 hover:text-red-700 transition">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -198,54 +198,54 @@
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">Full Name <span class="text-red-500">*</span></label>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_full_name') }} <span class="text-red-500">*</span></label>
                                             <input 
                                                 type="text" 
                                                 :name="'members[' + index + '][full_name]'"
                                                 x-model="member.full_name"
                                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                                placeholder="Full name"
+                                                placeholder="{{ __('messages.onboarding_form.member_full_name') }}"
                                                 required
                                             >
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">Relation <span class="text-red-500">*</span></label>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_relation') }} <span class="text-red-500">*</span></label>
                                             <select 
                                                 :name="'members[' + index + '][relation_to_head]'"
                                                 x-model="member.relation_to_head"
                                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
                                                 required
                                             >
-                                                <option value="">-- Select --</option>
+                                                <option value="">{{ __('messages.actions.select') }}</option>
                                                 @foreach($relations as $value => $label)
                                                     <option value="{{ $value }}">{{ $label }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">National ID (Optional)</label>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_national_id_optional') }}</label>
                                             <input 
                                                 type="text" 
                                                 :name="'members[' + index + '][national_id]'"
                                                 x-model="member.national_id"
                                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                                placeholder="National ID"
+                                                placeholder="{{ __('messages.onboarding_form.member_national_id_optional') }}"
                                             >
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">Gender</label>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_gender') }}</label>
                                             <select 
                                                 :name="'members[' + index + '][gender]'"
                                                 x-model="member.gender"
                                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
                                             >
-                                                <option value="">-- Select --</option>
-                                                <option value="male">Male</option>
-                                                <option value="female">Female</option>
+                                                <option value="">{{ __('messages.actions.select') }}</option>
+                                                <option value="male">{{ __('messages.onboarding_form.member_gender_male') }}</option>
+                                                <option value="female">{{ __('messages.onboarding_form.member_gender_female') }}</option>
                                             </select>
                                         </div>
                                         <div class="sm:col-span-2">
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">Birth Date (Optional)</label>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_birth_date_optional') }}</label>
                                             <input 
                                                 type="date" 
                                                 :name="'members[' + index + '][birth_date]'"
@@ -261,8 +261,8 @@
                                 <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
-                                <p class="text-sm">No members added yet</p>
-                                <p class="text-xs text-gray-400 mt-1">Click "Add Member" to add family members</p>
+                                <p class="text-sm">{{ __('messages.onboarding_form.members_empty_title') }}</p>
+                                <p class="text-xs text-gray-400 mt-1">{{ __('messages.onboarding_form.members_empty_helper') }}</p>
                             </div>
                         </div>
                     </div>
@@ -278,32 +278,32 @@
                         x-transition:leave-end="opacity-0 transform -translate-x-4"
                         class="p-6"
                     >
-                        <h3 class="text-lg font-medium text-gray-900 mb-6">Review Your Information</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-6">{{ __('messages.onboarding_form.review_title') }}</h3>
 
                         <div class="space-y-6">
                             <!-- Address Summary -->
                             <div class="bg-gray-50 rounded-lg p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-medium text-gray-700">Address Information</h4>
-                                    <button type="button" @click="step = 0" class="text-teal-600 hover:text-teal-800 text-sm">Edit</button>
+                                    <h4 class="font-medium text-gray-700">{{ __('messages.onboarding_form.address_info') }}</h4>
+                                    <button type="button" @click="step = 0" class="text-teal-600 hover:text-teal-800 text-sm">{{ __('messages.onboarding_form.edit') }}</button>
                                 </div>
-                                <p class="text-sm text-gray-600" x-text="formData.address_text || 'Not provided'"></p>
+                                <p class="text-sm text-gray-600" x-text="formData.address_text || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
                             </div>
 
                             <!-- Housing Summary -->
                             <div class="bg-gray-50 rounded-lg p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-medium text-gray-700">Housing & Contact</h4>
-                                    <button type="button" @click="step = 1" class="text-teal-600 hover:text-teal-800 text-sm">Edit</button>
+                                    <h4 class="font-medium text-gray-700">{{ __('messages.onboarding_form.housing_info') }}</h4>
+                                    <button type="button" @click="step = 1" class="text-teal-600 hover:text-teal-800 text-sm">{{ __('messages.onboarding_form.edit') }}</button>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-sm">
                                     <div>
-                                        <span class="text-gray-500">Housing:</span>
-                                        <span class="text-gray-700 ml-1 capitalize" x-text="formData.housing_type?.replace('_', ' ') || 'Not selected'"></span>
+                                        <span class="text-gray-500">{{ __('messages.onboarding_form.housing_label') }}</span>
+                                        <span class="text-gray-700 ml-1 capitalize" x-text="formData.housing_type?.replace('_', ' ') || '{{ __('messages.onboarding_form.not_selected') }}'"></span>
                                     </div>
                                     <div>
-                                        <span class="text-gray-500">Phone:</span>
-                                        <span class="text-gray-700 ml-1" x-text="formData.primary_phone || 'Not provided'"></span>
+                                        <span class="text-gray-500">{{ __('messages.onboarding_form.phone_label') }}</span>
+                                        <span class="text-gray-700 ml-1" x-text="formData.primary_phone || '{{ __('messages.onboarding_form.not_provided') }}'"></span>
                                     </div>
                                 </div>
                             </div>
@@ -311,8 +311,8 @@
                             <!-- Members Summary -->
                             <div class="bg-gray-50 rounded-lg p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-medium text-gray-700">Family Members (<span x-text="members.length"></span>)</h4>
-                                    <button type="button" @click="step = 2" class="text-teal-600 hover:text-teal-800 text-sm">Edit</button>
+                                    <h4 class="font-medium text-gray-700">{{ __('messages.onboarding_form.members_summary_title') }} (<span x-text="members.length"></span>)</h4>
+                                    <button type="button" @click="step = 2" class="text-teal-600 hover:text-teal-800 text-sm">{{ __('messages.onboarding_form.edit') }}</button>
                                 </div>
                                 <div x-show="members.length > 0" class="space-y-2">
                                     <template x-for="(member, index) in members" :key="index">
@@ -324,7 +324,7 @@
                                         </div>
                                     </template>
                                 </div>
-                                <p x-show="members.length === 0" class="text-sm text-gray-500">No members added</p>
+                                <p x-show="members.length === 0" class="text-sm text-gray-500">{{ __('messages.onboarding_form.members_none') }}</p>
                             </div>
 
                             <!-- Status Notice -->
@@ -334,8 +334,8 @@
                                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                     </svg>
                                     <div>
-                                        <p class="text-sm font-medium text-yellow-800">Pending Verification</p>
-                                        <p class="text-sm text-yellow-700 mt-1">Your household will be submitted for verification. You can update your information anytime from your dashboard.</p>
+                                        <p class="text-sm font-medium text-yellow-800">{{ __('messages.onboarding_form.pending_verification_title') }}</p>
+                                        <p class="text-sm text-yellow-700 mt-1">{{ __('messages.onboarding_form.pending_verification_text') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -353,7 +353,7 @@
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
-                            Previous
+                            {{ __('messages.onboarding_form.btn_previous') }}
                         </button>
                         <div x-show="step === 0"></div>
 
@@ -364,7 +364,7 @@
                             :disabled="!canProceed"
                             class="inline-flex items-center px-4 py-2 bg-teal-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Next
+                            {{ __('messages.onboarding_form.btn_next') }}
                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
@@ -376,13 +376,13 @@
                             :disabled="submitting"
                             class="inline-flex items-center px-6 py-2 bg-teal-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-teal-700 transition disabled:opacity-50"
                         >
-                            <span x-show="!submitting">Submit Registration</span>
+                            <span x-show="!submitting">{{ __('messages.onboarding_form.btn_submit') }}</span>
                             <span x-show="submitting" class="flex items-center">
                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Submitting...
+                                {{ __('messages.onboarding_form.submitting') }}
                             </span>
                         </button>
                     </div>
@@ -398,10 +398,10 @@
                 step: 0,
                 submitting: false,
                 steps: [
-                    { title: 'Address' },
-                    { title: 'Housing' },
-                    { title: 'Members' },
-                    { title: 'Review' }
+                    { title: '{{ __('messages.onboarding_form.step_address') }}' },
+                    { title: '{{ __('messages.onboarding_form.step_housing') }}' },
+                    { title: '{{ __('messages.onboarding_form.step_members') }}' },
+                    { title: '{{ __('messages.onboarding_form.step_review') }}' }
                 ],
                 formData: {
                     region_id: '',

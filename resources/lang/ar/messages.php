@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 return [
 
@@ -177,6 +177,54 @@ return [
         'registered_at' => 'تاريخ التسجيل',
     ],
 
+    // Onboarding form
+    'onboarding_form' => [
+        'title' => 'أكمل تسجيل أسرتك',
+        'section_region_address' => 'المنطقة والعنوان',
+        'select_region' => 'اختر المنطقة',
+        'select_region_placeholder' => '-- اختر المنطقة --',
+        'full_address' => 'العنوان الكامل',
+        'full_address_placeholder' => 'اكتب العنوان بالتفصيل: الشارع، المبنى، الطابق، وغيرها',
+        'housing_contact' => 'السكن وبيانات التواصل',
+        'housing_type' => 'نوع السكن',
+        'primary_phone' => 'رقم الهاتف الأساسي',
+        'primary_phone_placeholder' => 'مثال: 0501234567',
+        'secondary_phone' => 'رقم هاتف بديل (اختياري)',
+        'secondary_phone_placeholder' => 'مثال: 0509876543',
+        'family_members_title' => 'أفراد الأسرة',
+        'add_member' => 'إضافة فرد',
+        'members_helper' => 'أضف أفراد الأسرة (زوج/ة، أطفال، والدين، إلخ). يمكن تخطي هذه الخطوة وإضافة الأفراد لاحقًا.',
+        'member_label' => 'الفرد',
+        'member_full_name' => 'الاسم الكامل',
+        'member_relation' => 'صلة القرابة',
+        'member_national_id_optional' => 'الرقم الوطني (اختياري)',
+        'member_gender' => 'الجنس',
+        'member_gender_male' => 'ذكر',
+        'member_gender_female' => 'أنثى',
+        'member_birth_date_optional' => 'تاريخ الميلاد (اختياري)',
+        'members_empty_title' => 'لا يوجد أفراد مضافون بعد',
+        'members_empty_helper' => 'اضغط "إضافة فرد" لإضافة أفراد الأسرة',
+        'review_title' => 'راجع بياناتك',
+        'address_info' => 'بيانات العنوان',
+        'edit' => 'تعديل',
+        'not_provided' => 'غير متوفر',
+        'housing_info' => 'السكن ووسائل التواصل',
+        'housing_label' => 'السكن:',
+        'phone_label' => 'الهاتف:',
+        'not_selected' => 'غير محدد',
+        'members_summary_title' => 'أفراد الأسرة',
+        'members_none' => 'لا يوجد أفراد مضافون',
+        'pending_verification_title' => 'بانتظار التحقق',
+        'pending_verification_text' => 'سيتم إرسال بيانات الأسرة للمراجعة. يمكنك تحديث المعلومات لاحقًا من لوحة التحكم.',
+        'btn_previous' => 'السابق',
+        'btn_next' => 'التالي',
+        'btn_submit' => 'تقديم التسجيل',
+        'submitting' => 'جاري الإرسال...',
+        'step_address' => 'العنوان',
+        'step_housing' => 'السكن',
+        'step_members' => 'الأفراد',
+        'step_review' => 'مراجعة',
+    ],
     // Housing types
     'housing_types' => [
         'owned' => 'ملك',
@@ -206,6 +254,8 @@ return [
         'benefit_type' => 'نوع المساعدة',
         'benefit_date' => 'تاريخ الصرف',
         'notes' => 'ملاحظات',
+        'active_hint' => 'نشط (يمكنه استلام التوزيعات)',
+        'allow_multiple' => 'السماح بأكثر من توزيع للأسرة الواحدة',
     ],
 
     // Programs (admin)
@@ -330,3 +380,5 @@ return [
     ],
 
 ];
+
+
