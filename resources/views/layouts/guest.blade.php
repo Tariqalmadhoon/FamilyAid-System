@@ -17,14 +17,14 @@
 
     <style>
         body { font-family: 'Tajawal', sans-serif; }
-        
+
         /* Page enter animation */
         @keyframes fadeSlideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-enter { animation: fadeSlideUp 0.5s ease-out forwards; }
-        
+
         /* Input focus transition */
         .input-focus-transition {
             transition: all 0.2s ease;
@@ -32,7 +32,7 @@
         .input-focus-transition:focus {
             transform: scale(1.01);
         }
-        
+
         /* Button loading */
         .btn-loading {
             position: relative;
@@ -55,7 +55,7 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
+
         /* RTL adjustments */
         [dir="rtl"] .rtl\:text-right { text-align: right; }
         [dir="rtl"] .rtl\:mr-auto { margin-right: auto; margin-left: 0; }
@@ -108,7 +108,7 @@
 
         <!-- Footer -->
         <p class="mt-8 text-sm text-slate-400 animate-enter" style="animation-delay: 0.2s;">
-            © {{ date('Y') }} {{ __('messages.app_name') }}
+            © {{ date('Y') }} {{ __('messages.app_name') }} Developed by Tariq Almadhoun
         </p>
     </div>
 
@@ -121,17 +121,17 @@
             toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium transform transition-all duration-300 translate-x-full opacity-0`;
             toast.textContent = message;
             container.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.classList.remove('translate-x-full', 'opacity-0');
             }, 10);
-            
+
             setTimeout(() => {
                 toast.classList.add('translate-x-full', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
         }
-        
+
         @if(session('success'))
             showToast('{{ session('success') }}', 'success');
         @endif

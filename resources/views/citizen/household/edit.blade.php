@@ -7,7 +7,7 @@
                 </svg>
             </a>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Update Household Information') }}
+                {{ __('messages.citizen.update_household') }}
             </h2>
         </div>
     </x-slot>
@@ -39,14 +39,14 @@
 
                     <!-- Region Select -->
                     <div class="mb-4">
-                        <label for="region_id" class="block text-sm font-medium text-gray-700 mb-1">Region <span class="text-red-500">*</span></label>
+                        <label for="region_id" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.region') }} <span class="text-red-500">*</span></label>
                         <select 
                             id="region_id" 
                             name="region_id" 
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                             required
                         >
-                            <option value="">-- Select Region --</option>
+                            <option value="">{{ __('messages.onboarding_form.select_region_placeholder') }}</option>
                             @foreach($regions as $region)
                                 <optgroup label="{{ $region->name }}">
                                     @foreach($region->children as $child)
@@ -64,13 +64,13 @@
 
                     <!-- Address -->
                     <div class="mb-4">
-                        <label for="address_text" class="block text-sm font-medium text-gray-700 mb-1">Full Address <span class="text-red-500">*</span></label>
+                        <label for="address_text" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.full_address') }} <span class="text-red-500">*</span></label>
                         <textarea 
                             id="address_text" 
                             name="address_text" 
                             rows="3"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                            placeholder="Enter your full address"
+                            placeholder="{{ __('messages.onboarding_form.full_address_placeholder') }}"
                             required
                         >{{ old('address_text', $household->address_text) }}</textarea>
                         @error('address_text')
@@ -80,7 +80,7 @@
 
                     <!-- Housing Type -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Housing Type <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('messages.onboarding_form.housing_type') }} <span class="text-red-500">*</span></label>
                         <div class="grid grid-cols-2 gap-3">
                             @foreach($housingTypes as $value => $label)
                                 <label class="relative flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition {{ old('housing_type', $household->housing_type) === $value ? 'border-teal-500 bg-teal-50' : 'border-gray-200' }}">
@@ -96,14 +96,14 @@
 
                     <!-- Primary Phone -->
                     <div class="mb-4">
-                        <label for="primary_phone" class="block text-sm font-medium text-gray-700 mb-1">Primary Phone <span class="text-red-500">*</span></label>
+                        <label for="primary_phone" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.primary_phone') }} <span class="text-red-500">*</span></label>
                         <input 
                             type="tel" 
                             id="primary_phone" 
                             name="primary_phone" 
                             value="{{ old('primary_phone', $household->primary_phone) }}"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                            placeholder="e.g., 0501234567"
+                            placeholder="{{ __('messages.onboarding_form.primary_phone_placeholder') }}"
                             required
                         >
                         @error('primary_phone')
@@ -113,24 +113,24 @@
 
                     <!-- Secondary Phone -->
                     <div class="mb-6">
-                        <label for="secondary_phone" class="block text-sm font-medium text-gray-700 mb-1">Secondary Phone (Optional)</label>
+                        <label for="secondary_phone" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.secondary_phone') }}</label>
                         <input 
                             type="tel" 
                             id="secondary_phone" 
                             name="secondary_phone" 
                             value="{{ old('secondary_phone', $household->secondary_phone) }}"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                            placeholder="e.g., 0509876543"
+                            placeholder="{{ __('messages.onboarding_form.secondary_phone_placeholder') }}"
                         >
                     </div>
 
                     <!-- Buttons -->
                     <div class="flex items-center justify-between pt-4 border-t">
                         <a href="{{ route('citizen.dashboard') }}" class="text-gray-600 hover:text-gray-800 text-sm">
-                            Cancel
+                            {{ __('messages.actions.cancel') }}
                         </a>
                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-teal-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-teal-700 transition">
-                            Save Changes
+                            {{ __('messages.actions.save') }}
                         </button>
                     </div>
                 </form>
