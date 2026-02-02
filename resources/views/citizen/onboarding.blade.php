@@ -5,15 +5,51 @@
         </h2>
     </x-slot>
 
-    <div class="py-8" x-data="onboardingWizard()">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+
+
+@php
+    $errorStep = null;
+    if ($errors->hasAny(['members', 'members.*'])) {
+        $errorStep = 2; // Step 3: members
+    } elseif ($errors->hasAny(['housing_type', 'primary_phone', 'secondary_phone', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'condition_type', 'condition_notes'])) {
+        $errorStep = 1; // Step 2: housing/contact
+    } elseif ($errors->hasAny(['region_id', 'address_text'])) {
+        $errorStep = 0; // Step 1: address
+    }
+    $initialStep = $errorStep ?? old('wizard_step', 0);
+@endphp
+
+
+<div class="py-8" x-data="onboardingWizard({ initialStep: {{ $initialStep }} })">
+        <div class="max-    w-3xl mx-auto sm:px-6 lg:px-8">
+            @if ($errors->any())
+                <div class="mb-4 p-4 bg-red-100 border border-red-200 text-red-800 rounded-lg">
+                    <p class="font-medium">
+                        @if(app()->getLocale() === 'ar')
+                            يوجد أخطاء في البيانات. تم نقلك إلى الخطوة التي تحتوي على الأخطاء.
+                        @else
+                            There are errors in your input. You have been taken to the step containing the errors.
+                        @endif
+                    </p>
+                </div>
+            @endif
             <!-- Progress Steps -->
             <div class="mb-8 px-4">
                 <div class="flex items-center justify-between">
                     <template x-for="(stepInfo, index) in steps" :key="index">
                         <div class="flex items-center" :class="index < steps.length - 1 ? 'flex-1' : ''">
                             <div class="flex items-center">
-                                <div 
+                                <div
                                     class="flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all duration-300"
                                     :class="step > index ? 'bg-teal-600 text-white' : (step === index ? 'bg-teal-600 text-white ring-4 ring-teal-200' : 'bg-gray-200 text-gray-600')"
                                 >
@@ -32,11 +68,12 @@
 
             <!-- Form Container -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <form method="POST" action="{{ route('citizen.onboarding.store') }}" @submit="handleSubmit">
+                <form method="POST" action="{{ route('citizen.onboarding.store') }}" @submit="handleSubmit" novalidate>
                     @csrf
+                    <input type="hidden" name="wizard_step" x-model="step">
 
                     <!-- Step 1: Region & Address -->
-                    <div 
+                    <div
                         x-show="step === 0"
                         x-transition:enter="transition ease-out duration-300"
                         x-transition:enter-start="opacity-0 transform translate-x-4"
@@ -51,9 +88,9 @@
                         <!-- Region Select -->
                         <div class="mb-4">
                             <label for="region_id" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.select_region') }} <span class="text-red-500">*</span></label>
-                            <select 
-                                id="region_id" 
-                                name="region_id" 
+                            <select
+                                id="region_id"
+                                name="region_id"
                                 x-model="formData.region_id"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                 required
@@ -62,7 +99,7 @@
                                 @foreach($regions as $region)
                                     <optgroup label="{{ $region->name }}">
                                         @foreach($region->children as $child)
-                                            <option value="{{ $child->id }}">{{ $child->name }}</option>
+                                            <option value="{{ $child->id }}" @selected($prefill['region_id'] == $child->id)>{{ $child->name }}</option>
                                         @endforeach
                                     </optgroup>
                                 @endforeach
@@ -75,9 +112,9 @@
                         <!-- Address -->
                         <div class="mb-4">
                             <label for="address_text" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.full_address') }} <span class="text-red-500">*</span></label>
-                            <textarea 
-                                id="address_text" 
-                                name="address_text" 
+                            <textarea
+                                id="address_text"
+                                name="address_text"
                                 x-model="formData.address_text"
                                 rows="3"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
@@ -91,7 +128,7 @@
                     </div>
 
                     <!-- Step 2: Housing & Contact -->
-                    <div 
+                    <div
                         x-show="step === 1"
                         x-transition:enter="transition ease-out duration-300"
                         x-transition:enter-start="opacity-0 transform translate-x-4"
@@ -123,14 +160,18 @@
                         <!-- Primary Phone -->
                         <div class="mb-4">
                             <label for="primary_phone" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.primary_phone') }} <span class="text-red-500">*</span></label>
-                            <input 
-                                type="tel" 
-                                id="primary_phone" 
-                                name="primary_phone" 
+                            <input
+                                type="tel"
+                                id="primary_phone"
+                                name="primary_phone"
                                 x-model="formData.primary_phone"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                 placeholder="{{ __('messages.onboarding_form.primary_phone_placeholder') }}"
                                 required
+                                maxlength="10"
+                                inputmode="numeric"
+                                pattern="[0-9]{10}"
+                                @input="filterDigits($event, 10)"
                             >
                             @error('primary_phone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -140,19 +181,70 @@
                         <!-- Secondary Phone -->
                         <div class="mb-4">
                             <label for="secondary_phone" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.secondary_phone') }}</label>
-                            <input 
-                                type="tel" 
-                                id="secondary_phone" 
-                                name="secondary_phone" 
+                            <input
+                                type="tel"
+                                id="secondary_phone"
+                                name="secondary_phone"
                                 x-model="formData.secondary_phone"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                 placeholder="{{ __('messages.onboarding_form.secondary_phone_placeholder') }}"
+                                maxlength="10"
+                                inputmode="numeric"
+                                @input="filterDigits($event, 10)"
                             >
+                        </div>
+
+                        <!-- Household Health -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                            <input type="hidden" name="has_war_injury" value="0">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="has_war_injury" value="1" @change="handleHouseholdHealthToggle" x-model="formData.has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">{{ __('messages.health.has_war_injury') }}</span>
+                            </label>
+                            <input type="hidden" name="has_chronic_disease" value="0">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="has_chronic_disease" value="1" @change="handleHouseholdHealthToggle" x-model="formData.has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">{{ __('messages.health.has_chronic_disease') }}</span>
+                            </label>
+                            <input type="hidden" name="has_disability" value="0">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="has_disability" value="1" @change="handleHouseholdHealthToggle" x-model="formData.has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">{{ __('messages.health.has_disability') }}</span>
+                            </label>
+                        </div>
+
+                        <div class="mt-4" x-show="householdNeedsCondition || fieldError('condition_type')" x-transition x-effect="if (!householdNeedsCondition) { formData.condition_type = ''; }">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('messages.health.condition_type') }}
+                                <span class="text-red-500" x-show="householdNeedsCondition">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="condition_type"
+                                x-model="formData.condition_type"
+                                :disabled="!householdNeedsCondition"
+                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                :class="fieldError('condition_type') ? 'border-red-300' : 'border-gray-300'"
+                                placeholder="{{ __('messages.health.condition_type_placeholder') }}"
+                            >
+                            <p class="mt-1 text-sm text-red-600" x-show="fieldError('condition_type')" x-text="fieldError('condition_type')"></p>
+                            <p class="mt-1 text-xs text-gray-500" x-show="householdNeedsCondition">{{ __('Required when any health condition is selected.') }}</p>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_notes') }}</label>
+                            <textarea
+                                name="condition_notes"
+                                x-model="formData.condition_notes"
+                                rows="2"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                placeholder="{{ __('messages.health.condition_notes_placeholder') }}"
+                            ></textarea>
                         </div>
                     </div>
 
                     <!-- Step 3: Family Members -->
-                    <div 
+                    <div
                         x-show="step === 2"
                         x-transition:enter="transition ease-out duration-300"
                         x-transition:enter-start="opacity-0 transform translate-x-4"
@@ -164,8 +256,8 @@
                     >
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-lg font-medium text-gray-900">{{ __('messages.onboarding_form.family_members_title') }}</h3>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 @click="addMember"
                                 class="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition text-sm font-medium"
                             >
@@ -181,8 +273,9 @@
                         <!-- Members List -->
                         <div class="space-y-4">
                             <template x-for="(member, index) in members" :key="index">
-                                <div 
-                                    class="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                                <div
+                                    class="border rounded-lg p-4"
+                                    :class="fieldError(`members.${index}.full_name`) || fieldError(`members.${index}.relation_to_head`) || fieldError(`members.${index}.national_id`) || fieldError(`members.${index}.birth_date`) ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'"
                                     x-transition:enter="transition ease-out duration-200"
                                     x-transition:enter-start="opacity-0 transform scale-95"
                                     x-transition:enter-end="opacity-100 transform scale-100"
@@ -199,21 +292,24 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_full_name') }} <span class="text-red-500">*</span></label>
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 :name="'members[' + index + '][full_name]'"
                                                 x-model="member.full_name"
-                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError(`members.${index}.full_name`) ? 'border-red-300' : 'border-gray-300'"
                                                 placeholder="{{ __('messages.onboarding_form.member_full_name') }}"
                                                 required
                                             >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.full_name`)" x-text="fieldError(`members.${index}.full_name`)"></p>
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_relation') }} <span class="text-red-500">*</span></label>
-                                            <select 
+                                            <select
                                                 :name="'members[' + index + '][relation_to_head]'"
                                                 x-model="member.relation_to_head"
-                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError(`members.${index}.relation_to_head`) ? 'border-red-300' : 'border-gray-300'"
                                                 required
                                             >
                                                 <option value="">{{ __('messages.actions.select') }}</option>
@@ -221,20 +317,26 @@
                                                     <option value="{{ $value }}">{{ $label }}</option>
                                                 @endforeach
                                             </select>
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.relation_to_head`)" x-text="fieldError(`members.${index}.relation_to_head`)"></p>
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_national_id_optional') }}</label>
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 :name="'members[' + index + '][national_id]'"
                                                 x-model="member.national_id"
-                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError(`members.${index}.national_id`) ? 'border-red-300' : 'border-gray-300'"
                                                 placeholder="{{ __('messages.onboarding_form.member_national_id_optional') }}"
+                                                maxlength="9"
+                                                inputmode="numeric"
+                                                @input="filterDigits($event, 9)"
                                             >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.national_id`)" x-text="fieldError(`members.${index}.national_id`)"></p>
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_gender') }}</label>
-                                            <select 
+                                            <select
                                                 :name="'members[' + index + '][gender]'"
                                                 x-model="member.gender"
                                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
@@ -246,12 +348,57 @@
                                         </div>
                                         <div class="sm:col-span-2">
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_birth_date_optional') }}</label>
-                                            <input 
-                                                type="date" 
+                                            <input
+                                                type="date"
                                                 :name="'members[' + index + '][birth_date]'"
                                                 x-model="member.birth_date"
-                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError(`members.${index}.birth_date`) ? 'border-red-300' : 'border-gray-300'"
                                             >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.birth_date`)" x-text="fieldError(`members.${index}.birth_date`)"></p>
+                                        </div>
+                                        <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            <input type="hidden" :name="'members[' + index + '][has_war_injury]'" value="0">
+                                            <label class="flex items-center gap-2 text-xs text-gray-700">
+                                                <input type="checkbox" value="1" :name="'members[' + index + '][has_war_injury]'" @change="handleMemberHealthToggle(member)" x-model="member.has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <span>{{ __('messages.health.has_war_injury') }}</span>
+                                            </label>
+                                            <input type="hidden" :name="'members[' + index + '][has_chronic_disease]'" value="0">
+                                            <label class="flex items-center gap-2 text-xs text-gray-700">
+                                                <input type="checkbox" value="1" :name="'members[' + index + '][has_chronic_disease]'" @change="handleMemberHealthToggle(member)" x-model="member.has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <span>{{ __('messages.health.has_chronic_disease') }}</span>
+                                            </label>
+                                            <input type="hidden" :name="'members[' + index + '][has_disability]'" value="0">
+                                            <label class="flex items-center gap-2 text-xs text-gray-700">
+                                                <input type="checkbox" value="1" :name="'members[' + index + '][has_disability]'" @change="handleMemberHealthToggle(member)" x-model="member.has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <span>{{ __('messages.health.has_disability') }}</span>
+                                            </label>
+                                        </div>
+                                        <div x-show="memberNeedsCondition(member) || fieldError(`members.${index}.condition_type`)" x-transition x-effect="if (!memberNeedsCondition(member)) { member.condition_type = ''; }">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                {{ __('messages.health.condition_type') }}
+                                                <span class="text-red-500" x-show="memberNeedsCondition(member)">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                :name="'members[' + index + '][condition_type]'"
+                                                x-model="member.condition_type"
+                                                :disabled="!memberNeedsCondition(member)"
+                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError(`members.${index}.condition_type`) ? 'border-red-300' : 'border-gray-300'"
+                                                placeholder="{{ __('messages.health.condition_type_placeholder') }}"
+                                            >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.condition_type`)" x-text="fieldError(`members.${index}.condition_type`)"></p>
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.health.condition_notes') }}</label>
+                                            <textarea
+                                                :name="'members[' + index + '][health_notes]'"
+                                                x-model="member.health_notes"
+                                                rows="2"
+                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                placeholder="{{ __('messages.health.condition_notes_placeholder') }}"
+                                            ></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -268,7 +415,7 @@
                     </div>
 
                     <!-- Step 4: Review -->
-                    <div 
+                    <div
                         x-show="step === 3"
                         x-transition:enter="transition ease-out duration-300"
                         x-transition:enter-start="opacity-0 transform translate-x-4"
@@ -344,8 +491,8 @@
 
                     <!-- Navigation Buttons -->
                     <div class="px-6 py-4 bg-gray-50 border-t flex justify-between">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="prevStep"
                             x-show="step > 0"
                             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
@@ -357,8 +504,8 @@
                         </button>
                         <div x-show="step === 0"></div>
 
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="nextStep"
                             x-show="step < 3"
                             :disabled="!canProceed"
@@ -370,8 +517,8 @@
                             </svg>
                         </button>
 
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             x-show="step === 3"
                             :disabled="submitting"
                             class="inline-flex items-center px-6 py-2 bg-teal-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-teal-700 transition disabled:opacity-50"
@@ -393,10 +540,11 @@
 
     @push('scripts')
     <script>
-        function onboardingWizard() {
+        function onboardingWizard(config = {}) {
             return {
-                step: 0,
+                step: Number(config.initialStep ?? 0),
                 submitting: false,
+                errors: @json($errors->getMessages()),
                 steps: [
                     { title: '{{ __('messages.onboarding_form.step_address') }}' },
                     { title: '{{ __('messages.onboarding_form.step_housing') }}' },
@@ -404,20 +552,55 @@
                     { title: '{{ __('messages.onboarding_form.step_review') }}' }
                 ],
                 formData: {
-                    region_id: '',
-                    address_text: '',
-                    housing_type: '',
-                    primary_phone: '',
-                    secondary_phone: ''
+                    region_id: '{{ $prefill['region_id'] }}',
+                    address_text: @json($prefill['address_text']),
+                    housing_type: '{{ $prefill['housing_type'] }}',
+                    primary_phone: '{{ $prefill['primary_phone'] }}',
+                    secondary_phone: '{{ $prefill['secondary_phone'] }}',
+                    has_war_injury: Boolean({{ $prefill['has_war_injury'] ? 'true' : 'false' }}),
+                    has_chronic_disease: Boolean({{ $prefill['has_chronic_disease'] ? 'true' : 'false' }}),
+                    has_disability: Boolean({{ $prefill['has_disability'] ? 'true' : 'false' }}),
+                    condition_type: @json($prefill['condition_type']),
+                    condition_notes: @json($prefill['condition_notes'])
                 },
-                members: [],
+                members: @json($prefill['members']),
+
+                fieldError(key) {
+                    const messages = this.errors[key];
+                    if (messages && messages.length) {
+                        return messages[0];
+                    }
+                    return '';
+                },
+
+                get householdNeedsCondition() {
+                    return this.formData.has_war_injury || this.formData.has_chronic_disease || this.formData.has_disability;
+                },
 
                 get canProceed() {
                     if (this.step === 0) {
                         return this.formData.region_id && this.formData.address_text;
                     }
                     if (this.step === 1) {
-                        return this.formData.housing_type && this.formData.primary_phone;
+                        const digits = (this.formData.primary_phone || '').replace(/\\D/g, '');
+                        const needsCondition = this.householdNeedsCondition;
+                        const hasConditionText = (this.formData.condition_type || '').trim().length > 0;
+                        return this.formData.housing_type && digits.length === 10 && (!needsCondition || hasConditionText);
+                    }
+                    if (this.step === 2) {
+                        if (this.members.length === 0) return true;
+                        return this.members.every(member => {
+                            const eastern = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+                            const western = ['0','1','2','3','4','5','6','7','8','9'];
+                            const idDigits = (member.national_id || '').split('').map(ch => {
+                                const idx = eastern.indexOf(ch);
+                                return idx !== -1 ? western[idx] : ch;
+                            }).join('').replace(/\\D/g, '');
+                            return member.full_name
+                                && member.relation_to_head
+                                && (!member.national_id || idDigits.length === 9)
+                                && (!this.memberNeedsCondition(member) || (member.condition_type || '').trim().length > 0);
+                        });
                     }
                     return true;
                 },
@@ -440,7 +623,12 @@
                         national_id: '',
                         relation_to_head: '',
                         gender: '',
-                        birth_date: ''
+                        birth_date: '',
+                        has_war_injury: false,
+                        has_chronic_disease: false,
+                        has_disability: false,
+                        condition_type: '',
+                        health_notes: ''
                     });
                 },
 
@@ -448,8 +636,62 @@
                     this.members.splice(index, 1);
                 },
 
+                memberNeedsCondition(member) {
+                    return !!(member.has_war_injury || member.has_chronic_disease || member.has_disability);
+                },
+
+                handleHouseholdHealthToggle() {
+                    if (!this.householdNeedsCondition) {
+                        this.formData.condition_type = '';
+                    }
+                },
+
+                handleMemberHealthToggle(member) {
+                    if (!this.memberNeedsCondition(member)) {
+                        member.condition_type = '';
+                    }
+                },
+
                 handleSubmit(e) {
+                    if (this.submitting) {
+                        e.preventDefault();
+                        return;
+                    }
                     this.submitting = true;
+                    // normalize member IDs to western digits before submit; drop invalid optional IDs
+                    const eastern = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+                    const western = ['0','1','2','3','4','5','6','7','8','9'];
+                    const normalize = (val) => {
+                        if (!val) return '';
+                        return val.split('').map(ch => {
+                            const idx = eastern.indexOf(ch);
+                            return idx !== -1 ? western[idx] : ch;
+                        }).join('');
+                    };
+                    this.members = this.members.map(member => {
+                        const cleaned = normalize(member.national_id).replace(/\\D/g, '');
+                        return {
+                            ...member,
+                            national_id: cleaned.length === 9 ? cleaned : '',
+                        };
+                    });
+                },
+
+                filterDigits(event, max) {
+                    const eastern = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+                    const western = ['0','1','2','3','4','5','6','7','8','9'];
+                    const normalized = event.target.value.split('').map(ch => {
+                        const idx = eastern.indexOf(ch);
+                        return idx !== -1 ? western[idx] : ch;
+                    }).join('');
+                    const digits = normalized.replace(/\\D/g, '').slice(0, max);
+                    event.target.value = digits;
+                    if (event.target.id === 'primary_phone') this.formData.primary_phone = digits;
+                    if (event.target.id === 'secondary_phone') this.formData.secondary_phone = digits;
+                    if (event.target.name?.includes('[national_id]')) {
+                        const idx = Number(event.target.name.match(/members\\[(\\d+)\\]/)[1]);
+                        this.members[idx].national_id = digits;
+                    }
                 }
             }
         }

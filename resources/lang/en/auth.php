@@ -24,20 +24,27 @@ return [
     // Form labels
     'national_id' => 'National ID',
     'name' => 'Full Name',
+    'first_name' => 'First Name',
+    'father_name' => 'Father Name',
+    'grandfather_name' => 'Grandfather Name',
+    'last_name' => 'Last Name',
     'phone' => 'Phone Number',
+    'national_id_hint' => 'National ID must be exactly 9 digits.',
+    'phone_hint' => 'Phone number must be exactly 10 digits.',
     'password_label' => 'Password',
     'password_confirmation' => 'Confirm Password',
-    'security_question' => 'Security Question',
-    'security_answer' => 'Security Answer',
-    
-    // Security questions
-    'questions' => [
-        'mother_maiden_name' => 'What is your mother\'s maiden name?',
-        'first_school' => 'What is the name of your first school?',
-        'birth_city' => 'In which city were you born?',
-        'favorite_teacher' => 'What is the name of your favorite teacher?',
-        'childhood_friend' => 'What is the name of your childhood friend?',
-    ],
+
+    // Password strength (UX only)
+    'strength_weak' => 'Weak',
+    'strength_fair' => 'Fair',
+    'strength_ok' => 'Okay',
+    'strength_good' => 'Good',
+    'strength_strong' => 'Strong',
+    'strength_hint_basic' => 'Add more characters to strengthen.',
+    'strength_hint_numbers' => 'Add numbers for better strength.',
+    'strength_hint_upper' => 'Mix upper and lower case letters.',
+    'strength_hint_symbols' => 'Add a symbol for a stronger password.',
+    'strength_hint_strong' => 'Looking strong!',
     
     // Buttons
     'login_btn' => 'Login',
@@ -53,8 +60,14 @@ return [
     'no_account' => 'Don\'t have an account?',
     'have_account' => 'Already have an account?',
     'enter_national_id' => 'Enter your National ID',
-    'answer_security' => 'Answer your security question',
+    'enter_phone_or_id' => 'Enter your National ID or phone',
+    'enter_otp' => 'Enter the code we sent to your phone',
     'set_new_password' => 'Enter your new password',
+    'send_code' => 'Send Code',
+    'resend_code' => 'Resend Code',
+    'code_sent' => 'A verification code has been sent.',
+    'code_invalid' => 'Invalid or expired code.',
+    'otp_placeholder' => '6-digit code',
     
     // Success/Error
     'login_success' => 'Logged in successfully!',

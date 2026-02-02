@@ -18,25 +18,11 @@ use Illuminate\View\View;
 class RegisteredUserController extends Controller
 {
     /**
-     * Security questions for password reset.
-     */
-    public static array $securityQuestions = [
-        'What is your mother\'s maiden name?',
-        'What was the name of your first pet?',
-        'What city were you born in?',
-        'What is your favorite book?',
-        'What was the name of your elementary school?',
-        'What is your father\'s middle name?',
-    ];
-
-    /**
      * Display the registration view.
      */
     public function create(): View
     {
-        return view('auth.register', [
-            'securityQuestions' => self::$securityQuestions,
-        ]);
+        return view('auth.register');
     }
 
     /**
@@ -46,13 +32,16 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $this->normalizeNumericInputs($request);
+
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'min:3'],
-            'national_id' => ['required', 'string', 'max:20', 'unique:users,national_id'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'first_name' => ['required', 'string', 'max:120', 'min:2'],
+            'father_name' => ['nullable', 'string', 'max:120'],
+            'grandfather_name' => ['nullable', 'string', 'max:120'],
+            'last_name' => ['required', 'string', 'max:120', 'min:2'],
+            'national_id' => ['required', 'digits:9', 'unique:users,national_id'],
+            'phone' => ['required', 'digits:10'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'security_question' => ['required', 'string', 'max:255'],
-            'security_answer' => ['required', 'string', 'min:2', 'max:100'],
             // Honeypot field - should be empty
             'website' => ['nullable', 'max:0'],
         ]);
@@ -67,13 +56,23 @@ class RegisteredUserController extends Controller
         cache()->put($key, cache()->get($key, 0) + 1, now()->addHour());
 
         $user = DB::transaction(function () use ($request) {
+            $fullName = collect([
+                $request->first_name,
+                $request->father_name,
+                $request->grandfather_name,
+                $request->last_name,
+            ])->filter()->implode(' ');
+            $phone = preg_replace('/\D/', '', $request->phone);
+
             $user = User::create([
-                'name' => $request->name,
+                'name' => $fullName,
+                'first_name' => $request->first_name,
+                'father_name' => $request->father_name,
+                'grandfather_name' => $request->grandfather_name,
+                'last_name' => $request->last_name,
                 'national_id' => $request->national_id,
-                'phone' => $request->phone,
+                'phone' => $phone,
                 'password' => Hash::make($request->password),
-                'security_question' => $request->security_question,
-                'security_answer_hash' => Hash::make(strtolower(trim($request->security_answer))),
                 'is_staff' => false,
             ]);
 
@@ -89,5 +88,23 @@ class RegisteredUserController extends Controller
 
         // Redirect to onboarding wizard since household is not yet created
         return redirect()->route('citizen.onboarding');
+    }
+
+    /**
+     * Convert Arabic-Indic digits to western digits for numeric fields.
+     */
+    protected function normalizeNumericInputs(Request $request): void
+    {
+        $convert = function (?string $value): ?string {
+            if ($value === null) return null;
+            $eastern = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            $western = ['0','1','2','3','4','5','6','7','8','9'];
+            return str_replace($eastern, $western, $value);
+        };
+
+        $request->merge([
+            'national_id' => $convert($request->input('national_id')),
+            'phone' => $convert($request->input('phone')),
+        ]);
     }
 }

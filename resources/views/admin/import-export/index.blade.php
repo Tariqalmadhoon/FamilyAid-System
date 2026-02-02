@@ -56,7 +56,8 @@
 
                     <div class="space-y-4">
                         <!-- Export Households -->
-                        <form action="{{ route('admin.import-export.export-households') }}" method="GET" class="border-b pb-4">
+                        <form action="/direct-export.php" method="GET" class="border-b pb-4">
+                            <input type="hidden" name="type" value="households">
                             <p class="text-sm font-medium text-gray-700 mb-2">{{ __('messages.import_export.export_households') }}</p>
                             <div class="grid grid-cols-2 gap-2 mb-2">
                                 <select name="status" class="text-sm rounded-md border-gray-300">
@@ -77,7 +78,8 @@
                         </form>
 
                         <!-- Export Distributions -->
-                        <form action="{{ route('admin.import-export.export-distributions') }}" method="GET">
+                        <form action="/direct-export.php" method="GET">
+                            <input type="hidden" name="type" value="distributions">
                             <p class="text-sm font-medium text-gray-700 mb-2">{{ __('messages.import_export.export_distributions') }}</p>
                             <div class="grid grid-cols-2 gap-2 mb-2">
                                 <input type="date" name="from_date" class="text-sm rounded-md border-gray-300" placeholder="{{ __('messages.import_export.from_date') }}">

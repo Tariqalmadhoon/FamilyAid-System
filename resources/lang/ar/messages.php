@@ -24,6 +24,7 @@ return [
 
     // Actions
     'actions' => [
+        'title' => 'الإجراءات',
         'save' => 'حفظ',
         'cancel' => 'إلغاء',
         'delete' => 'حذف',
@@ -35,6 +36,7 @@ return [
         'search' => 'بحث',
         'filter' => 'تصفية',
         'clear' => 'مسح',
+        'reset' => 'إعادة تعيين',
         'export' => 'تصدير',
         'import' => 'استيراد',
         'download' => 'تنزيل',
@@ -171,8 +173,10 @@ return [
         'region' => 'المنطقة',
         'address' => 'العنوان',
         'housing_type' => 'نوع السكن',
+        'primary_phone' => 'الهاتف الأساسي',
         'phone' => 'رقم الهاتف',
         'members' => 'أفراد الأسرة',
+        'no_members' => 'لا يوجد أفراد مضافة',
         'members_count' => 'عدد الأفراد',
         'registered_at' => 'تاريخ التسجيل',
     ],
@@ -227,10 +231,10 @@ return [
     ],
     // Housing types
     'housing_types' => [
-        'owned' => 'ملك',
-        'rented' => 'مستأجر',
-        'family_hosted' => 'مستضاف لدى العائلة',
-        'other' => 'أخرى',
+        'owned' => 'بيت ملك',
+        'rented' => 'بيت اجار',
+        'family_hosted' => 'خيمة',
+        'other' => 'اخرى',
     ],
 
     // Relations
@@ -279,11 +283,13 @@ return [
     // Households (admin)
     'households_admin' => [
         'title' => 'الأسر',
+        'details' => 'تفاصيل الأسرة',
         'add' => 'إضافة أسرة',
         'search_placeholder' => 'ابحث بالاسم أو الرقم...',
         'all_status' => 'كل الحالات',
         'all_regions' => 'كل المناطق',
         'all_housing' => 'كل أنواع السكن',
+        'filters_active_notice' => 'هناك فلاتر مفعّلة قد تخفي التسجيلات المعلقة. امسح الفلاتر لعرض كل الأسر.',
         'table' => [
             'head' => 'اسم رب الأسرة',
             'national_id' => 'الرقم الوطني',
@@ -294,12 +300,17 @@ return [
         ],
         'no_results' => 'لا توجد أسر',
         'record_distribution' => 'تسجيل توزيع',
+        'verify' => 'توثيق الأسرة',
+        'pending_users_title' => 'تسجيلات المواطنين المعلقة (بدون أسرة بعد)',
+        'pending_users_hint' => 'هذه الحسابات سجّلت ولم تكمل بيانات الأسرة. قم بالتواصل أو استكمال التسجيل لتظهر في القائمة الرئيسية.',
     ],
 
     // Distributions
     'distributions' => [
         'title' => 'التوزيعات',
         'record' => 'تسجيل توزيع',
+        'history' => 'سجل التوزيعات',
+        'none' => 'لا يوجد توزيعات بعد',
         'search_placeholder' => 'ابحث عن أسرة...',
         'all_programs' => 'كل البرامج',
         'from_date' => 'من',
@@ -313,6 +324,13 @@ return [
         ],
         'no_results' => 'لا توجد توزيعات',
         'delete_confirm' => 'حذف هذا التوزيع؟',
+    ],
+
+    // Timeline
+    'timeline' => [
+        'title' => 'السجل الزمني',
+        'created' => 'تم الإنشاء في',
+        'updated' => 'آخر تحديث',
     ],
 
     // Tracking table
@@ -365,6 +383,7 @@ return [
             'status' => 'الحالة',
             'members_count' => 'عدد الأفراد',
             'member_names' => 'أسماء الأعضاء',
+            'member_health' => 'حالات الأعضاء الصحية',
             'registered_date' => 'تاريخ التسجيل',
         ],
         'distributions' => [
@@ -379,6 +398,26 @@ return [
         ],
     ],
 
+    // Health Conditions
+    'health' => [
+        'section_title' => 'الحالات الصحية والخاصة',
+        'war_injury' => 'إصابة حرب',
+        'chronic_disease' => 'مرض مزمن',
+        'disability' => 'إعاقة',
+        'condition_notes' => 'ملاحظات الحالة',
+        'condition_notes_placeholder' => 'أي تفاصيل إضافية عن الحالة الصحية...',
+        'condition_type' => 'نوع المرض/الحالة',
+        'condition_type_placeholder' => 'مثال: سكري، إعاقة حركية',
+        'has_war_injury' => 'يوجد مصاب حرب',
+        'has_chronic_disease' => 'يوجد مريض مزمن',
+        'has_disability' => 'يوجد إعاقة',
+    ],
+
+    // Child Age Filter
+    'child_filter' => [
+        'has_child_under_2' => 'يوجد طفل أقل من سنتين',
+        'has_child_under_months' => 'يوجد طفل أقل من :months شهر',
+        'child_age_months' => 'عمر الطفل (بالأشهر)',
+    ],
+
 ];
-
-

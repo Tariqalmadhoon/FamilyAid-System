@@ -24,43 +24,72 @@
 
             <!-- Filters -->
             <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-                <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div>
-                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="{{ __('messages.households_admin.search_placeholder') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                @if($hasActiveFilters)
+                    <div class="mb-3 p-3 rounded-md bg-yellow-50 text-yellow-800 text-sm flex items-center justify-between">
+                        <span>{{ __('messages.households_admin.filters_active_notice') }}</span>
+                        <a href="{{ route('admin.households.index') }}" class="text-yellow-900 underline hover:text-yellow-700">{{ __('messages.actions.clear') }}</a>
                     </div>
-                    <div>
-                        <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
-                            <option value="">{{ __('messages.households_admin.all_status') }}</option>
-                            <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>{{ __('messages.status.pending') }}</option>
-                            <option value="verified" {{ ($filters['status'] ?? '') === 'verified' ? 'selected' : '' }}>{{ __('messages.status.verified') }}</option>
-                            <option value="suspended" {{ ($filters['status'] ?? '') === 'suspended' ? 'selected' : '' }}>{{ __('messages.status.suspended') }}</option>
-                            <option value="rejected" {{ ($filters['status'] ?? '') === 'rejected' ? 'selected' : '' }}>{{ __('messages.status.rejected') }}</option>
-                        </select>
+                @endif
+                <form method="GET" class="space-y-4">
+                    <!-- Row 1: Search, Status, Region, Housing -->
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div>
+                            <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="{{ __('messages.households_admin.search_placeholder') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                        </div>
+                        <div>
+                            <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                                <option value="">{{ __('messages.households_admin.all_status') }}</option>
+                                <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>{{ __('messages.status.pending') }}</option>
+                                <option value="verified" {{ ($filters['status'] ?? '') === 'verified' ? 'selected' : '' }}>{{ __('messages.status.verified') }}</option>
+                                <option value="suspended" {{ ($filters['status'] ?? '') === 'suspended' ? 'selected' : '' }}>{{ __('messages.status.suspended') }}</option>
+                                <option value="rejected" {{ ($filters['status'] ?? '') === 'rejected' ? 'selected' : '' }}>{{ __('messages.status.rejected') }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select name="region_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                                <option value="">{{ __('messages.households_admin.all_regions') }}</option>
+                                @foreach($regions as $region)
+                                    <optgroup label="{{ $region->name }}">
+                                        @foreach($region->children as $child)
+                                            <option value="{{ $child->id }}" {{ ($filters['region_id'] ?? '') == $child->id ? 'selected' : '' }}>{{ $child->name }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <select name="housing_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                                <option value="">{{ __('messages.households_admin.all_housing') }}</option>
+                                <option value="owned" {{ ($filters['housing_type'] ?? '') === 'owned' ? 'selected' : '' }}>{{ __('messages.housing_types.owned') }}</option>
+                                <option value="rented" {{ ($filters['housing_type'] ?? '') === 'rented' ? 'selected' : '' }}>{{ __('messages.housing_types.rented') }}</option>
+                                <option value="family_hosted" {{ ($filters['housing_type'] ?? '') === 'family_hosted' ? 'selected' : '' }}>{{ __('messages.housing_types.family_hosted') }}</option>
+                                <option value="other" {{ ($filters['housing_type'] ?? '') === 'other' ? 'selected' : '' }}>{{ __('messages.housing_types.other') }}</option>
+                            </select>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button type="submit" class="flex-1 bg-teal-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-teal-700 transition">{{ __('messages.actions.filter') }}</button>
+                            <a href="{{ route('admin.households.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition">{{ __('messages.actions.clear') }}</a>
+                        </div>
                     </div>
-                    <div>
-                        <select name="region_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
-                            <option value="">{{ __('messages.households_admin.all_regions') }}</option>
-                            @foreach($regions as $region)
-                                <optgroup label="{{ $region->name }}">
-                                    @foreach($region->children as $child)
-                                        <option value="{{ $child->id }}" {{ ($filters['region_id'] ?? '') == $child->id ? 'selected' : '' }}>{{ $child->name }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <select name="housing_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
-                            <option value="">{{ __('messages.households_admin.all_housing') }}</option>
-                            <option value="owned" {{ ($filters['housing_type'] ?? '') === 'owned' ? 'selected' : '' }}>{{ __('messages.housing_types.owned') }}</option>
-                            <option value="rented" {{ ($filters['housing_type'] ?? '') === 'rented' ? 'selected' : '' }}>{{ __('messages.housing_types.rented') }}</option>
-                            <option value="family_hosted" {{ ($filters['housing_type'] ?? '') === 'family_hosted' ? 'selected' : '' }}>{{ __('messages.housing_types.family_hosted') }}</option>
-                            <option value="other" {{ ($filters['housing_type'] ?? '') === 'other' ? 'selected' : '' }}>{{ __('messages.housing_types.other') }}</option>
-                        </select>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button type="submit" class="flex-1 bg-teal-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-teal-700 transition">{{ __('messages.actions.filter') }}</button>
-                        <a href="{{ route('admin.households.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">{{ __('messages.actions.clear') }}</a>
+                    
+                    <!-- Row 2: Health & Child Filters -->
+                    <div class="flex flex-wrap gap-4 pt-2 border-t border-gray-100">
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                            <input type="checkbox" name="has_war_injury" value="1" {{ ($filters['has_war_injury'] ?? '') ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                            <span>{{ __('messages.health.has_war_injury') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                            <input type="checkbox" name="has_chronic_disease" value="1" {{ ($filters['has_chronic_disease'] ?? '') ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                            <span>{{ __('messages.health.has_chronic_disease') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                            <input type="checkbox" name="has_disability" value="1" {{ ($filters['has_disability'] ?? '') ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                            <span>{{ __('messages.health.has_disability') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer {{ app()->getLocale() === 'ar' ? 'mr-auto' : 'ml-auto' }}">
+                            <input type="checkbox" name="has_child_under_2" value="1" {{ ($filters['has_child_under_2'] ?? '') ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-blue-700 font-medium">{{ __('messages.child_filter.has_child_under_2') }}</span>
+                        </label>
                     </div>
                 </form>
             </div>
@@ -89,14 +118,25 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $household->region->name ?? '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $household->members->count() }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 text-xs rounded-full
-                                            @if($household->status === 'verified') bg-green-100 text-green-800
-                                            @elseif($household->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @elseif($household->status === 'suspended') bg-red-100 text-red-800
-                                            @else bg-gray-100 text-gray-800
-                                            @endif">
-                                            {{ __('messages.status.' . $household->status) }}
-                                        </span>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="px-2 py-1 text-xs rounded-full
+                                                @if($household->status === 'verified') bg-green-100 text-green-800
+                                                @elseif($household->status === 'pending') bg-yellow-100 text-yellow-800
+                                                @elseif($household->status === 'suspended') bg-red-100 text-red-800
+                                                @else bg-gray-100 text-gray-800
+                                                @endif">
+                                                {{ __('messages.status.' . $household->status) }}
+                                            </span>
+                                            @if($household->has_war_injury)
+                                                <span class="px-1.5 py-0.5 text-xs rounded bg-orange-100 text-orange-700" title="{{ __('messages.health.war_injury') }}">🩹</span>
+                                            @endif
+                                            @if($household->has_chronic_disease)
+                                                <span class="px-1.5 py-0.5 text-xs rounded bg-purple-100 text-purple-700" title="{{ __('messages.health.chronic_disease') }}">💊</span>
+                                            @endif
+                                            @if($household->has_disability)
+                                                <span class="px-1.5 py-0.5 text-xs rounded bg-blue-100 text-blue-700" title="{{ __('messages.health.disability') }}">♿</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                         <div class="flex items-center justify-end space-x-2">
@@ -138,6 +178,38 @@
                     </div>
                 @endif
             </div>
+
+            <!-- Pending users without households -->
+            @if(! $hasActiveFilters && isset($pendingUsers) && $pendingUsers->count())
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden mt-6">
+                    <div class="p-4 border-b flex items-center justify-between">
+                        <h3 class="font-medium text-gray-900">{{ __('messages.households_admin.pending_users_title') }}</h3>
+                        <p class="text-sm text-gray-500">{{ __('messages.households_admin.pending_users_hint') }}</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.head') }}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.national_id') }}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.status') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach($pendingUsers as $user)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">{{ $user->full_name ?? $user->name }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">{{ $user->national_id }}</td>
+                                        <td class="px-6 py-4 text-xs">
+                                            <span class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">{{ __('messages.status.pending') }}</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

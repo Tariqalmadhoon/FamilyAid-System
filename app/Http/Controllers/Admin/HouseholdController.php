@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Household;
 use App\Models\HouseholdMember;
 use App\Models\Region;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -44,14 +45,42 @@ class HouseholdController extends Controller
             $query->where('housing_type', $housingType);
         }
 
+        // Health condition filters
+        if ($request->input('has_war_injury')) {
+            $query->hasWarInjury();
+        }
+        if ($request->input('has_chronic_disease')) {
+            $query->hasChronicDisease();
+        }
+        if ($request->input('has_disability')) {
+            $query->hasDisability();
+        }
+
+        // Child under 2 years filter
+        if ($request->input('has_child_under_2')) {
+            $query->hasChildUnderMonths(24);
+        }
+
         $households = $query->latest()->paginate(15)->withQueryString();
 
         $regions = Region::with('children')->whereNull('parent_id')->get();
 
+        $filters = $request->only(['search', 'status', 'region_id', 'housing_type', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'has_child_under_2']);
+
+        $pendingUsers = User::where('is_staff', false)
+            ->whereNull('household_id')
+            ->latest()
+            ->limit(10)
+            ->get();
+
         return view('admin.households.index', [
             'households' => $households,
             'regions' => $regions,
-            'filters' => $request->only(['search', 'status', 'region_id', 'housing_type']),
+            'filters' => $filters,
+            'hasActiveFilters' => collect($filters)->filter(function ($v) {
+                return $v !== null && $v !== '' && $v !== false;
+            })->isNotEmpty(),
+            'pendingUsers' => $pendingUsers,
         ]);
     }
 
@@ -74,16 +103,26 @@ class HouseholdController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'head_national_id' => ['required', 'string', 'max:20', 'unique:households,head_national_id'],
+            'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id'],
             'head_name' => ['required', 'string', 'max:255'],
             'region_id' => ['required', 'exists:regions,id'],
             'address_text' => ['nullable', 'string', 'max:500'],
             'housing_type' => ['nullable', 'in:owned,rented,family_hosted,other'],
-            'primary_phone' => ['nullable', 'string', 'max:20'],
-            'secondary_phone' => ['nullable', 'string', 'max:20'],
+            'primary_phone' => ['nullable', 'digits:10'],
+            'secondary_phone' => ['nullable', 'digits:10'],
             'status' => ['required', 'in:pending,verified,suspended,rejected'],
             'notes' => ['nullable', 'string'],
+            'has_war_injury' => ['nullable', 'boolean'],
+            'has_chronic_disease' => ['nullable', 'boolean'],
+            'has_disability' => ['nullable', 'boolean'],
+            'condition_type' => ['nullable', 'string', 'max:255'],
+            'condition_notes' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        // Normalize checkbox values
+        $validated['has_war_injury'] = $request->boolean('has_war_injury');
+        $validated['has_chronic_disease'] = $request->boolean('has_chronic_disease');
+        $validated['has_disability'] = $request->boolean('has_disability');
 
         $household = Household::create($validated);
 
@@ -125,16 +164,26 @@ class HouseholdController extends Controller
     public function update(Request $request, Household $household): RedirectResponse
     {
         $validated = $request->validate([
-            'head_national_id' => ['required', 'string', 'max:20', 'unique:households,head_national_id,' . $household->id],
+            'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id,' . $household->id],
             'head_name' => ['required', 'string', 'max:255'],
             'region_id' => ['required', 'exists:regions,id'],
             'address_text' => ['nullable', 'string', 'max:500'],
             'housing_type' => ['nullable', 'in:owned,rented,family_hosted,other'],
-            'primary_phone' => ['nullable', 'string', 'max:20'],
-            'secondary_phone' => ['nullable', 'string', 'max:20'],
+            'primary_phone' => ['nullable', 'digits:10'],
+            'secondary_phone' => ['nullable', 'digits:10'],
             'status' => ['required', 'in:pending,verified,suspended,rejected'],
             'notes' => ['nullable', 'string'],
+            'has_war_injury' => ['nullable', 'boolean'],
+            'has_chronic_disease' => ['nullable', 'boolean'],
+            'has_disability' => ['nullable', 'boolean'],
+            'condition_type' => ['nullable', 'string', 'max:255'],
+            'condition_notes' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        // Normalize checkbox values
+        $validated['has_war_injury'] = $request->boolean('has_war_injury');
+        $validated['has_chronic_disease'] = $request->boolean('has_chronic_disease');
+        $validated['has_disability'] = $request->boolean('has_disability');
 
         $before = $household->toArray();
         $household->update($validated);

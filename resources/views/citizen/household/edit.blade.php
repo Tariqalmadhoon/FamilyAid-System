@@ -105,6 +105,9 @@
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                             placeholder="{{ __('messages.onboarding_form.primary_phone_placeholder') }}"
                             required
+                            maxlength="10"
+                            inputmode="numeric"
+                            oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"
                         >
                         @error('primary_phone')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -121,7 +124,37 @@
                             value="{{ old('secondary_phone', $household->secondary_phone) }}"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                             placeholder="{{ __('messages.onboarding_form.secondary_phone_placeholder') }}"
+                            maxlength="10"
+                            inputmode="numeric"
+                            oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"
                         >
+                    </div>
+
+                    <!-- Health Conditions -->
+                    <div class="mb-6 border-t pt-4">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-3">{{ __('messages.health.section_title') }}</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="has_war_injury" value="1" {{ old('has_war_injury', $household->has_war_injury) ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">{{ __('messages.health.has_war_injury') }}</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="has_chronic_disease" value="1" {{ old('has_chronic_disease', $household->has_chronic_disease) ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">{{ __('messages.health.has_chronic_disease') }}</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="has_disability" value="1" {{ old('has_disability', $household->has_disability) ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">{{ __('messages.health.has_disability') }}</span>
+                            </label>
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_type') }}</label>
+                            <input type="text" name="condition_type" value="{{ old('condition_type', $household->condition_type) }}" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="{{ __('messages.health.condition_type_placeholder') }}">
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_notes') }}</label>
+                            <textarea name="condition_notes" rows="2" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="{{ __('messages.health.condition_notes_placeholder') }}">{{ old('condition_notes', $household->condition_notes) }}</textarea>
+                        </div>
                     </div>
 
                     <!-- Buttons -->

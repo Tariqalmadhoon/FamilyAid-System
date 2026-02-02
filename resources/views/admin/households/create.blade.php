@@ -21,7 +21,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_national_id') }} <span class="text-red-500">*</span></label>
-                            <input type="text" name="head_national_id" value="{{ old('head_national_id') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                            <input type="tel" name="head_national_id" value="{{ old('head_national_id') }}" maxlength="9" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,9)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             @error('head_national_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
@@ -74,11 +74,38 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Primary Phone') }}</label>
-                            <input type="tel" name="primary_phone" value="{{ old('primary_phone') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            <input type="tel" name="primary_phone" value="{{ old('primary_phone') }}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Secondary Phone') }}</label>
-                            <input type="tel" name="secondary_phone" value="{{ old('secondary_phone') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            <input type="tel" name="secondary_phone" value="{{ old('secondary_phone') }}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                        </div>
+                    </div>
+
+                    <!-- Health Conditions Section -->
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-3">{{ __('messages.health.section_title') }}</h3>
+                        <div class="flex flex-wrap gap-6">
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                <input type="checkbox" name="has_war_injury" value="1" {{ old('has_war_injury') ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span>{{ __('messages.health.war_injury') }}</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                <input type="checkbox" name="has_chronic_disease" value="1" {{ old('has_chronic_disease') ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span>{{ __('messages.health.chronic_disease') }}</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                <input type="checkbox" name="has_disability" value="1" {{ old('has_disability') ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span>{{ __('messages.health.disability') }}</span>
+                            </label>
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_type') }}</label>
+                            <input type="text" name="condition_type" value="{{ old('condition_type') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="{{ __('messages.health.condition_type_placeholder') }}">
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_notes') }}</label>
+                            <textarea name="condition_notes" rows="2" placeholder="{{ __('messages.health.condition_notes_placeholder') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">{{ old('condition_notes') }}</textarea>
                         </div>
                     </div>
 

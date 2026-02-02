@@ -27,9 +27,26 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'national_id' => ['required', 'string', 'max:20'],
+            'national_id' => ['required', 'digits:9'],
             'password' => ['required', 'string'],
         ];
+    }
+
+    /**
+     * Normalize Arabic-Indic digits before validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $convert = function (?string $value): ?string {
+            if ($value === null) return null;
+            $eastern = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            $western = ['0','1','2','3','4','5','6','7','8','9'];
+            return str_replace($eastern, $western, $value);
+        };
+
+        $this->merge([
+            'national_id' => $convert($this->input('national_id')),
+        ]);
     }
 
     /**

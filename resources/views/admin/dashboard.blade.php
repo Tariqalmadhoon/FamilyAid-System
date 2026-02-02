@@ -158,6 +158,30 @@
                         @endforelse
                     </div>
                 </div>
+
+                <!-- Recent Users -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="p-4 border-b flex items-center justify-between">
+                        <h3 class="font-medium text-gray-900">{{ __('Recent Users') }}</h3>
+                        <a href="{{ route('admin.households.index') }}" class="text-sm text-teal-600 hover:text-teal-800">{{ __('messages.actions.view_all') }}</a>
+                    </div>
+                    <div class="divide-y">
+                        @forelse($recentUsers as $user)
+                            <div class="p-4 flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ $user->full_name ?? $user->name }}</p>
+                                    <p class="text-sm text-gray-500">{{ $user->national_id }} @if($user->phone) • {{ $user->phone }} @endif</p>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full
+                                    {{ $user->hasRole('admin') ? 'bg-indigo-100 text-indigo-700' : ($user->hasRole('citizen') ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-700') }}">
+                                    {{ $user->getRoleNames()->first() ?? 'User' }}
+                                </span>
+                            </div>
+                        @empty
+                            <div class="p-8 text-center text-gray-500">{{ __('No users yet') }}</div>
+                        @endforelse
+                    </div>
+                </div>
             </div>
         </div>
     </div>
