@@ -127,13 +127,24 @@ class ImportExportController extends Controller
      */
     public function exportHouseholds(Request $request)
     {
-        $filename = 'households_' . date('Y-m-d_His') . '.xlsx';
-        
         AuditLog::log('export', 'Household', null, null, [
             'filters' => $request->only(['status', 'region_id']),
         ]);
 
-        return Excel::download(new HouseholdsExport($request), $filename);
+        try {
+            $export = new HouseholdsExport($request);
+            $filePath = $export->generate();
+            
+            $filename = basename($filePath);
+            
+            return response()->download($filePath, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ])->deleteFileAfterSend(true);
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Export failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -141,12 +152,23 @@ class ImportExportController extends Controller
      */
     public function exportDistributions(Request $request)
     {
-        $filename = 'distributions_' . date('Y-m-d_His') . '.xlsx';
-        
         AuditLog::log('export', 'Distribution', null, null, [
             'filters' => $request->only(['program_id', 'from_date', 'to_date']),
         ]);
 
-        return Excel::download(new DistributionsExport($request), $filename);
+        try {
+            $export = new DistributionsExport($request);
+            $filePath = $export->generate();
+            
+            $filename = basename($filePath);
+            
+            return response()->download($filePath, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ])->deleteFileAfterSend(true);
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Export failed: ' . $e->getMessage());
+        }
     }
 }

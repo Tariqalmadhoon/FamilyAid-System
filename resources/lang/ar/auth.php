@@ -24,20 +24,27 @@ return [
     // Form labels
     'national_id' => 'الرقم الوطني',
     'name' => 'الاسم الكامل',
+    'first_name' => 'الاسم الأول',
+    'father_name' => 'اسم الأب',
+    'grandfather_name' => 'اسم الجد',
+    'last_name' => 'اسم العائلة',
     'phone' => 'رقم الهاتف',
+    'national_id_hint' => 'يجب أن يكون الرقم الوطني 9 أرقام بالضبط.',
+    'phone_hint' => 'يجب أن يكون رقم الهاتف 10 أرقام بالضبط.',
     'password_label' => 'كلمة المرور',
     'password_confirmation' => 'تأكيد كلمة المرور',
-    'security_question' => 'سؤال الأمان',
-    'security_answer' => 'إجابة الأمان',
-    
-    // Security questions
-    'questions' => [
-        'mother_maiden_name' => 'ما اسم عائلة الأم قبل الزواج؟',
-        'first_school' => 'ما اسم أول مدرسة التحقت بها؟',
-        'birth_city' => 'في أي مدينة وُلدت؟',
-        'favorite_teacher' => 'ما اسم معلمك المفضل؟',
-        'childhood_friend' => 'ما اسم صديق الطفولة؟',
-    ],
+
+    // Password strength (واجهة فقط)
+    'strength_weak' => 'ضعيفة',
+    'strength_fair' => 'مقبولة',
+    'strength_ok' => 'جيدة',
+    'strength_good' => 'قوية',
+    'strength_strong' => 'قوية جداً',
+    'strength_hint_basic' => 'أضف مزيداً من الحروف لتقوية الكلمة.',
+    'strength_hint_numbers' => 'إضافة أرقام تحسن القوة.',
+    'strength_hint_upper' => 'امزج بين الحروف الكبيرة والصغيرة.',
+    'strength_hint_symbols' => 'إضافة رمز تجعلها أقوى.',
+    'strength_hint_strong' => 'كلمة المرور قوية!',
     
     // Buttons
     'login_btn' => 'دخول',
@@ -53,8 +60,14 @@ return [
     'no_account' => 'ليس لديك حساب؟',
     'have_account' => 'لديك حساب بالفعل؟',
     'enter_national_id' => 'أدخل رقمك الوطني',
-    'answer_security' => 'أجب عن سؤال الأمان',
+    'enter_phone_or_id' => 'أدخل الرقم الوطني أو رقم الهاتف',
+    'enter_otp' => 'أدخل الكود المرسل إلى هاتفك',
     'set_new_password' => 'أدخل كلمة مرور جديدة',
+    'send_code' => 'إرسال الكود',
+    'resend_code' => 'إعادة إرسال الكود',
+    'code_sent' => 'تم إرسال رمز التحقق.',
+    'code_invalid' => 'الرمز غير صحيح أو منتهي.',
+    'otp_placeholder' => 'رمز من 6 أرقام',
     
     // Success/Error
     'login_success' => 'تم تسجيل الدخول بنجاح!',

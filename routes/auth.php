@@ -4,7 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\SecurityQuestionController;
+use App\Http\Controllers\Auth\OtpPasswordResetController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -18,18 +18,15 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    // Security Question Password Reset (instead of email-based)
-    Route::get('forgot-password', [SecurityQuestionController::class, 'showForm'])
-                ->name('password.security.request');
-
-    Route::post('forgot-password/verify-id', [SecurityQuestionController::class, 'verifyNationalId'])
-                ->name('password.security.verify-id');
-
-    Route::post('forgot-password/verify-answer', [SecurityQuestionController::class, 'verifyAnswer'])
-                ->name('password.security.verify-answer');
-
-    Route::post('forgot-password/reset', [SecurityQuestionController::class, 'resetPassword'])
-                ->name('password.security.update');
+    // OTP-based password reset
+    Route::get('forgot-password', [OtpPasswordResetController::class, 'showRequestForm'])
+                ->name('password.otp.request');
+    Route::post('forgot-password/send-otp', [OtpPasswordResetController::class, 'sendOtp'])
+                ->name('password.otp.send');
+    Route::get('forgot-password/verify', [OtpPasswordResetController::class, 'showVerifyForm'])
+                ->name('password.otp.verify');
+    Route::post('forgot-password/reset', [OtpPasswordResetController::class, 'resetPassword'])
+                ->name('password.otp.update');
 });
 
 Route::middleware('auth')->group(function () {

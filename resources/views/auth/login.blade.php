@@ -17,15 +17,18 @@
             <div class="relative">
                 <input 
                     id="national_id" 
-                    type="text" 
+                    type="tel" 
                     name="national_id" 
                     value="{{ old('national_id') }}" 
                     required 
                     autofocus 
                     autocomplete="username"
+                    maxlength="9"
+                    inputmode="numeric"
                     class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}"
                     placeholder="{{ __('auth.enter_national_id') }}"
                     dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
+                    oninput="this.value=this.value.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\\D/g,'').slice(0,9)"
                 >
                 <div class="absolute inset-y-0 {{ app()->getLocale() === 'ar' ? 'left-4' : 'right-4' }} flex items-center pointer-events-none">
                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +73,7 @@
                 <input type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500/20">
                 <span class="text-sm text-slate-600 {{ app()->getLocale() === 'ar' ? 'mr-2' : 'ml-2' }}">{{ __('auth.remember_me') }}</span>
             </label>
-            <a href="{{ route('password.security.request') }}" class="text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors">
+            <a href="{{ route('password.otp.request') }}" class="text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors">
                 {{ __('auth.forgot_password') }}
             </a>
         </div>

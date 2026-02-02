@@ -18,11 +18,19 @@ class HouseholdMember extends Model
         'gender',
         'birth_date',
         'notes',
+        'has_war_injury',
+        'has_chronic_disease',
+        'has_disability',
+        'condition_type',
+        'health_notes',
     ];
 
     protected $casts = [
         'birth_date' => 'date',
         'gender' => 'string',
+        'has_war_injury' => 'boolean',
+        'has_chronic_disease' => 'boolean',
+        'has_disability' => 'boolean',
     ];
 
     /**

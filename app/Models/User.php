@@ -22,6 +22,10 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'father_name',
+        'grandfather_name',
+        'last_name',
         'national_id',
         'phone',
         'password',
@@ -51,6 +55,25 @@ class User extends Authenticatable
     protected $casts = [
         'is_staff' => 'boolean',
     ];
+
+    /**
+     * Accessor to build a full name from structured parts (fallbacks to legacy name).
+     */
+    public function getFullNameAttribute(): string
+    {
+        $parts = array_filter([
+            $this->first_name,
+            $this->father_name,
+            $this->grandfather_name,
+            $this->last_name,
+        ], fn ($value) => filled($value));
+
+        if (count($parts) === 0) {
+            return (string) $this->name;
+        }
+
+        return trim(collect($parts)->join(' '));
+    }
 
     /**
      * Get the household for this citizen user.

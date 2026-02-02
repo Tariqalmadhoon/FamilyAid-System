@@ -62,6 +62,20 @@
                                         <div class="ml-4">
                                             <p class="font-medium text-gray-900">{{ $member->full_name }}</p>
                                             <p class="text-sm text-gray-500 capitalize">{{ $member->relation_to_head ? __('messages.relations.' . $member->relation_to_head) : '-' }}</p>
+                                            <div class="flex flex-wrap gap-2 mt-1 text-xs">
+                                                @if($member->has_war_injury)
+                                                    <span class="px-2 py-1 rounded-full bg-red-50 text-red-600">{{ __('messages.health.war_injury') }}</span>
+                                                @endif
+                                                @if($member->has_chronic_disease)
+                                                    <span class="px-2 py-1 rounded-full bg-amber-50 text-amber-700">{{ __('messages.health.chronic_disease') }}</span>
+                                                @endif
+                                                @if($member->has_disability)
+                                                    <span class="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ __('messages.health.disability') }}</span>
+                                                @endif
+                                                @if($member->condition_type)
+                                                    <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700">{{ $member->condition_type }}</span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-4">
@@ -159,7 +173,7 @@
                             
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.national_id_optional') }}</label>
-                                <input type="text" x-model="form.national_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                <input type="tel" x-model="form.national_id" maxlength="9" inputmode="numeric" @input="form.national_id = form.national_id.replace(/\\D/g,'').slice(0,9)" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                             </div>
                             
                             <div class="grid grid-cols-2 gap-4">
@@ -175,6 +189,31 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.birth_date') }}</label>
                                     <input type="date" x-model="form.birth_date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    <input type="checkbox" x-model="form.has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span>{{ __('messages.health.has_war_injury') }}</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    <input type="checkbox" x-model="form.has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span>{{ __('messages.health.has_chronic_disease') }}</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    <input type="checkbox" x-model="form.has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span>{{ __('messages.health.has_disability') }}</span>
+                                </label>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_type') }}</label>
+                                <input type="text" x-model="form.condition_type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_notes') }}</label>
+                                <textarea x-model="form.health_notes" rows="2" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"></textarea>
                             </div>
                         </div>
 
@@ -250,12 +289,17 @@
                     national_id: '',
                     relation_to_head: '',
                     gender: '',
-                    birth_date: ''
+                    birth_date: '',
+                    has_war_injury: false,
+                    has_chronic_disease: false,
+                    has_disability: false,
+                    condition_type: '',
+                    health_notes: ''
                 },
 
                 openAddModal() {
                     this.editingId = null;
-                    this.form = { full_name: '', national_id: '', relation_to_head: '', gender: '', birth_date: '' };
+                    this.form = { full_name: '', national_id: '', relation_to_head: '', gender: '', birth_date: '', has_war_injury: false, has_chronic_disease: false, has_disability: false, condition_type: '', health_notes: '' };
                     this.showModal = true;
                 },
 
@@ -266,7 +310,12 @@
                         national_id: member.national_id || '',
                         relation_to_head: member.relation_to_head,
                         gender: member.gender || '',
-                        birth_date: member.birth_date ? member.birth_date.split('T')[0] : ''
+                        birth_date: member.birth_date ? member.birth_date.split('T')[0] : '',
+                        has_war_injury: Boolean(member.has_war_injury),
+                        has_chronic_disease: Boolean(member.has_chronic_disease),
+                        has_disability: Boolean(member.has_disability),
+                        condition_type: member.condition_type || '',
+                        health_notes: member.health_notes || ''
                     };
                     this.showModal = true;
                 },

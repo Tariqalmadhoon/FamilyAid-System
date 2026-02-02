@@ -8,6 +8,7 @@ use App\Models\Distribution;
 use App\Models\Household;
 use App\Models\HouseholdMember;
 use App\Models\Region;
+use App\Models\User;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -44,11 +45,14 @@ class DashboardController extends Controller
             ->with('region')
             ->get();
 
+        $recentUsers = User::latest()->limit(5)->get();
+
         return view('admin.dashboard', [
             'stats' => $stats,
             'recentHouseholds' => $recentHouseholds,
             'recentDistributions' => $recentDistributions,
             'householdsByRegion' => $householdsByRegion,
+            'recentUsers' => $recentUsers,
         ]);
     }
 }

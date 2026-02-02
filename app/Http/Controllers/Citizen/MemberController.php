@@ -72,12 +72,20 @@ class MemberController extends Controller
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'national_id' => ['nullable', 'string', 'max:20', 'unique:household_members,national_id'],
+            'national_id' => ['nullable', 'digits:9', 'unique:household_members,national_id'],
             'relation_to_head' => ['required', 'string', 'max:50'],
             'gender' => ['nullable', 'in:male,female'],
             'birth_date' => ['nullable', 'date', 'before:today'],
+            'has_war_injury' => ['nullable', 'boolean'],
+            'has_chronic_disease' => ['nullable', 'boolean'],
+            'has_disability' => ['nullable', 'boolean'],
+            'condition_type' => ['nullable', 'string', 'max:255'],
+            'health_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $validated['has_war_injury'] = $request->boolean('has_war_injury');
+        $validated['has_chronic_disease'] = $request->boolean('has_chronic_disease');
+        $validated['has_disability'] = $request->boolean('has_disability');
         $validated['household_id'] = $user->household_id;
 
         $member = HouseholdMember::create($validated);
@@ -118,12 +126,20 @@ class MemberController extends Controller
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'national_id' => ['nullable', 'string', 'max:20', 'unique:household_members,national_id,' . $member->id],
+            'national_id' => ['nullable', 'digits:9', 'unique:household_members,national_id,' . $member->id],
             'relation_to_head' => ['required', 'string', 'max:50'],
             'gender' => ['nullable', 'in:male,female'],
             'birth_date' => ['nullable', 'date', 'before:today'],
+            'has_war_injury' => ['nullable', 'boolean'],
+            'has_chronic_disease' => ['nullable', 'boolean'],
+            'has_disability' => ['nullable', 'boolean'],
+            'condition_type' => ['nullable', 'string', 'max:255'],
+            'health_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $validated['has_war_injury'] = $request->boolean('has_war_injury');
+        $validated['has_chronic_disease'] = $request->boolean('has_chronic_disease');
+        $validated['has_disability'] = $request->boolean('has_disability');
         $before = $member->toArray();
         $member->update($validated);
 

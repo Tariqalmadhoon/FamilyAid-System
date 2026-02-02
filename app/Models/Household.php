@@ -22,11 +22,19 @@ class Household extends Model
         'secondary_phone',
         'status',
         'notes',
+        'has_war_injury',
+        'has_chronic_disease',
+        'has_disability',
+        'condition_type',
+        'condition_notes',
     ];
 
     protected $casts = [
         'status' => 'string',
         'housing_type' => 'string',
+        'has_war_injury' => 'boolean',
+        'has_chronic_disease' => 'boolean',
+        'has_disability' => 'boolean',
     ];
 
     /**
@@ -102,5 +110,53 @@ class Household extends Model
     public function getMemberCountAttribute(): int
     {
         return $this->members()->count();
+    }
+
+    /**
+     * Scope for households with children under a certain age (in months).
+     */
+    public function scopeHasChildUnderMonths($query, int $months = 24)
+    {
+        $cutoffDate = now()->subMonths($months)->toDateString();
+        
+        return $query->whereExists(function ($subquery) use ($cutoffDate) {
+            $subquery->selectRaw('1')
+                ->from('household_members')
+                ->whereColumn('household_members.household_id', 'households.id')
+                ->where('household_members.birth_date', '>=', $cutoffDate)
+                ->whereNotNull('household_members.birth_date');
+        });
+    }
+
+    /**
+     * Scope for war injury filter.
+     */
+    public function scopeHasWarInjury($query)
+    {
+        return $query->where('has_war_injury', true);
+    }
+
+    /**
+     * Scope for chronic disease filter.
+     */
+    public function scopeHasChronicDisease($query)
+    {
+        return $query->where('has_chronic_disease', true);
+    }
+
+    /**
+     * Scope for disability filter.
+     */
+    public function scopeHasDisability($query)
+    {
+        return $query->where('has_disability', true);
+    }
+
+    /**
+     * Check if household has any health condition.
+     */
+    public function hasAnyHealthCondition(): bool
+    {
+        return $this->has_war_injury || $this->has_chronic_disease || $this->has_disability;
     }
 }

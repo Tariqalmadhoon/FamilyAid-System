@@ -20,7 +20,7 @@ class DemoDataSeeder extends Seeder
     {
         // Create admin user
         $admin = User::firstOrCreate(
-            ['national_id' => 'ADMIN001'],
+            ['national_id' => '900000001'],
             [
                 'name' => 'System Admin',
                 'password' => Hash::make('password'),
@@ -34,7 +34,7 @@ class DemoDataSeeder extends Seeder
 
         // Create data entry user
         $dataEntry = User::firstOrCreate(
-            ['national_id' => 'DATA001'],
+            ['national_id' => '900000002'],
             [
                 'name' => 'Data Entry Staff',
                 'password' => Hash::make('password'),
@@ -48,7 +48,7 @@ class DemoDataSeeder extends Seeder
 
         // Create distributor user
         $distributor = User::firstOrCreate(
-            ['national_id' => 'DIST001'],
+            ['national_id' => '900000003'],
             [
                 'name' => 'Field Distributor',
                 'password' => Hash::make('password'),
@@ -79,14 +79,14 @@ class DemoDataSeeder extends Seeder
 
         // Create sample households
         $households = [
-            ['head_national_id' => '1234567001', 'head_name' => 'Ahmed Mohammed', 'housing_type' => 'rented', 'status' => 'verified'],
-            ['head_national_id' => '1234567002', 'head_name' => 'Fatima Ali', 'housing_type' => 'family_hosted', 'status' => 'verified'],
-            ['head_national_id' => '1234567003', 'head_name' => 'Omar Hassan', 'housing_type' => 'owned', 'status' => 'pending'],
-            ['head_national_id' => '1234567004', 'head_name' => 'Aisha Ibrahim', 'housing_type' => 'rented', 'status' => 'verified'],
-            ['head_national_id' => '1234567005', 'head_name' => 'Khalid Youssef', 'housing_type' => 'rented', 'status' => 'pending'],
-            ['head_national_id' => '1234567006', 'head_name' => 'Maryam Saleh', 'housing_type' => 'family_hosted', 'status' => 'verified'],
-            ['head_national_id' => '1234567007', 'head_name' => 'Salem Abdullah', 'housing_type' => 'owned', 'status' => 'verified'],
-            ['head_national_id' => '1234567008', 'head_name' => 'Noura Rashid', 'housing_type' => 'rented', 'status' => 'pending'],
+            ['head_national_id' => '123456701', 'head_name' => 'Ahmed Mohammed', 'housing_type' => 'rented', 'status' => 'verified'],
+            ['head_national_id' => '123456702', 'head_name' => 'Fatima Ali', 'housing_type' => 'family_hosted', 'status' => 'verified'],
+            ['head_national_id' => '123456703', 'head_name' => 'Omar Hassan', 'housing_type' => 'owned', 'status' => 'pending'],
+            ['head_national_id' => '123456704', 'head_name' => 'Aisha Ibrahim', 'housing_type' => 'rented', 'status' => 'verified'],
+            ['head_national_id' => '123456705', 'head_name' => 'Khalid Youssef', 'housing_type' => 'rented', 'status' => 'pending'],
+            ['head_national_id' => '123456706', 'head_name' => 'Maryam Saleh', 'housing_type' => 'family_hosted', 'status' => 'verified'],
+            ['head_national_id' => '123456707', 'head_name' => 'Salem Abdullah', 'housing_type' => 'owned', 'status' => 'verified'],
+            ['head_national_id' => '123456708', 'head_name' => 'Noura Rashid', 'housing_type' => 'rented', 'status' => 'pending'],
         ];
 
         $memberRelations = ['spouse', 'son', 'daughter', 'parent', 'sibling'];

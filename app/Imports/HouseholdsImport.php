@@ -55,8 +55,13 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
                     'region_id' => $region->id,
                     'address_text' => $row['address'] ?? null,
                     'housing_type' => $this->normalizeHousingType($row['housing_type'] ?? null),
-                    'primary_phone' => $row['phone'] ?? null,
+                    'primary_phone' => $this->normalizePhone($row['phone'] ?? null),
                     'status' => 'pending',
+                    'has_war_injury' => $this->normalizeBoolean($row['war_injury'] ?? null),
+                    'has_chronic_disease' => $this->normalizeBoolean($row['chronic_disease'] ?? null),
+                    'has_disability' => $this->normalizeBoolean($row['disability'] ?? null),
+                    'condition_type' => $row['condition_type'] ?? null,
+                    'condition_notes' => $row['condition_notes'] ?? null,
                 ]);
 
                 // Add members if provided (comma-separated in single column)
@@ -91,7 +96,7 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
     public function rules(): array
     {
         return [
-            'national_id' => ['required', 'string', 'max:20'],
+            'national_id' => ['required', 'digits:9'],
             'head_name' => ['required', 'string', 'max:255'],
             'region' => ['required', 'string'],
         ];
@@ -123,6 +128,26 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
         ];
         
         return $map[$type] ?? 'other';
+    }
+
+    private function normalizePhone($value): ?string
+    {
+        if (!$value) return null;
+        $digits = preg_replace('/\\D/', '', (string) $value);
+        return substr($digits, 0, 10);
+    }
+
+    /**
+     * Normalize boolean values from import (accepts 0/1, yes/no, true/false, نعم/لا)
+     */
+    private function normalizeBoolean($value): bool
+    {
+        if ($value === null || $value === '') return false;
+        
+        $value = strtolower(trim((string) $value));
+        $truthy = ['1', 'true', 'yes', 'y', 'نعم'];
+        
+        return in_array($value, $truthy, true);
     }
 
     public function onError(Throwable $e)

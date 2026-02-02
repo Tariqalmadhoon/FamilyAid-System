@@ -2,27 +2,30 @@
     <!-- Header -->
     <div class="p-8 pb-0">
         <h1 class="text-2xl font-bold text-slate-800 text-center">{{ __('auth.forgot_password') }}</h1>
-        <p class="mt-2 text-sm text-slate-500 text-center">{{ __('auth.enter_national_id') }}</p>
+        <p class="mt-2 text-sm text-slate-500 text-center">{{ __('auth.enter_phone_or_id') }}</p>
     </div>
 
     <!-- Form -->
-    <form method="POST" action="{{ route('password.security.verify-id') }}" x-data="{ loading: false }" @submit="loading = true" class="p-8">
+    <form method="POST" action="{{ route('password.otp.send') }}" x-data="{ loading: false }" @submit="loading = true" class="p-8">
         @csrf
 
-        <!-- National ID -->
+        <!-- National ID or Phone -->
         <div class="mb-6">
             <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
-                {{ __('auth.national_id') }}
+                {{ __('auth.enter_phone_or_id') }}
             </label>
             <div class="relative">
                 <input 
-                    type="text" 
-                    name="national_id" 
-                    value="{{ old('national_id') }}" 
+                    type="tel" 
+                    name="identifier" 
+                    value="{{ old('identifier') }}" 
                     required 
                     autofocus
+                    maxlength="10"
+                    inputmode="numeric"
                     class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}"
                     dir="ltr"
+                    oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"
                 >
                 <div class="absolute inset-y-0 {{ app()->getLocale() === 'ar' ? 'left-4' : 'right-4' }} flex items-center pointer-events-none">
                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +33,7 @@
                     </svg>
                 </div>
             </div>
-            @error('national_id')
+            @error('identifier')
                 <p class="mt-2 text-sm text-red-500 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">{{ $message }}</p>
             @enderror
         </div>
@@ -42,7 +45,7 @@
             :disabled="loading"
             class="w-full py-3.5 px-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl hover:from-teal-600 hover:to-teal-700 transition-all"
         >
-            <span x-show="!loading">{{ __('auth.continue_btn') }}</span>
+            <span x-show="!loading">{{ __('auth.send_code') }}</span>
             <span x-show="loading" class="opacity-0">{{ __('messages.loading') }}</span>
         </button>
 

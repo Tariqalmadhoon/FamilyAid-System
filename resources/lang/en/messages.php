@@ -35,6 +35,7 @@ return [
         'search' => 'Search',
         'filter' => 'Filter',
         'clear' => 'Clear',
+        'reset' => 'Reset',
         'export' => 'Export',
         'import' => 'Import',
         'download' => 'Download',
@@ -286,6 +287,7 @@ return [
         'all_status' => 'All Status',
         'all_regions' => 'All Regions',
         'all_housing' => 'All Housing',
+        'filters_active_notice' => 'Filters are active. Pending citizen registrations might be hidden. Clear filters to see all.',
         'table' => [
             'head' => 'Head of Household',
             'national_id' => 'National ID',
@@ -296,6 +298,8 @@ return [
         ],
         'no_results' => 'No households found',
         'record_distribution' => 'Record Distribution',
+        'pending_users_title' => 'Pending citizen registrations (no household yet)',
+        'pending_users_hint' => 'These users registered but did not finish household onboarding. Contact or onboard them to show in the main list.',
     ],
 
     // Distributions
@@ -367,6 +371,7 @@ return [
             'status' => 'Status',
             'members_count' => 'Members Count',
             'member_names' => 'Member Names',
+            'member_health' => 'Members Health',
             'registered_date' => 'Registered Date',
         ],
         'distributions' => [
@@ -379,6 +384,28 @@ return [
             'recorded_by' => 'Recorded By',
             'notes' => 'Notes',
         ],
+    ],
+
+    // Health Conditions
+    'health' => [
+        'section_title' => 'Health & Special Conditions',
+        'war_injury' => 'War Injury',
+        'chronic_disease' => 'Chronic Disease',
+        'disability' => 'Disability',
+        'condition_notes' => 'Condition Notes',
+        'condition_notes_placeholder' => 'Any additional details about health conditions...',
+        'condition_type' => 'Condition / Disease Type',
+        'condition_type_placeholder' => 'e.g., Diabetes, Mobility impairment',
+        'has_war_injury' => 'Has War Injury',
+        'has_chronic_disease' => 'Has Chronic Disease',
+        'has_disability' => 'Has Disability',
+    ],
+
+    // Child Age Filter
+    'child_filter' => [
+        'has_child_under_2' => 'Has child under 2 years',
+        'has_child_under_months' => 'Has child under :months months',
+        'child_age_months' => 'Child age (months)',
     ],
 
 ];
