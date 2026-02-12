@@ -23,7 +23,7 @@
         $errorStep = 2; // Step 3: members
     } elseif ($errors->hasAny(['housing_type', 'primary_phone', 'secondary_phone', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'condition_type', 'condition_notes'])) {
         $errorStep = 1; // Step 2: housing/contact
-    } elseif ($errors->hasAny(['region_id', 'address_text', 'previous_governorate', 'previous_area'])) {
+    } elseif ($errors->hasAny(['region_id', 'address_text', 'previous_governorate', 'previous_area', 'payment_account_type', 'payment_account_number', 'payment_account_holder_name'])) {
         $errorStep = 0; // Step 1: address
     }
     $initialStep = $errorStep ?? old('wizard_step', 0);
@@ -34,13 +34,7 @@
         <div class="max-    w-3xl mx-auto sm:px-6 lg:px-8">
             @if ($errors->any())
                 <div class="mb-4 p-4 bg-red-100 border border-red-200 text-red-800 rounded-lg">
-                    <p class="font-medium">
-                        @if(app()->getLocale() === 'ar')
-                            يوجد أخطاء في البيانات. تم نقلك إلى الخطوة التي تحتوي على الأخطاء.
-                        @else
-                            There are errors in your input. You have been taken to the step containing the errors.
-                        @endif
-                    </p>
+                    <p class="font-medium">{{ __('messages.onboarding_form.validation_step_notice') }}</p>
                 </div>
             @endif
             <!-- Progress Steps -->
@@ -50,6 +44,7 @@
                         <div class="flex items-center" :class="index < steps.length - 1 ? 'flex-1' : ''">
                             <div class="flex items-center">
                                 <div
+                                style="margin: 8px"
                                     class="flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all duration-300"
                                     :class="step > index ? 'bg-teal-600 text-white' : (step === index ? 'bg-teal-600 text-white ring-4 ring-teal-200' : 'bg-gray-200 text-gray-600')"
                                 >
@@ -71,6 +66,11 @@
                 <form method="POST" action="{{ route('citizen.onboarding.store') }}" @submit="handleSubmit" novalidate>
                     @csrf
                     <input type="hidden" name="wizard_step" x-model="step">
+                    <div class="px-6 pt-4">
+                        <p class="text-xs text-gray-500">
+                            <span class="text-red-500">*</span> {{ __('messages.onboarding_form.required_fields_hint') }}
+                        </p>
+                    </div>
 
                     <!-- Step 1: Region & Address -->
                     <div
@@ -120,6 +120,65 @@
                             @error('address_text')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <!-- Payment Account -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="text-md font-medium text-gray-800 mb-4">{{ __('messages.onboarding_form.payment_info_title') }} <span class="text-red-500">*</span></h4>
+
+                            <div class="mb-4">
+                                <label for="payment_account_type" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.payment_account_type') }} <span class="text-red-500">*</span></label>
+                                <select
+                                    id="payment_account_type"
+                                    name="payment_account_type"
+                                    x-model="formData.payment_account_type"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    required
+                                >
+                                    <option value="">{{ __('messages.actions.select') }}</option>
+                                    <option value="wallet">{{ __('messages.account_types.wallet') }}</option>
+                                    <option value="bank">{{ __('messages.account_types.bank') }}</option>
+                                </select>
+                                @error('payment_account_type')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="payment_account_number" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.payment_account_number') }} <span class="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    id="payment_account_number"
+                                    name="payment_account_number"
+                                    x-model="formData.payment_account_number"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    placeholder="{{ __('messages.onboarding_form.payment_account_number_placeholder') }}"
+                                    maxlength="30"
+                                    inputmode="numeric"
+                                    required
+                                    @input="filterDigits($event, 30)"
+                                >
+                                @error('payment_account_number')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="payment_account_holder_name" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.payment_account_holder_name') }} <span class="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    id="payment_account_holder_name"
+                                    name="payment_account_holder_name"
+                                    x-model="formData.payment_account_holder_name"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    placeholder="{{ __('messages.onboarding_form.payment_account_holder_name_placeholder') }}"
+                                    maxlength="255"
+                                    required
+                                >
+                                @error('payment_account_holder_name')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
                         <!-- Previous Residence Section -->
@@ -253,15 +312,22 @@
                             </label>
                         </div>
 
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_type') }}</label>
+                        <p class="mt-2 text-xs text-gray-500">{{ __('messages.health.condition_type_required_hint') }}</p>
+
+                        <div x-show="householdNeedsConditionType()" x-transition class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('messages.health.condition_type') }} <span class="text-red-500">*</span>
+                            </label>
                             <input
                                 type="text"
                                 name="condition_type"
                                 x-model="formData.condition_type"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                :required="householdNeedsConditionType()"
+                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                :class="fieldError('condition_type') ? 'border-red-300' : 'border-gray-300'"
                                 placeholder="{{ __('messages.health.condition_type_placeholder') }}"
                             >
+                            <p class="mt-1 text-sm text-red-600" x-show="fieldError('condition_type')" x-text="fieldError('condition_type')"></p>
                         </div>
 
                         <div class="mt-3">
@@ -404,15 +470,20 @@
                                                 <span>{{ __('messages.health.has_disability') }}</span>
                                             </label>
                                         </div>
-                                        <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.health.condition_type') }}</label>
+                                        <div x-show="memberNeedsConditionType(member)" x-transition>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                {{ __('messages.health.condition_type') }} <span class="text-red-500">*</span>
+                                            </label>
                                             <input
                                                 type="text"
                                                 :name="'members[' + index + '][condition_type]'"
                                                 x-model="member.condition_type"
-                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :required="memberNeedsConditionType(member)"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError(`members.${index}.condition_type`) ? 'border-red-300' : 'border-gray-300'"
                                                 placeholder="{{ __('messages.health.condition_type_placeholder') }}"
                                             >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.condition_type`)" x-text="fieldError(`members.${index}.condition_type`)"></p>
                                         </div>
                                         <div class="sm:col-span-2">
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.health.condition_notes') }}</label>
@@ -462,6 +533,20 @@
                                 <div x-show="formData.previous_governorate" class="mt-2 pt-2 border-t border-gray-200">
                                     <span class="text-sm text-gray-500">{{ __('messages.onboarding_form.previous_residence_review') }}</span>
                                     <span class="text-sm text-gray-700 ml-1" x-text="(allGovernorates[formData.previous_governorate] || '') + ' - ' + (allAreas[formData.previous_governorate]?.[formData.previous_area] || '')"></span>
+                                </div>
+                                <div class="mt-2 pt-2 border-t border-gray-200">
+                                    <div class="text-sm">
+                                        <span class="text-gray-500">{{ __('messages.onboarding_form.payment_account_type') }}</span>
+                                        <span class="text-gray-700 ml-1" x-text="accountTypeLabels[formData.payment_account_type] || '{{ __('messages.onboarding_form.not_provided') }}'"></span>
+                                    </div>
+                                    <div class="text-sm mt-1">
+                                        <span class="text-gray-500">{{ __('messages.onboarding_form.payment_account_number') }}</span>
+                                        <span class="text-gray-700 ml-1" x-text="formData.payment_account_number || '{{ __('messages.onboarding_form.not_provided') }}'"></span>
+                                    </div>
+                                    <div class="text-sm mt-1">
+                                        <span class="text-gray-500">{{ __('messages.onboarding_form.payment_account_holder_name') }}</span>
+                                        <span class="text-gray-700 ml-1" x-text="formData.payment_account_holder_name || '{{ __('messages.onboarding_form.not_provided') }}'"></span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -581,11 +666,18 @@
                 ],
                 allGovernorates: @json(__('messages.previous_governorates')),
                 allAreas: @json(__('messages.previous_areas')),
+                accountTypeLabels: {
+                    wallet: '{{ __('messages.account_types.wallet') }}',
+                    bank: '{{ __('messages.account_types.bank') }}',
+                },
                 formData: {
                     region_id: '{{ $prefill['region_id'] }}',
                     address_text: @json($prefill['address_text']),
                     previous_governorate: '{{ $prefill['previous_governorate'] }}',
                     previous_area: '{{ $prefill['previous_area'] }}',
+                    payment_account_type: '{{ $prefill['payment_account_type'] }}',
+                    payment_account_number: '{{ $prefill['payment_account_number'] }}',
+                    payment_account_holder_name: @json($prefill['payment_account_holder_name']),
                     housing_type: '{{ $prefill['housing_type'] }}',
                     primary_phone: '{{ $prefill['primary_phone'] }}',
                     secondary_phone: '{{ $prefill['secondary_phone'] }}',
@@ -605,13 +697,30 @@
                     return '';
                 },
 
+                householdNeedsConditionType() {
+                    return Boolean(this.formData.has_war_injury || this.formData.has_chronic_disease || this.formData.has_disability);
+                },
+
+                memberNeedsConditionType(member) {
+                    return Boolean(member && (member.has_war_injury || member.has_chronic_disease || member.has_disability));
+                },
+
                 get canProceed() {
                     if (this.step === 0) {
-                        return this.formData.region_id && this.formData.address_text && this.formData.previous_governorate && this.formData.previous_area;
+                        const hasHolderName = String(this.formData.payment_account_holder_name || '').trim().length > 0;
+                        return this.formData.region_id
+                            && this.formData.address_text
+                            && this.formData.previous_governorate
+                            && this.formData.previous_area
+                            && this.formData.payment_account_type
+                            && this.formData.payment_account_number
+                            && hasHolderName;
                     }
                     if (this.step === 1) {
                         const digits = (this.formData.primary_phone || '').replace(/\\D/g, '');
-                        return this.formData.housing_type && digits.length === 10;
+                        const needsConditionType = this.householdNeedsConditionType();
+                        const hasConditionType = String(this.formData.condition_type || '').trim().length > 0;
+                        return this.formData.housing_type && digits.length === 10 && (!needsConditionType || hasConditionType);
                     }
                     if (this.step === 2) {
                         if (this.members.length === 0) return true;
@@ -622,9 +731,12 @@
                                 const idx = eastern.indexOf(ch);
                                 return idx !== -1 ? western[idx] : ch;
                             }).join('').replace(/\\D/g, '');
+                            const needsConditionType = this.memberNeedsConditionType(member);
+                            const hasConditionType = String(member.condition_type || '').trim().length > 0;
                             return member.full_name
                                 && member.relation_to_head
-                                && idDigits.length === 9;
+                                && idDigits.length === 9
+                                && (!needsConditionType || hasConditionType);
                         });
                     }
                     return true;
@@ -697,6 +809,7 @@
                     event.target.value = digits;
                     if (event.target.id === 'primary_phone') this.formData.primary_phone = digits;
                     if (event.target.id === 'secondary_phone') this.formData.secondary_phone = digits;
+                    if (event.target.id === 'payment_account_number') this.formData.payment_account_number = digits;
                     if (event.target.name?.includes('[national_id]')) {
                         const idx = Number(event.target.name.match(/members\\[(\\d+)\\]/)[1]);
                         this.members[idx].national_id = digits;

@@ -34,7 +34,7 @@ class OnboardingValidationTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
 
         $this->region = Region::create([
-            'name' => 'مخيم الامام مالك بن انس',
+            'name' => 'مخيم ام القرى',
             'parent_id' => null,
             'code' => Str::random(5),
             'is_active' => true,
@@ -63,6 +63,9 @@ class OnboardingValidationTest extends TestCase
             'address_text' => '123 Test Street',
             'previous_governorate' => 'north_gaza',
             'previous_area' => 'jabalia',
+            'payment_account_type' => 'wallet',
+            'payment_account_number' => '0591234567',
+            'payment_account_holder_name' => 'Test Holder',
             'housing_type' => 'owned',
             'primary_phone' => '1234567890',
             'secondary_phone' => null,
@@ -317,5 +320,24 @@ class OnboardingValidationTest extends TestCase
             'previous_governorate' => 'gaza',
             'previous_area' => 'rimal',
         ]);
+    }
+
+    public function test_financial_fields_are_required(): void
+    {
+        $user = $this->makeCitizen();
+        $payload = $this->basePayload([
+            'payment_account_type' => '',
+            'payment_account_number' => '',
+            'payment_account_holder_name' => '',
+        ]);
+
+        $response = $this->actingAs($user)->from(route('citizen.onboarding'))->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertSessionHasErrors([
+            'payment_account_type',
+            'payment_account_number',
+            'payment_account_holder_name',
+        ]);
+        $this->assertDatabaseCount('households', 0);
     }
 }

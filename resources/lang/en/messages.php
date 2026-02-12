@@ -146,12 +146,20 @@ return [
     // Onboarding form
     'onboarding_form' => [
         'title' => 'Complete Your Household Registration',
+        'required_fields_hint' => 'Fields marked with a red asterisk are required.',
+        'validation_step_notice' => 'There are validation errors. You were moved to the section that needs correction.',
         'section_region_address' => 'Region & Address',
         'select_region' => 'Select Region',
         'select_region_placeholder' => '-- Select Region --',
         'region_not_allowed' => 'The selected region is currently not available.',
         'full_address' => 'Full Address',
         'full_address_placeholder' => 'Enter your full address including street, building, floor, etc.',
+        'payment_info_title' => 'Financial Account Information',
+        'payment_account_type' => 'Account Type (Wallet or Bank)',
+        'payment_account_number' => 'Wallet / Bank Account Number',
+        'payment_account_number_placeholder' => 'Enter the wallet or bank account number',
+        'payment_account_holder_name' => 'Name Linked to Wallet / Account',
+        'payment_account_holder_name_placeholder' => 'Enter the exact registered name',
         'housing_contact' => 'Housing & Contact Information',
         'housing_type' => 'Housing Type',
         'primary_phone' => 'Primary Phone',
@@ -300,6 +308,9 @@ return [
         'address' => 'Address',
         'housing_type' => 'Housing Type',
         'phone' => 'Phone Number',
+        'payment_account_type' => 'Account Type',
+        'payment_account_number' => 'Wallet/Bank Account Number',
+        'payment_account_holder_name' => 'Name Linked to Wallet/Account',
         'members' => 'Household Members',
         'members_count' => 'Number of Members',
         'registered_at' => 'Registered',
@@ -311,6 +322,12 @@ return [
         'rented' => 'Rented',
         'family_hosted' => 'Family Hosted',
         'other' => 'Other',
+    ],
+
+    // Account types
+    'account_types' => [
+        'wallet' => 'Wallet',
+        'bank' => 'Bank',
     ],
 
     // Relations
@@ -456,6 +473,9 @@ return [
             'housing_type' => 'Housing Type',
             'primary_phone' => 'Primary Phone',
             'secondary_phone' => 'Secondary Phone',
+            'payment_account_type' => 'Account Type',
+            'payment_account_number' => 'Wallet/Bank Account Number',
+            'payment_account_holder_name' => 'Name Linked to Wallet/Account',
             'status' => 'Status',
             'members_count' => 'Members Count',
             'member_names' => 'Member Names',
@@ -486,6 +506,7 @@ return [
         'condition_notes_placeholder' => 'Any additional details about health conditions...',
         'condition_type' => 'Condition / Disease Type',
         'condition_type_placeholder' => 'e.g., Diabetes, Mobility impairment',
+        'condition_type_required_hint' => 'If war injury, chronic disease, or disability is selected, condition type is required.',
         'has_war_injury' => 'Has War Injury',
         'has_chronic_disease' => 'Has Chronic Disease',
         'has_disability' => 'Has Disability',

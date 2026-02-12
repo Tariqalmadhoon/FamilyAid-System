@@ -5,13 +5,11 @@
  *             /direct-export.php?type=distributions
  */
 
-// Prevent any output
 if (ob_get_level()) {
     ob_end_clean();
 }
 ob_start();
 
-// Load autoloader
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -19,12 +17,10 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-// Bootstrap Laravel for database access
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 $kernel->bootstrap();
 
-// Get export type
 $type = $_GET['type'] ?? 'households';
 
 try {
@@ -37,23 +33,18 @@ try {
     } else {
         throw new Exception('Invalid export type');
     }
-    
-    // Save to temp file
+
     $tempFile = sys_get_temp_dir() . '/' . $filename;
     $writer = new Xlsx($spreadsheet);
     $writer->save($tempFile);
-    
-    // Clean up spreadsheet
+
     $spreadsheet->disconnectWorksheets();
     unset($spreadsheet);
-    
-    // Get file size
+
     $fileSize = filesize($tempFile);
-    
-    // Clear any buffered output
+
     ob_end_clean();
-    
-    // Send headers
+
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Content-Length: ' . $fileSize);
@@ -61,15 +52,10 @@ try {
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
     header('Pragma: public');
     header('Expires: 0');
-    
-    // Output file
+
     readfile($tempFile);
-    
-    // Delete temp file
     unlink($tempFile);
-    
     exit;
-    
 } catch (Exception $e) {
     ob_end_clean();
     http_response_code(500);
@@ -78,19 +64,14 @@ try {
     exit;
 }
 
-/**
- * Create Households Export Spreadsheet
- */
 function createHouseholdsExport(): Spreadsheet
 {
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
-    
-    // Set RTL
+
     $sheet->setRightToLeft(true);
-    $sheet->setTitle('الأسر');
-    
-    // Headers - Added # as first column
+    $sheet->setTitle((string) __('messages.nav.households'));
+
     $headers = [
         'A' => '#',
         'B' => __('messages.exports.households.national_id'),
@@ -100,38 +81,42 @@ function createHouseholdsExport(): Spreadsheet
         'F' => __('messages.exports.households.housing_type'),
         'G' => __('messages.exports.households.primary_phone'),
         'H' => __('messages.exports.households.secondary_phone'),
-        'I' => __('messages.exports.households.status'),
-        'J' => __('messages.exports.households.members_count'),
-        'K' => __('messages.exports.households.member_names'),
-        'L' => __('messages.exports.households.registered_date'),
+        'I' => __('messages.exports.households.payment_account_type'),
+        'J' => __('messages.exports.households.payment_account_number'),
+        'K' => __('messages.exports.households.payment_account_holder_name'),
+        'L' => __('messages.exports.households.status'),
+        'M' => __('messages.exports.households.members_count'),
+        'N' => __('messages.exports.households.member_names'),
+        'O' => __('messages.exports.households.previous_governorate'),
+        'P' => __('messages.exports.households.previous_area'),
+        'Q' => __('messages.exports.households.registered_date'),
     ];
-    
+
     foreach ($headers as $col => $header) {
         $sheet->setCellValue($col . '1', $header);
     }
-    
-    // Style headers
+
     $headerStyle = [
         'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D9488']],
         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
     ];
-    $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
-    
-    // Get data
+    $sheet->getStyle('A1:Q1')->applyFromArray($headerStyle);
+
     $query = \App\Models\Household::with(['region', 'members']);
-    
+
     if (!empty($_GET['status'])) {
         $query->where('status', $_GET['status']);
     }
-    
+
     if (!empty($_GET['region_id'])) {
         $query->where('region_id', $_GET['region_id']);
     }
-    
+
     $households = $query->orderBy('created_at', 'desc')->get();
-    
-    // Write data
+    $governorateLabels = __('messages.previous_governorates');
+    $areaLabels = __('messages.previous_areas');
+
     $row = 2;
     $sequenceNumber = 1;
     foreach ($households as $household) {
@@ -143,35 +128,34 @@ function createHouseholdsExport(): Spreadsheet
         $sheet->setCellValue('F' . $row, $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '');
         $sheet->setCellValue('G' . $row, $household->primary_phone ?? '');
         $sheet->setCellValue('H' . $row, $household->secondary_phone ?? '');
-        $sheet->setCellValue('I' . $row, __('messages.status.' . $household->status));
-        $sheet->setCellValue('J' . $row, $household->members->count());
-        $sheet->setCellValue('K' . $row, $household->members->pluck('full_name')->implode('، '));
-        $sheet->setCellValue('L' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
+        $sheet->setCellValue('I' . $row, $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '');
+        $sheet->setCellValue('J' . $row, $household->payment_account_number ?? '');
+        $sheet->setCellValue('K' . $row, $household->payment_account_holder_name ?? '');
+        $sheet->setCellValue('L' . $row, __('messages.status.' . $household->status));
+        $sheet->setCellValue('M' . $row, $household->members->count());
+        $sheet->setCellValue('N' . $row, $household->members->pluck('full_name')->implode('، '));
+        $sheet->setCellValue('O' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
+        $sheet->setCellValue('P' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
+        $sheet->setCellValue('Q' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
         $row++;
         $sequenceNumber++;
     }
-    
-    // Auto-size columns
+
     foreach (array_keys($headers) as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
-    
+
     return $spreadsheet;
 }
 
-/**
- * Create Distributions Export Spreadsheet
- */
 function createDistributionsExport(): Spreadsheet
 {
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
-    
-    // Set RTL
+
     $sheet->setRightToLeft(true);
-    $sheet->setTitle('التوزيعات');
-    
-    // Headers - Added # as first column
+    $sheet->setTitle((string) __('messages.distributions.title'));
+
     $headers = [
         'A' => '#',
         'B' => __('messages.exports.distributions.date'),
@@ -183,37 +167,34 @@ function createDistributionsExport(): Spreadsheet
         'H' => __('messages.exports.distributions.recorded_by'),
         'I' => __('messages.exports.distributions.notes'),
     ];
-    
+
     foreach ($headers as $col => $header) {
         $sheet->setCellValue($col . '1', $header);
     }
-    
-    // Style headers
+
     $headerStyle = [
         'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D9488']],
         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
     ];
     $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
-    
-    // Get data
+
     $query = \App\Models\Distribution::with(['household', 'aidProgram', 'distributor']);
-    
+
     if (!empty($_GET['program_id'])) {
         $query->where('aid_program_id', $_GET['program_id']);
     }
-    
+
     if (!empty($_GET['from_date'])) {
         $query->whereDate('distribution_date', '>=', $_GET['from_date']);
     }
-    
+
     if (!empty($_GET['to_date'])) {
         $query->whereDate('distribution_date', '<=', $_GET['to_date']);
     }
-    
+
     $distributions = $query->orderBy('distribution_date', 'desc')->get();
-    
-    // Write data
+
     $row = 2;
     $sequenceNumber = 1;
     foreach ($distributions as $distribution) {
@@ -229,11 +210,10 @@ function createDistributionsExport(): Spreadsheet
         $row++;
         $sequenceNumber++;
     }
-    
-    // Auto-size columns
+
     foreach (array_keys($headers) as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
-    
+
     return $spreadsheet;
 }

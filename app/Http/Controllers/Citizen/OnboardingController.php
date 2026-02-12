@@ -19,20 +19,12 @@ class OnboardingController extends Controller
 {
     private const ALLOWED_MEMBER_RELATION = 'son';
 
-    private const ALLOWED_ONBOARDING_REGION_NAMES = [
-        'مخيم الامام مالك بن انس',
-        'مخيم الابرار (الغفران)',
-        'مخيم الايمان',
-        'مخيم ام القرى',
-        'مخيم عثمان بن عفان',
-    ];
-
     private const ALLOWED_ONBOARDING_REGION_CODES = [
+        'مخيم الابرار(الغفران)' => 'CAMP-ABRAR-GHFRAN',
         'مخيم الامام مالك بن انس' => 'CAMP-IMAM-MALIK',
-        'مخيم الابرار (الغفران)' => 'CAMP-ABRAR-GHFRAN',
-        'مخيم الايمان' => 'CAMP-IMAN',
         'مخيم ام القرى' => 'CAMP-UMM-ALQURA',
         'مخيم عثمان بن عفان' => 'CAMP-UTHMAN-AFFAN',
+        'مخيم الايمان' => 'CAMP-IMAN',
     ];
 
     private const ALLOWED_ONBOARDING_PARENT_NAME = 'المخيمات';
@@ -62,6 +54,9 @@ class OnboardingController extends Controller
             'address_text' => old('address_text', $existingHousehold->address_text ?? ''),
             'previous_governorate' => old('previous_governorate', $existingHousehold->previous_governorate ?? ''),
             'previous_area' => old('previous_area', $existingHousehold->previous_area ?? ''),
+            'payment_account_type' => old('payment_account_type', $existingHousehold->payment_account_type ?? ''),
+            'payment_account_number' => old('payment_account_number', $existingHousehold->payment_account_number ?? ''),
+            'payment_account_holder_name' => old('payment_account_holder_name', $existingHousehold->payment_account_holder_name ?? ''),
             'housing_type' => old('housing_type', $existingHousehold->housing_type ?? ''),
             'primary_phone' => old('primary_phone', $existingHousehold->primary_phone ?? ''),
             'secondary_phone' => old('secondary_phone', $existingHousehold->secondary_phone ?? ''),
@@ -118,6 +113,8 @@ class OnboardingController extends Controller
             'has_war_injury' => $request->boolean('has_war_injury'),
             'has_chronic_disease' => $request->boolean('has_chronic_disease'),
             'has_disability' => $request->boolean('has_disability'),
+            'payment_account_number' => preg_replace('/\D+/', '', (string) $request->input('payment_account_number', '')),
+            'payment_account_holder_name' => trim((string) $request->input('payment_account_holder_name')),
             'condition_type' => trim((string) $request->input('condition_type')),
         ]);
 
@@ -139,6 +136,9 @@ class OnboardingController extends Controller
             'address_text' => ['required', 'string', 'max:500'],
             'previous_governorate' => ['required', 'string', 'max:100'],
             'previous_area' => ['required', 'string', 'max:100'],
+            'payment_account_type' => ['required', 'in:wallet,bank'],
+            'payment_account_number' => ['required', 'digits_between:6,30'],
+            'payment_account_holder_name' => ['required', 'string', 'max:255'],
             
             // Step 2: Housing & Contact
             'housing_type' => ['required', 'in:owned,rented,family_hosted,other'],
@@ -210,6 +210,9 @@ class OnboardingController extends Controller
                 'address_text' => $validated['address_text'],
                 'previous_governorate' => $validated['previous_governorate'],
                 'previous_area' => $validated['previous_area'],
+                'payment_account_type' => $validated['payment_account_type'],
+                'payment_account_number' => $validated['payment_account_number'],
+                'payment_account_holder_name' => $validated['payment_account_holder_name'],
                 'housing_type' => $validated['housing_type'],
                 'primary_phone' => $validated['primary_phone'],
                 'secondary_phone' => $validated['secondary_phone'] ?? null,
@@ -288,36 +291,47 @@ class OnboardingController extends Controller
             ]
         );
 
-        foreach (self::ALLOWED_ONBOARDING_REGION_NAMES as $name) {
-            $region = Region::query()->firstOrNew(['name' => $name]);
+        foreach (Region::ALLOWED_CAMP_REGION_NAMES as $name) {
+            $code = self::ALLOWED_ONBOARDING_REGION_CODES[$name] ?? null;
+            $region = null;
 
-            if (!$region->exists) {
-                $region->code = self::ALLOWED_ONBOARDING_REGION_CODES[$name] ?? null;
+            // Prefer matching by unique code first to avoid duplicate-key inserts.
+            if ($code) {
+                $region = Region::query()->where('code', $code)->first();
             }
 
-            if (is_null($region->parent_id)) {
-                $region->parent_id = $parentRegion->id;
+            // Fallback for older records that may have legacy name formatting.
+            if (!$region) {
+                $region = Region::query()->where('name', $name)->first();
             }
 
-            if (!$region->is_active) {
-                $region->is_active = true;
+            if (!$region) {
+                $region = new Region();
             }
+
+            $region->name = $name;
+            if ($code) {
+                $region->code = $code;
+            }
+            $region->parent_id = $parentRegion->id;
+            $region->is_active = true;
 
             if ($region->isDirty()) {
                 $region->save();
             }
         }
 
+        $allowedCodes = array_values(self::ALLOWED_ONBOARDING_REGION_CODES);
         $regions = Region::query()
-            ->select(['id', 'name'])
+            ->select(['id', 'name', 'code'])
             ->where('is_active', true)
-            ->whereIn('name', self::ALLOWED_ONBOARDING_REGION_NAMES)
+            ->whereIn('code', $allowedCodes)
             ->get();
 
-        $order = array_flip(self::ALLOWED_ONBOARDING_REGION_NAMES);
+        $order = array_flip($allowedCodes);
 
         return $regions
-            ->sortBy(static fn (Region $region) => $order[$region->name] ?? PHP_INT_MAX)
+            ->sortBy(static fn (Region $region) => $order[$region->code] ?? PHP_INT_MAX)
             ->values();
     }
 }

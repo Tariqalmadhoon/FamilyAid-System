@@ -21,32 +21,7 @@
         }
     </style>
 
-    <div class="py-8" x-data="{ showToast: {{ session('success') ? 'true' : 'false' }}, toastMessage: '{{ session('success') }}' }">
-        <!-- Toast Notification -->
-        <div
-            x-show="showToast"
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 transform translate-y-2"
-            x-transition:enter-end="opacity-100 transform translate-y-0"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            x-init="showToast && setTimeout(() => showToast = false, 5000)"
-            class="fixed bottom-4 right-4 z-50"
-        >
-            <div class="bg-teal-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <span x-text="toastMessage"></span>
-                <button @click="showToast = false" class="ml-4 text-white/80 hover:text-white">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
+    <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Last Benefit Card -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
@@ -213,6 +188,20 @@
                             <div>
                                 <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.registered_at') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->created_at->format('M j, Y') }}</p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.payment_account_type') }}</span>
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '-' }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.payment_account_number') }}</span>
+                                <p class="text-sm font-medium text-gray-900">{{ $household->payment_account_number ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.payment_account_holder_name') }}</span>
+                                <p class="text-sm font-medium text-gray-900">{{ $household->payment_account_holder_name ?? '-' }}</p>
                             </div>
                         </div>
                     </div>

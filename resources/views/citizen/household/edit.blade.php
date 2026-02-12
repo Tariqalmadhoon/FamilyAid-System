@@ -12,25 +12,7 @@
         </div>
     </x-slot>
 
-    <div class="py-8" x-data="{ showToast: {{ session('success') ? 'true' : 'false' }}, toastMessage: '{{ session('success') }}' }">
-        <!-- Toast Notification -->
-        <div 
-            x-show="showToast" 
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 transform translate-y-2"
-            x-transition:enter-end="opacity-100 transform translate-y-0"
-            x-transition:leave="transition ease-in duration-200"
-            x-init="showToast && setTimeout(() => showToast = false, 5000)"
-            class="fixed bottom-4 right-4 z-50"
-        >
-            <div class="bg-teal-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <span x-text="toastMessage"></span>
-            </div>
-        </div>
-
+    <div class="py-8">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <form method="POST" action="{{ route('citizen.household.update') }}" class="p-6">
@@ -48,13 +30,9 @@
                         >
                             <option value="">{{ __('messages.onboarding_form.select_region_placeholder') }}</option>
                             @foreach($regions as $region)
-                                <optgroup label="{{ $region->name }}">
-                                    @foreach($region->children as $child)
-                                        <option value="{{ $child->id }}" {{ $household->region_id == $child->id ? 'selected' : '' }}>
-                                            {{ $child->name }}
-                                        </option>
-                                    @endforeach
-                                </optgroup>
+                                <option value="{{ $region->id }}" {{ old('region_id', $household->region_id) == $region->id ? 'selected' : '' }}>
+                                    {{ $region->name }}
+                                </option>
                             @endforeach
                         </select>
                         @error('region_id')
@@ -74,6 +52,60 @@
                             required
                         >{{ old('address_text', $household->address_text) }}</textarea>
                         @error('address_text')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Payment Account -->
+                    <div class="mb-4">
+                        <label for="payment_account_type" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.payment_account_type') }} <span class="text-red-500">*</span></label>
+                        <select
+                            id="payment_account_type"
+                            name="payment_account_type"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                            required
+                        >
+                            <option value="">{{ __('messages.actions.select') }}</option>
+                            <option value="wallet" {{ old('payment_account_type', $household->payment_account_type) === 'wallet' ? 'selected' : '' }}>{{ __('messages.account_types.wallet') }}</option>
+                            <option value="bank" {{ old('payment_account_type', $household->payment_account_type) === 'bank' ? 'selected' : '' }}>{{ __('messages.account_types.bank') }}</option>
+                        </select>
+                        @error('payment_account_type')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="payment_account_number" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.payment_account_number') }} <span class="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            id="payment_account_number"
+                            name="payment_account_number"
+                            value="{{ old('payment_account_number', $household->payment_account_number) }}"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                            placeholder="{{ __('messages.onboarding_form.payment_account_number_placeholder') }}"
+                            maxlength="30"
+                            inputmode="numeric"
+                            oninput="this.value=this.value.replace(/\\D/g,'').slice(0,30)"
+                            required
+                        >
+                        @error('payment_account_number')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="payment_account_holder_name" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.payment_account_holder_name') }} <span class="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            id="payment_account_holder_name"
+                            name="payment_account_holder_name"
+                            value="{{ old('payment_account_holder_name', $household->payment_account_holder_name) }}"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                            placeholder="{{ __('messages.onboarding_form.payment_account_holder_name_placeholder') }}"
+                            maxlength="255"
+                            required
+                        >
+                        @error('payment_account_holder_name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

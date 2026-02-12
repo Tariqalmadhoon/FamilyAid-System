@@ -11,6 +11,14 @@ class Region extends Model
 {
     use HasFactory;
 
+    public const ALLOWED_CAMP_REGION_NAMES = [
+        'مخيم الابرار(الغفران)',
+        'مخيم الامام مالك بن انس',
+        'مخيم ام القرى',
+        'مخيم عثمان بن عفان',
+        'مخيم الايمان',
+    ];
+
     protected $fillable = [
         'name',
         'parent_id',
@@ -60,5 +68,13 @@ class Region extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for allowed camp regions shown in citizen/admin selects.
+     */
+    public function scopeAllowedCamps($query)
+    {
+        return $query->active()->whereIn('name', self::ALLOWED_CAMP_REGION_NAMES);
     }
 }
