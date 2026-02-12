@@ -3,7 +3,7 @@
 return [
 
     // App
-    'app_name' => 'FamilyAid System',
+    'app_name' => 'Returnees Camps Union - Al-Qarara',
     'welcome' => 'Welcome',
     'dashboard' => 'Dashboard',
 

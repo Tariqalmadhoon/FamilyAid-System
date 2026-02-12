@@ -3,7 +3,7 @@
 return [
 
     // App
-    'app_name' => 'نظام FamilyAid',
+    'app_name' => 'تجمع مخيمات العائدون - القراراة',
     'welcome' => 'مرحباً',
     'dashboard' => 'لوحة التحكم',
 

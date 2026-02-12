@@ -76,4 +76,17 @@ return [
     'invalid_credentials' => 'Invalid credentials',
     'account_suspended' => 'Your account has been suspended. Contact support.',
 
+    // Login guidance
+    'guidance_1' => 'This system is for registering family data in Al-Qarara camps.',
+    'guidance_2' => 'Registration takes less than 3 minutes.',
+    'guidance_3' => 'You can edit your data later from the dashboard.',
+    'guidance_4' => 'Your data is kept strictly confidential.',
+    'step_1' => 'Create Account',
+    'step_2' => 'Enter Family Data',
+    'step_3' => 'Review & Approve',
+    'step_4' => 'Track Benefits',
+    'disclaimer' => 'Registration does not mean automatic acceptance. Data is reviewed by the administration.',
+    'show_guidance' => 'How does the system work?',
+    'hide_guidance' => 'Hide guidance',
+
 ];
