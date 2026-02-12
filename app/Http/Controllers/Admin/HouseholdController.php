@@ -249,4 +249,44 @@ class HouseholdController extends Controller
 
         return back()->with('success', 'Household verified successfully!');
     }
+
+    /**
+     * Bulk delete households that are outside Al-Qarara.
+     * Safety: every selected ID must match the outside-Al-Qarara condition.
+     */
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids'   => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:households,id'],
+        ]);
+
+        $households = Household::whereIn('id', $request->input('ids'))->get();
+
+        // Safety gate: verify every household is Outside Al-Qarara
+        foreach ($households as $household) {
+            $isOutside = $household->previous_governorate !== 'khan_younis'
+                || !in_array($household->previous_area, ['al_qarara', 'qarara_sharqiya']);
+
+            if (!$isOutside) {
+                return back()->with('error', __('messages.households_admin.bulk_delete_invalid'));
+            }
+        }
+
+        // All passed — delete each with audit log
+        $count = 0;
+        foreach ($households as $household) {
+            $before = $household->toArray();
+            $householdId = $household->id;
+
+            $household->members()->delete();
+            $household->delete();
+
+            AuditLog::log('bulk_delete', 'Household', $householdId, $before, null);
+            $count++;
+        }
+
+        return redirect()->route('admin.households.index')
+            ->with('success', __('messages.households_admin.bulk_delete_success', ['count' => $count]));
+    }
 }

@@ -128,11 +128,30 @@
             </div>
 
             <!-- Results -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden" x-data="{ selectedIds: [], showModal: false }">
+
+                <!-- Bulk Action Bar -->
+                <div class="flex items-center gap-3 px-6 py-3 border-b border-gray-200 bg-gray-50">
+                    <button type="button"
+                        @click="selectedIds = []; document.querySelectorAll('tr[data-outside=\'1\'] input[type=checkbox]').forEach(cb => { cb.checked = true; let id = parseInt(cb.value); if (!selectedIds.includes(id)) selectedIds.push(id); })"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        {{ __('messages.households_admin.select_all_outside') }}
+                    </button>
+                    <button type="button" x-show="selectedIds.length > 0" x-cloak
+                        @click="showModal = true"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        {{ __('messages.households_admin.delete_selected') }} (<span x-text="selectedIds.length"></span>)
+                    </button>
+                    <span x-show="selectedIds.length > 0" x-cloak class="text-xs text-gray-400" x-text="'(' + selectedIds.length + ' selected)'"></span>
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-3 py-3 w-10"></th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.head') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.national_id') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.region') }}</th>
@@ -144,7 +163,17 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($households as $household)
-                                <tr class="hover:bg-gray-50">
+                                @php
+                                    $isOutside = $household->previous_governorate && ($household->previous_governorate !== 'khan_younis' || !in_array($household->previous_area, ['al_qarara', 'qarara_sharqiya']));
+                                @endphp
+                                <tr class="hover:bg-gray-50" data-outside="{{ $isOutside ? '1' : '0' }}">
+                                    <td class="px-3 py-4 w-10 text-center">
+                                        @if($isOutside)
+                                            <input type="checkbox" value="{{ $household->id }}"
+                                                x-model.number="selectedIds"
+                                                class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <a href="{{ route('admin.households.show', $household) }}" class="font-medium text-gray-900 hover:text-teal-600">{{ $household->head_name }}</a>
                                     </td>
@@ -209,7 +238,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">{{ __('messages.households_admin.no_results') }}</td>
+                                    <td colspan="8" class="px-6 py-12 text-center text-gray-500">{{ __('messages.households_admin.no_results') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -221,6 +250,35 @@
                         {{ $households->links() }}
                     </div>
                 @endif
+
+                <!-- Confirmation Modal -->
+                <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5)">
+                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6" @click.outside="showModal = false">
+                        <div class="text-center">
+                            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ __('messages.households_admin.bulk_delete_confirm_title') }}</h3>
+                            <p class="text-sm text-gray-600 mb-6" x-text="'{{ __('messages.households_admin.bulk_delete_confirm_body', ['count' => '']) }}'.replace(':count', '').replace('  ', ' ' + selectedIds.length + ' ')"></p>
+                        </div>
+                        <form method="POST" action="{{ route('admin.households.bulk-destroy') }}">
+                            @csrf
+                            <template x-for="id in selectedIds" :key="id">
+                                <input type="hidden" name="ids[]" :value="id">
+                            </template>
+                            <div class="flex gap-3 justify-center">
+                                <button type="button" @click="showModal = false" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    {{ __('messages.households_admin.bulk_delete_cancel') }}
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                                    {{ __('messages.households_admin.delete_selected') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <!-- Pending users without households -->
