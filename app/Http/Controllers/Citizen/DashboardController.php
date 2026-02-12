@@ -6,11 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Distribution;
 use App\Models\Household;
-use App\Models\HouseholdMember;
 use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -59,10 +58,15 @@ class DashboardController extends Controller
         $household = Household::with(['region', 'members'])
             ->find($user->household_id);
 
-        $regions = Region::with('children')
-            ->whereNull('parent_id')
-            ->where('is_active', true)
+        $regions = Region::query()
+            ->select(['id', 'name'])
+            ->allowedCamps()
             ->get();
+
+        $regionOrder = array_flip(Region::ALLOWED_CAMP_REGION_NAMES);
+        $regions = $regions
+            ->sortBy(static fn (Region $region) => $regionOrder[$region->name] ?? PHP_INT_MAX)
+            ->values();
 
         return view('citizen.household.edit', [
             'household' => $household,
@@ -87,9 +91,22 @@ class DashboardController extends Controller
             return redirect()->route('citizen.onboarding');
         }
 
+        $allowedRegionIds = Region::query()
+            ->allowedCamps()
+            ->pluck('id')
+            ->all();
+
+        $request->merge([
+            'payment_account_number' => preg_replace('/\D+/', '', (string) $request->input('payment_account_number', '')),
+            'payment_account_holder_name' => trim((string) $request->input('payment_account_holder_name')),
+        ]);
+
         $validated = $request->validate([
-            'region_id' => ['required', 'exists:regions,id'],
+            'region_id' => ['required', Rule::in($allowedRegionIds)],
             'address_text' => ['required', 'string', 'max:500'],
+            'payment_account_type' => ['required', 'in:wallet,bank'],
+            'payment_account_number' => ['required', 'digits_between:6,30'],
+            'payment_account_holder_name' => ['required', 'string', 'max:255'],
             'housing_type' => ['required', 'in:owned,rented,family_hosted,other'],
             'primary_phone' => ['required', 'digits:10'],
             'secondary_phone' => ['nullable', 'digits:10'],
@@ -98,6 +115,8 @@ class DashboardController extends Controller
             'has_disability' => ['nullable', 'boolean'],
             'condition_type' => ['nullable', 'string', 'max:255'],
             'condition_notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
         $household = Household::find($user->household_id);

@@ -38,6 +38,9 @@
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.region') ?? 'المنطقة' }}</dt><dd class="font-medium">{{ $household->region->name ?? '-' }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.housing_type') ?? 'نوع السكن' }}</dt><dd class="font-medium capitalize">{{ str_replace('_', ' ', $household->housing_type ?? '-') }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.primary_phone') ?? 'الهاتف الأساسي' }}</dt><dd class="font-medium">{{ $household->primary_phone ?? '-' }}</dd></div>
+                            <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.payment_account_type') }}</dt><dd class="font-medium">{{ $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '-' }}</dd></div>
+                            <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.payment_account_number') }}</dt><dd class="font-medium">{{ $household->payment_account_number ?? '-' }}</dd></div>
+                            <div class="col-span-2"><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.payment_account_holder_name') }}</dt><dd class="font-medium">{{ $household->payment_account_holder_name ?? '-' }}</dd></div>
                             <div class="col-span-2"><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.address') ?? 'العنوان' }}</dt><dd class="font-medium">{{ $household->address_text ?? '-' }}</dd></div>
                             @if($household->previous_governorate)
                                 <div class="col-span-2">

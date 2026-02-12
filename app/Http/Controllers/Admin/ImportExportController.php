@@ -26,7 +26,15 @@ class ImportExportController extends Controller
             ->limit(10)
             ->get();
 
-        $regions = Region::with('children')->whereNull('parent_id')->get();
+        $regions = Region::query()
+            ->with(['children' => function ($query) {
+                $query->allowedCamps();
+            }])
+            ->whereNull('parent_id')
+            ->whereHas('children', function ($query) {
+                $query->allowedCamps();
+            })
+            ->get();
 
         return view('admin.import-export.index', [
             'recentImports' => $recentImports,

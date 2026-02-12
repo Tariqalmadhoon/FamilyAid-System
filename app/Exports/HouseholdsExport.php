@@ -3,11 +3,11 @@
 namespace App\Exports;
 
 use App\Models\Household;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class HouseholdsExport
 {
@@ -25,13 +25,13 @@ class HouseholdsExport
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        
+
         // Set RTL for Arabic content
         $sheet->setRightToLeft(true);
-        
+
         // Set sheet title
-        $sheet->setTitle('الأسر');
-        
+        $sheet->setTitle((string) __('messages.nav.households'));
+
         // Define headers
         $headers = [
             __('messages.exports.households.national_id'),
@@ -41,6 +41,9 @@ class HouseholdsExport
             __('messages.exports.households.housing_type'),
             __('messages.exports.households.primary_phone'),
             __('messages.exports.households.secondary_phone'),
+            __('messages.exports.households.payment_account_type'),
+            __('messages.exports.households.payment_account_number'),
+            __('messages.exports.households.payment_account_holder_name'),
             __('messages.exports.households.status'),
             __('messages.exports.households.members_count'),
             __('messages.exports.households.member_names'),
@@ -48,14 +51,14 @@ class HouseholdsExport
             __('messages.exports.households.previous_area'),
             __('messages.exports.households.registered_date'),
         ];
-        
+
         // Write headers
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
         foreach ($headers as $index => $header) {
             $cell = $columns[$index] . '1';
             $sheet->setCellValue($cell, $header);
         }
-        
+
         // Style headers
         $headerStyle = [
             'font' => [
@@ -70,25 +73,25 @@ class HouseholdsExport
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ];
-        $sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
-        
+        $sheet->getStyle('A1:P1')->applyFromArray($headerStyle);
+
         // Get data
         $query = Household::with(['region', 'members']);
-        
+
         if ($status = $this->request->input('status')) {
             $query->where('status', $status);
         }
-        
+
         if ($regionId = $this->request->input('region_id')) {
             $query->where('region_id', $regionId);
         }
-        
+
         $households = $query->orderBy('created_at', 'desc')->get();
 
         // Load governorate/area translation maps for display
         $governorateLabels = __('messages.previous_governorates');
         $areaLabels = __('messages.previous_areas');
-        
+
         // Write data
         $row = 2;
         foreach ($households as $household) {
@@ -99,37 +102,40 @@ class HouseholdsExport
             $sheet->setCellValue('E' . $row, $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '');
             $sheet->setCellValue('F' . $row, $household->primary_phone ?? '');
             $sheet->setCellValue('G' . $row, $household->secondary_phone ?? '');
-            $sheet->setCellValue('H' . $row, __('messages.status.' . $household->status));
-            $sheet->setCellValue('I' . $row, $household->members->count());
-            $sheet->setCellValue('J' . $row, $household->members->pluck('full_name')->implode('، '));
-            $sheet->setCellValue('K' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
-            $sheet->setCellValue('L' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
-            $sheet->setCellValue('M' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
+            $sheet->setCellValue('H' . $row, $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '');
+            $sheet->setCellValue('I' . $row, $household->payment_account_number ?? '');
+            $sheet->setCellValue('J' . $row, $household->payment_account_holder_name ?? '');
+            $sheet->setCellValue('K' . $row, __('messages.status.' . $household->status));
+            $sheet->setCellValue('L' . $row, $household->members->count());
+            $sheet->setCellValue('M' . $row, $household->members->pluck('full_name')->implode('طŒ '));
+            $sheet->setCellValue('N' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
+            $sheet->setCellValue('O' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
+            $sheet->setCellValue('P' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
             $row++;
         }
-        
+
         // Auto-size columns
         foreach ($columns as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
-        
+
         // Generate unique filename
         $filename = 'households_' . date('Y-m-d_His') . '.xlsx';
         $filePath = storage_path('app/exports/' . $filename);
-        
+
         // Ensure directory exists
         if (!is_dir(dirname($filePath))) {
             mkdir(dirname($filePath), 0755, true);
         }
-        
+
         // Write file
         $writer = new Xlsx($spreadsheet);
         $writer->save($filePath);
-        
+
         // Clean up
         $spreadsheet->disconnectWorksheets();
         unset($spreadsheet);
-        
+
         return $filePath;
     }
 }

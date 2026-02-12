@@ -10,6 +10,7 @@ use App\Models\Region;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class HouseholdController extends Controller
@@ -79,7 +80,7 @@ class HouseholdController extends Controller
 
         $households = $query->latest()->paginate(15)->withQueryString();
 
-        $regions = Region::with('children')->whereNull('parent_id')->get();
+        $regions = $this->allowedCampRegionTree();
 
         $filters = $request->only(['search', 'status', 'region_id', 'housing_type', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'has_child_under_2', 'previous_governorate', 'previous_area', 'outside_al_qarara']);
 
@@ -107,7 +108,7 @@ class HouseholdController extends Controller
      */
     public function create(): View
     {
-        $regions = Region::with('children')->whereNull('parent_id')->get();
+        $regions = $this->allowedCampRegionTree();
 
         return view('admin.households.create', [
             'regions' => $regions,
@@ -122,10 +123,12 @@ class HouseholdController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $allowedRegionIds = $this->allowedCampRegionIds();
+
         $validated = $request->validate([
             'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id'],
             'head_name' => ['required', 'string', 'max:255'],
-            'region_id' => ['required', 'exists:regions,id'],
+            'region_id' => ['required', Rule::in($allowedRegionIds)],
             'address_text' => ['nullable', 'string', 'max:500'],
             'housing_type' => ['nullable', 'in:owned,rented,family_hosted,other'],
             'primary_phone' => ['nullable', 'digits:10'],
@@ -139,6 +142,8 @@ class HouseholdController extends Controller
             'condition_notes' => ['nullable', 'string', 'max:1000'],
             'previous_governorate' => ['nullable', 'string', 'max:100'],
             'previous_area' => ['nullable', 'string', 'max:100'],
+        ], [
+            'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
         // Normalize checkbox values
@@ -171,7 +176,7 @@ class HouseholdController extends Controller
      */
     public function edit(Household $household): View
     {
-        $regions = Region::with('children')->whereNull('parent_id')->get();
+        $regions = $this->allowedCampRegionTree();
 
         return view('admin.households.edit', [
             'household' => $household,
@@ -187,10 +192,12 @@ class HouseholdController extends Controller
      */
     public function update(Request $request, Household $household): RedirectResponse
     {
+        $allowedRegionIds = $this->allowedCampRegionIds();
+
         $validated = $request->validate([
             'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id,' . $household->id],
             'head_name' => ['required', 'string', 'max:255'],
-            'region_id' => ['required', 'exists:regions,id'],
+            'region_id' => ['required', Rule::in($allowedRegionIds)],
             'address_text' => ['nullable', 'string', 'max:500'],
             'housing_type' => ['nullable', 'in:owned,rented,family_hosted,other'],
             'primary_phone' => ['nullable', 'digits:10'],
@@ -204,6 +211,8 @@ class HouseholdController extends Controller
             'condition_notes' => ['nullable', 'string', 'max:1000'],
             'previous_governorate' => ['nullable', 'string', 'max:100'],
             'previous_area' => ['nullable', 'string', 'max:100'],
+        ], [
+            'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
         // Normalize checkbox values
@@ -288,5 +297,26 @@ class HouseholdController extends Controller
 
         return redirect()->route('admin.households.index')
             ->with('success', __('messages.households_admin.bulk_delete_success', ['count' => $count]));
+    }
+
+    private function allowedCampRegionTree()
+    {
+        return Region::query()
+            ->with(['children' => function ($query) {
+                $query->allowedCamps();
+            }])
+            ->whereNull('parent_id')
+            ->whereHas('children', function ($query) {
+                $query->allowedCamps();
+            })
+            ->get();
+    }
+
+    private function allowedCampRegionIds(): array
+    {
+        return Region::query()
+            ->allowedCamps()
+            ->pluck('id')
+            ->all();
     }
 }

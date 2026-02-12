@@ -29,6 +29,9 @@ class Household extends Model
         'condition_notes',
         'previous_governorate',
         'previous_area',
+        'payment_account_type',
+        'payment_account_number',
+        'payment_account_holder_name',
     ];
 
     protected $casts = [
