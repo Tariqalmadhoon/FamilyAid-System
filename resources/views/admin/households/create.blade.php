@@ -51,6 +51,32 @@
                         <textarea name="address_text" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">{{ old('address_text') }}</textarea>
                     </div>
 
+                    <!-- Previous Residence -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" x-data="{ prevGov: '{{ old('previous_governorate') }}', allAreas: @json($previousAreas) }">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_governorate') }}</label>
+                            <select name="previous_governorate" x-model="prevGov" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                <option value="">{{ __('messages.onboarding_form.previous_governorate_placeholder') }}</option>
+                                @foreach($previousGovernorates as $key => $label)
+                                    <option value="{{ $key }}" {{ old('previous_governorate') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('previous_governorate')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_area') }}</label>
+                            <select name="previous_area" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                <option value="">{{ __('messages.onboarding_form.previous_area_placeholder') }}</option>
+                                <template x-if="prevGov && allAreas[prevGov]">
+                                    <template x-for="[aKey, aLabel] in Object.entries(allAreas[prevGov] || {})" :key="aKey">
+                                        <option :value="aKey" x-text="aLabel" :selected="aKey === '{{ old('previous_area') }}'"></option>
+                                    </template>
+                                </template>
+                            </select>
+                            @error('previous_area')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.housing_type') }}</label>

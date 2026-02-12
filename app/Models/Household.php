@@ -27,6 +27,8 @@ class Household extends Model
         'has_disability',
         'condition_type',
         'condition_notes',
+        'previous_governorate',
+        'previous_area',
     ];
 
     protected $casts = [

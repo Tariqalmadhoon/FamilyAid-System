@@ -13,28 +13,7 @@ use Illuminate\View\View;
 
 class MemberController extends Controller
 {
-    /**
-     * Relations list for dropdown.
-     */
-    public static array $relations = [
-        'spouse' => 'Spouse',
-        'son' => 'Son',
-        'daughter' => 'Daughter',
-        'father' => 'Father',
-        'mother' => 'Mother',
-        'brother' => 'Brother',
-        'sister' => 'Sister',
-        'grandfather' => 'Grandfather',
-        'grandmother' => 'Grandmother',
-        'grandson' => 'Grandson',
-        'granddaughter' => 'Granddaughter',
-        'uncle' => 'Uncle',
-        'aunt' => 'Aunt',
-        'nephew' => 'Nephew',
-        'niece' => 'Niece',
-        'cousin' => 'Cousin',
-        'other' => 'Other Relative',
-    ];
+    private const ALLOWED_MEMBER_RELATION = 'son';
 
     /**
      * Show members management page.
@@ -52,7 +31,7 @@ class MemberController extends Controller
         return view('citizen.members.index', [
             'household' => $household,
             'members' => $household->members,
-            'relations' => self::$relations,
+            'relations' => $this->relationOptions(),
         ]);
     }
 
@@ -72,8 +51,8 @@ class MemberController extends Controller
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'national_id' => ['nullable', 'digits:9', 'unique:household_members,national_id'],
-            'relation_to_head' => ['required', 'string', 'max:50'],
+            'national_id' => ['required', 'digits:9', 'unique:household_members,national_id'],
+            'relation_to_head' => ['required', 'in:' . self::ALLOWED_MEMBER_RELATION],
             'gender' => ['nullable', 'in:male,female'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'has_war_injury' => ['nullable', 'boolean'],
@@ -126,8 +105,8 @@ class MemberController extends Controller
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'national_id' => ['nullable', 'digits:9', 'unique:household_members,national_id,' . $member->id],
-            'relation_to_head' => ['required', 'string', 'max:50'],
+            'national_id' => ['required', 'digits:9', 'unique:household_members,national_id,' . $member->id],
+            'relation_to_head' => ['required', 'in:' . self::ALLOWED_MEMBER_RELATION],
             'gender' => ['nullable', 'in:male,female'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'has_war_injury' => ['nullable', 'boolean'],
@@ -197,5 +176,12 @@ class MemberController extends Controller
         }
 
         return back()->with('success', 'Member removed successfully!');
+    }
+
+    private function relationOptions(): array
+    {
+        return [
+            self::ALLOWED_MEMBER_RELATION => __('messages.relations.son'),
+        ];
     }
 }

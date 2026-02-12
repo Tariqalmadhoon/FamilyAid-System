@@ -17,6 +17,27 @@ use Illuminate\View\View;
 
 class OnboardingController extends Controller
 {
+    private const ALLOWED_MEMBER_RELATION = 'son';
+
+    private const ALLOWED_ONBOARDING_REGION_NAMES = [
+        'مخيم الامام مالك بن انس',
+        'مخيم الابرار (الغفران)',
+        'مخيم الايمان',
+        'مخيم ام القرى',
+        'مخيم عثمان بن عفان',
+    ];
+
+    private const ALLOWED_ONBOARDING_REGION_CODES = [
+        'مخيم الامام مالك بن انس' => 'CAMP-IMAM-MALIK',
+        'مخيم الابرار (الغفران)' => 'CAMP-ABRAR-GHFRAN',
+        'مخيم الايمان' => 'CAMP-IMAN',
+        'مخيم ام القرى' => 'CAMP-UMM-ALQURA',
+        'مخيم عثمان بن عفان' => 'CAMP-UTHMAN-AFFAN',
+    ];
+
+    private const ALLOWED_ONBOARDING_PARENT_NAME = 'المخيمات';
+    private const ALLOWED_ONBOARDING_PARENT_CODE = 'CAMP-REGIONS';
+
     /**
      * Show the onboarding wizard.
      */
@@ -34,14 +55,13 @@ class OnboardingController extends Controller
             ->where('head_national_id', $user->national_id)
             ->first();
 
-        $regions = Region::with('children')
-            ->whereNull('parent_id')
-            ->where('is_active', true)
-            ->get();
+        $regions = $this->allowedOnboardingRegions();
 
         $prefill = [
             'region_id' => old('region_id', $existingHousehold->region_id ?? ''),
             'address_text' => old('address_text', $existingHousehold->address_text ?? ''),
+            'previous_governorate' => old('previous_governorate', $existingHousehold->previous_governorate ?? ''),
+            'previous_area' => old('previous_area', $existingHousehold->previous_area ?? ''),
             'housing_type' => old('housing_type', $existingHousehold->housing_type ?? ''),
             'primary_phone' => old('primary_phone', $existingHousehold->primary_phone ?? ''),
             'secondary_phone' => old('secondary_phone', $existingHousehold->secondary_phone ?? ''),
@@ -76,23 +96,7 @@ class OnboardingController extends Controller
                 'other' => __('messages.housing_types.other'),
             ],
             'relations' => [
-                'spouse' => 'Spouse',
-                'son' => 'Son',
-                'daughter' => 'Daughter',
-                'father' => 'Father',
-                'mother' => 'Mother',
-                'brother' => 'Brother',
-                'sister' => 'Sister',
-                'grandfather' => 'Grandfather',
-                'grandmother' => 'Grandmother',
-                'grandson' => 'Grandson',
-                'granddaughter' => 'Granddaughter',
-                'uncle' => 'Uncle',
-                'aunt' => 'Aunt',
-                'nephew' => 'Nephew',
-                'niece' => 'Niece',
-                'cousin' => 'Cousin',
-                'other' => 'Other Relative',
+                self::ALLOWED_MEMBER_RELATION => __('messages.relations.son'),
             ],
         ]);
     }
@@ -103,6 +107,7 @@ class OnboardingController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = auth()->user();
+        $allowedRegionIds = $this->allowedOnboardingRegions()->pluck('id')->all();
 
         // Locate any household that may already belong to this user (linked or orphaned)
         $existingHouseholdId = $user->household_id
@@ -130,8 +135,10 @@ class OnboardingController extends Controller
 
         $validator = Validator::make($request->all(), [
             // Step 1: Region & Address
-            'region_id' => ['required', 'exists:regions,id'],
+            'region_id' => ['required', Rule::in($allowedRegionIds)],
             'address_text' => ['required', 'string', 'max:500'],
+            'previous_governorate' => ['required', 'string', 'max:100'],
+            'previous_area' => ['required', 'string', 'max:100'],
             
             // Step 2: Housing & Contact
             'housing_type' => ['required', 'in:owned,rented,family_hosted,other'],
@@ -147,7 +154,7 @@ class OnboardingController extends Controller
             'members' => ['nullable', 'array', 'max:20'],
             'members.*.full_name' => ['required_with:members', 'string', 'max:255'],
             'members.*.national_id' => [
-                'nullable',
+                'required_with:members',
                 'digits:9',
                 Rule::unique('household_members', 'national_id')->where(function ($query) use ($existingHouseholdId) {
                     if ($existingHouseholdId) {
@@ -155,7 +162,7 @@ class OnboardingController extends Controller
                     }
                 }),
             ],
-            'members.*.relation_to_head' => ['required_with:members', 'string', 'max:50'],
+            'members.*.relation_to_head' => ['required_with:members', Rule::in([self::ALLOWED_MEMBER_RELATION])],
             'members.*.gender' => ['nullable', 'in:male,female'],
             'members.*.birth_date' => ['nullable', 'date', 'before:today'],
             'members.*.has_war_injury' => ['nullable', 'boolean'],
@@ -163,6 +170,8 @@ class OnboardingController extends Controller
             'members.*.has_disability' => ['nullable', 'boolean'],
             'members.*.condition_type' => ['nullable', 'string', 'max:255'],
             'members.*.health_notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -199,6 +208,8 @@ class OnboardingController extends Controller
                 'head_name' => $user->full_name,
                 'region_id' => $validated['region_id'],
                 'address_text' => $validated['address_text'],
+                'previous_governorate' => $validated['previous_governorate'],
+                'previous_area' => $validated['previous_area'],
                 'housing_type' => $validated['housing_type'],
                 'primary_phone' => $validated['primary_phone'],
                 'secondary_phone' => $validated['secondary_phone'] ?? null,
@@ -265,5 +276,48 @@ class OnboardingController extends Controller
 
         return redirect()->route('citizen.dashboard')
             ->with('success', 'Your household has been registered successfully! It is pending verification.');
+    }
+
+    private function allowedOnboardingRegions()
+    {
+        $parentRegion = Region::query()->firstOrCreate(
+            ['code' => self::ALLOWED_ONBOARDING_PARENT_CODE],
+            [
+                'name' => self::ALLOWED_ONBOARDING_PARENT_NAME,
+                'is_active' => true,
+            ]
+        );
+
+        foreach (self::ALLOWED_ONBOARDING_REGION_NAMES as $name) {
+            $region = Region::query()->firstOrNew(['name' => $name]);
+
+            if (!$region->exists) {
+                $region->code = self::ALLOWED_ONBOARDING_REGION_CODES[$name] ?? null;
+            }
+
+            if (is_null($region->parent_id)) {
+                $region->parent_id = $parentRegion->id;
+            }
+
+            if (!$region->is_active) {
+                $region->is_active = true;
+            }
+
+            if ($region->isDirty()) {
+                $region->save();
+            }
+        }
+
+        $regions = Region::query()
+            ->select(['id', 'name'])
+            ->where('is_active', true)
+            ->whereIn('name', self::ALLOWED_ONBOARDING_REGION_NAMES)
+            ->get();
+
+        $order = array_flip(self::ALLOWED_ONBOARDING_REGION_NAMES);
+
+        return $regions
+            ->sortBy(static fn (Region $region) => $order[$region->name] ?? PHP_INT_MAX)
+            ->values();
     }
 }

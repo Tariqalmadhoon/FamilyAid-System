@@ -17,8 +17,8 @@
 
     <div class="py-8" x-data="membersManager()">
         <!-- Toast Notification -->
-        <div 
-            x-show="showToast" 
+        <div
+            x-show="showToast"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
             x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -37,7 +37,7 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <!-- Add Member Button -->
             <div class="mb-4 flex justify-end">
-                <button 
+                <button
                     @click="openAddModal"
                     class="inline-flex items-center px-4 py-2 bg-teal-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-teal-700 transition"
                 >
@@ -56,7 +56,7 @@
                             @foreach($members as $member)
                                 <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold {{ $member->gender === 'female' ? 'bg-pink-500' : 'bg-blue-500' }}">
+                                        <div style="margin: 10px" class="w-10 h-10 m-2.5 rounded-full flex items-center justify-center text-white font-bold {{ $member->gender === 'female' ? 'bg-pink-500' : 'bg-blue-500' }}">
                                             {{ strtoupper(substr($member->full_name, 0, 1)) }}
                                         </div>
                                         <div class="ml-4">
@@ -88,7 +88,7 @@
                                             @endif
                                         </div>
                                         <div class="flex items-center space-x-2">
-                                            <button 
+                                            <button
                                                 @click="openEditModal({{ $member->toJson() }})"
                                                 class="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition"
                                             >
@@ -96,7 +96,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                 </svg>
                                             </button>
-                                            <button 
+                                            <button
                                                 @click="confirmDelete({{ $member->id }}, '{{ $member->full_name }}')"
                                                 class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                                             >
@@ -116,7 +116,7 @@
                             </svg>
                             <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('messages.members.none_title') }}</h3>
                             <p class="text-gray-500 mb-4">{{ __('messages.members.none_helper') }}</p>
-                            <button 
+                            <button
                                 @click="openAddModal"
                                 class="inline-flex items-center px-4 py-2 bg-teal-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-teal-700 transition"
                             >
@@ -129,8 +129,8 @@
         </div>
 
         <!-- Add/Edit Modal -->
-        <div 
-            x-show="showModal" 
+        <div
+            x-show="showModal"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"
@@ -142,8 +142,8 @@
         >
             <div class="flex items-center justify-center min-h-screen px-4">
                 <div class="fixed inset-0 bg-black/50" @click="closeModal"></div>
-                
-                <div 
+
+                <div
                     x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 transform scale-95"
                     x-transition:enter-end="opacity-100 transform scale-100"
@@ -153,29 +153,28 @@
                     class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6"
                 >
                     <h3 class="text-lg font-medium text-gray-900 mb-4" x-text="editingId ? '{{ __('messages.members.edit_title') }}' : '{{ __('messages.members.add_btn') }}'"></h3>
-                    
+
                     <form @submit.prevent="saveMember">
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.full_name') }} <span class="text-red-500">*</span></label>
                                 <input type="text" x-model="form.full_name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.relation') }} <span class="text-red-500">*</span></label>
                                 <select x-model="form.relation_to_head" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
-                                    <option value="">{{ __('messages.actions.select') }}</option>
                                     @foreach($relations as $value => $label)
                                         <option value="{{ $value }}">{{ $label }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            
+
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.national_id_optional') }}</label>
-                                <input type="tel" x-model="form.national_id" maxlength="9" inputmode="numeric" @input="form.national_id = form.national_id.replace(/\\D/g,'').slice(0,9)" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.national_id_optional') }} <span class="text-red-500">*</span></label>
+                                <input type="tel" x-model="form.national_id" maxlength="9" inputmode="numeric" @input="form.national_id = form.national_id.replace(/\\D/g,'').slice(0,9)" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             </div>
-                            
+
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.members.gender') }}</label>
@@ -232,8 +231,8 @@
         </div>
 
         <!-- Delete Confirmation Modal -->
-        <div 
-            x-show="showDeleteModal" 
+        <div
+            x-show="showDeleteModal"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"
@@ -242,7 +241,7 @@
         >
             <div class="flex items-center justify-center min-h-screen px-4">
                 <div class="fixed inset-0 bg-black/50" @click="showDeleteModal = false"></div>
-                
+
                 <div class="relative bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
                     <div class="text-center">
                         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
@@ -252,7 +251,7 @@
                         </div>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('messages.members.remove_title') }}</h3>
                         <p class="text-sm text-gray-500 mb-4" x-text="`{{ __('messages.members.remove_confirm', ['name' => ':name']) }}`.replace(':name', deletingName)"></p>
-                        
+
                         <div class="flex justify-center space-x-3">
                             <button @click="showDeleteModal = false" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                                 {{ __('messages.actions.cancel') }}
@@ -287,7 +286,7 @@
                 form: {
                     full_name: '',
                     national_id: '',
-                    relation_to_head: '',
+                    relation_to_head: 'son',
                     gender: '',
                     birth_date: '',
                     has_war_injury: false,
@@ -299,7 +298,7 @@
 
                 openAddModal() {
                     this.editingId = null;
-                    this.form = { full_name: '', national_id: '', relation_to_head: '', gender: '', birth_date: '', has_war_injury: false, has_chronic_disease: false, has_disability: false, condition_type: '', health_notes: '' };
+                    this.form = { full_name: '', national_id: '', relation_to_head: 'son', gender: '', birth_date: '', has_war_injury: false, has_chronic_disease: false, has_disability: false, condition_type: '', health_notes: '' };
                     this.showModal = true;
                 },
 
@@ -308,7 +307,7 @@
                     this.form = {
                         full_name: member.full_name,
                         national_id: member.national_id || '',
-                        relation_to_head: member.relation_to_head,
+                        relation_to_head: 'son',
                         gender: member.gender || '',
                         birth_date: member.birth_date ? member.birth_date.split('T')[0] : '',
                         has_war_injury: Boolean(member.has_war_injury),
@@ -348,7 +347,7 @@
                         });
 
                         const data = await response.json();
-                        
+
                         if (data.success) {
                             this.toastMessage = data.message;
                             this.toastType = 'success';
@@ -362,7 +361,7 @@
                     } catch (error) {
                         alert('{{ __('messages.error.general') }}');
                     }
-                    
+
                     this.saving = false;
                 }
             }

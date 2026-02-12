@@ -83,21 +83,25 @@ class ImportExportController extends Controller
         ]);
 
         $importJob = ImportJob::create([
+            'user_id'   => auth()->id(),
             'file_name' => $request->file('file')->getClientOriginalName(),
-            'type' => 'households',
-            'status' => 'processing',
-            'uploaded_by' => auth()->id(),
+            'type'      => 'households',
+            'status'    => 'processing',
         ]);
 
         try {
             $import = new HouseholdsImport();
             Excel::import($import, $request->file('file'));
 
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
             $importJob->update([
-                'status' => 'completed',
-                'rows_processed' => $import->getSuccessCount(),
-                'rows_failed' => $import->getFailureCount(),
-                'errors' => $import->getErrors(),
+                'status'        => 'completed',
+                'total_rows'    => $successCount + $failureCount,
+                'success_count' => $successCount,
+                'error_count'   => $failureCount,
+                'errors_json'   => $import->getErrors(),
             ]);
 
             AuditLog::log('import', 'ImportJob', $importJob->id, null, [
@@ -114,8 +118,8 @@ class ImportExportController extends Controller
 
         } catch (\Exception $e) {
             $importJob->update([
-                'status' => 'failed',
-                'errors' => [$e->getMessage()],
+                'status'      => 'failed',
+                'errors_json' => [$e->getMessage()],
             ]);
 
             return back()->with('error', 'Import failed: ' . $e->getMessage());

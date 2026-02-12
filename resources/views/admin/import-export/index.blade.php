@@ -123,7 +123,7 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500">
                                     @if($import->status === 'completed')
-                                        {{ __('messages.import_export.result_ok_failed', ['ok' => $import->rows_processed, 'failed' => $import->rows_failed]) }}
+                                        {{ __('messages.import_export.result_ok_failed', ['ok' => $import->success_count, 'failed' => $import->error_count]) }}
                                     @endif
                                 </td>
                             </tr>
