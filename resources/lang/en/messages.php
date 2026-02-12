@@ -380,7 +380,14 @@ return [
         'no_results' => 'No households found',
         'record_distribution' => 'Record Distribution',
         'pending_users_title' => 'Pending citizen registrations (no household yet)',
-        'pending_users_hint' => 'These users registered but did not finish household onboarding. Contact or onboard them to show in the main list.',
+        'pending_users_hint' => 'These accounts registered but did not complete household data. Contact or complete registration for them to appear in the main list.',
+        'select_all_outside' => 'Select All Outside Al-Qarara',
+        'delete_selected' => 'Delete Selected',
+        'bulk_delete_confirm_title' => 'Confirm Deletion',
+        'bulk_delete_confirm_body' => 'Are you sure you want to delete :count household(s) from outside Al-Qarara? This action cannot be undone.',
+        'bulk_delete_success' => ':count household(s) deleted successfully.',
+        'bulk_delete_invalid' => 'Some selected households are not outside Al-Qarara. No households were deleted.',
+        'bulk_delete_cancel' => 'Cancel',
     ],
 
     // Distributions

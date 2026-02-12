@@ -67,6 +67,7 @@ Route::middleware(['auth', 'role:admin|data_entry|auditor|distributor'])->prefix
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
     // Households
+    Route::post('/households/bulk-destroy', [HouseholdController::class, 'bulkDestroy'])->name('households.bulk-destroy');
     Route::resource('households', HouseholdController::class);
     Route::post('/households/{household}/verify', [HouseholdController::class, 'verify'])->name('households.verify');
     

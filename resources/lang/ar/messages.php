@@ -384,6 +384,13 @@ return [
         'verify' => 'توثيق الأسرة',
         'pending_users_title' => 'تسجيلات المواطنين المعلقة (بدون أسرة بعد)',
         'pending_users_hint' => 'هذه الحسابات سجّلت ولم تكمل بيانات الأسرة. قم بالتواصل أو استكمال التسجيل لتظهر في القائمة الرئيسية.',
+        'select_all_outside' => 'تحديد الكل خارج القرارة',
+        'delete_selected' => 'حذف المحدد',
+        'bulk_delete_confirm_title' => 'تأكيد الحذف',
+        'bulk_delete_confirm_body' => 'هل أنت متأكد من حذف :count أسرة من خارج القرارة؟ هذا الإجراء لا يمكن التراجع عنه.',
+        'bulk_delete_success' => 'تم حذف :count أسرة بنجاح.',
+        'bulk_delete_invalid' => 'بعض الأسر المحددة ليست من خارج القرارة. لم يتم حذف أي أسرة.',
+        'bulk_delete_cancel' => 'إلغاء',
     ],
 
     // Distributions
