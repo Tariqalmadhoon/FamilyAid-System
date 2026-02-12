@@ -13,7 +13,7 @@
     <div class="py-8">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white rounded-lg shadow-sm p-6">
-                <form method="POST" action="{{ route('admin.programs.update', $program) }}">
+                <form id="update-program-form" method="POST" action="{{ route('admin.programs.update', $program) }}">
                     @csrf
                     @method('PUT')
                     <div class="mb-4">
@@ -34,7 +34,7 @@
                             <input type="date" name="end_date" value="{{ old('end_date', $program->end_date?->format('Y-m-d')) }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                         </div>
                     </div>
-                    <div class="space-y-3 mb-6">
+                    <div class="space-y-3">
                         <label class="flex items-center">
                             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $program->is_active) ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
                             <span class="ml-2 text-sm text-gray-700">{{ __('messages.status.active') }}</span>
@@ -44,17 +44,24 @@
                             <span class="ml-2 text-sm text-gray-700">{{ __('messages.program.allow_multiple') }}</span>
                         </label>
                     </div>
-                    <div class="flex justify-between">
-                        <form action="{{ route('admin.programs.destroy', $program) }}" method="POST" onsubmit="return confirm('{{ __('messages.confirm.delete') }}')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="px-4 py-2 text-red-600 hover:text-red-800 text-sm">{{ __('messages.actions.delete') }}</button>
-                        </form>
-                        <div class="flex space-x-3">
-                            <a href="{{ route('admin.programs.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.cancel') }}</a>
-                            <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.actions.save') }}</button>
-                        </div>
+                </form>
+
+                <div class="flex justify-between items-center mt-6">
+                    <button type="submit"
+                        form="delete-program-form"
+                        class="px-4 py-2 text-red-600 hover:text-red-800 text-sm"
+                        onclick="return confirm('{{ __('messages.confirm.delete') }}')">
+                        {{ __('messages.actions.delete') }}
+                    </button>
+                    <div class="flex space-x-3">
+                        <a href="{{ route('admin.programs.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.cancel') }}</a>
+                        <button type="submit" form="update-program-form" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.actions.save') }}</button>
                     </div>
+                </div>
+
+                <form id="delete-program-form" action="{{ route('admin.programs.destroy', $program) }}" method="POST" class="hidden">
+                    @csrf
+                    @method('DELETE')
                 </form>
             </div>
         </div>

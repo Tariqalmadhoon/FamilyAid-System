@@ -10,6 +10,11 @@
             </a>
         </div>
     </x-slot>
+    <style>
+        .flex{
+            gap:5px;
+        }
+    </style>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

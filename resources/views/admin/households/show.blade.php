@@ -39,20 +39,56 @@
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.housing_type') ?? 'نوع السكن' }}</dt><dd class="font-medium capitalize">{{ str_replace('_', ' ', $household->housing_type ?? '-') }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.primary_phone') ?? 'الهاتف الأساسي' }}</dt><dd class="font-medium">{{ $household->primary_phone ?? '-' }}</dd></div>
                             <div class="col-span-2"><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.address') ?? 'العنوان' }}</dt><dd class="font-medium">{{ $household->address_text ?? '-' }}</dd></div>
+                            @if($household->previous_governorate)
+                                <div class="col-span-2">
+                                    <dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.previous_residence_title') }}</dt>
+                                    <dd class="font-medium">
+                                        {{ __('messages.previous_governorates.' . $household->previous_governorate) }}
+                                        @if($household->previous_area)
+                                            — {{ __('messages.previous_areas.' . $household->previous_governorate . '.' . $household->previous_area) }}
+                                        @endif
+                                    </dd>
+                                </div>
+                            @endif
                             <div class="col-span-2">
                                 <dt class="text-xs text-gray-500 uppercase">{{ __('messages.health.section_title') ?? 'الحالة الصحية' }}</dt>
-                                <dd class="font-medium">
-                                    <div class="flex flex-wrap gap-2 mt-1 text-xs">
-                                        <span class="px-2 py-1 rounded-full {{ $household->has_war_injury ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.has_war_injury') }}</span>
-                                        <span class="px-2 py-1 rounded-full {{ $household->has_chronic_disease ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.has_chronic_disease') }}</span>
-                                        <span class="px-2 py-1 rounded-full {{ $household->has_disability ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.has_disability') }}</span>
-                                        @if($household->condition_type)
-                                            <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700">{{ $household->condition_type }}</span>
-                                        @endif
+                                <dd class="mt-2">
+                                    <div class="border rounded-lg divide-y text-sm">
+                                        <div class="flex items-center justify-between px-3 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full {{ $household->has_war_injury ? 'bg-red-500' : 'bg-gray-300' }}"></span>
+                                                <span class="text-gray-700">{{ __('messages.health.has_war_injury') }}</span>
+                                            </div>
+                                            <span class="px-2 py-1 text-xs font-medium rounded {{ $household->has_war_injury ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-gray-100 text-gray-500' }}">
+                                                {{ $household->has_war_injury ? 'نعم' : 'لا' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between px-3 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full {{ $household->has_chronic_disease ? 'bg-amber-500' : 'bg-gray-300' }}"></span>
+                                                <span class="text-gray-700">{{ __('messages.health.has_chronic_disease') }}</span>
+                                            </div>
+                                            <span class="px-2 py-1 text-xs font-medium rounded {{ $household->has_chronic_disease ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-gray-100 text-gray-500' }}">
+                                                {{ $household->has_chronic_disease ? 'نعم' : 'لا' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between px-3 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full {{ $household->has_disability ? 'bg-indigo-500' : 'bg-gray-300' }}"></span>
+                                                <span class="text-gray-700">{{ __('messages.health.has_disability') }}</span>
+                                            </div>
+                                            <span class="px-2 py-1 text-xs font-medium rounded {{ $household->has_disability ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-gray-100 text-gray-500' }}">
+                                                {{ $household->has_disability ? 'نعم' : 'لا' }}
+                                            </span>
+                                        </div>
+                                        <div class="px-3 py-3 bg-slate-50">
+                                            <p class="text-xs text-gray-500 mb-1">{{ __('messages.health.condition_type') }}</p>
+                                            <p class="text-sm font-medium text-slate-700">{{ $household->condition_type ?? __('messages.onboarding_form.not_provided') }}</p>
+                                            @if($household->condition_notes)
+                                                <p class="text-xs text-gray-600 mt-2 leading-relaxed">{{ $household->condition_notes }}</p>
+                                            @endif
+                                        </div>
                                     </div>
-                                    @if($household->condition_notes)
-                                        <p class="text-xs text-gray-500 mt-1">{{ $household->condition_notes }}</p>
-                                    @endif
                                 </dd>
                             </div>
                         </dl>
@@ -68,19 +104,29 @@
                                         <div>
                                             <p class="font-medium">{{ $member->full_name }}</p>
                                             <p class="text-sm text-gray-500 capitalize">{{ $member->relation_to_head }} @if($member->national_id) • {{ $member->national_id }} @endif</p>
-                                            <div class="flex flex-wrap gap-2 mt-1 text-xs">
-                                                @if($member->has_war_injury)
-                                                    <span class="px-2 py-1 rounded-full bg-red-50 text-red-700">{{ __('messages.health.war_injury') }}</span>
-                                                @endif
-                                                @if($member->has_chronic_disease)
-                                                    <span class="px-2 py-1 rounded-full bg-amber-50 text-amber-700">{{ __('messages.health.chronic_disease') }}</span>
-                                                @endif
-                                                @if($member->has_disability)
-                                                    <span class="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ __('messages.health.disability') }}</span>
-                                                @endif
-                                                @if($member->condition_type)
-                                                    <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700">{{ $member->condition_type }}</span>
-                                                @endif
+                                            <div class="mt-2 text-xs text-gray-700 border rounded-lg divide-y">
+                                                <div class="flex items-center justify-between px-2 py-1.5">
+                                                    <span>{{ __('messages.health.has_war_injury') }}</span>
+                                                    <span class="px-2 py-0.5 rounded font-medium {{ $member->has_war_injury ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-gray-100 text-gray-500' }}">
+                                                        {{ $member->has_war_injury ? 'نعم' : 'لا' }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex items-center justify-between px-2 py-1.5">
+                                                    <span>{{ __('messages.health.has_chronic_disease') }}</span>
+                                                    <span class="px-2 py-0.5 rounded font-medium {{ $member->has_chronic_disease ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-gray-100 text-gray-500' }}">
+                                                        {{ $member->has_chronic_disease ? 'نعم' : 'لا' }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex items-center justify-between px-2 py-1.5">
+                                                    <span>{{ __('messages.health.has_disability') }}</span>
+                                                    <span class="px-2 py-0.5 rounded font-medium {{ $member->has_disability ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-gray-100 text-gray-500' }}">
+                                                        {{ $member->has_disability ? 'نعم' : 'لا' }}
+                                                    </span>
+                                                </div>
+                                                <div class="px-2 py-2 bg-slate-50">
+                                                    <p class="text-[11px] text-gray-500 mb-1">{{ __('messages.health.condition_type') }}</p>
+                                                    <p class="text-sm font-medium text-slate-700">{{ $member->condition_type ?? __('messages.onboarding_form.not_provided') }}</p>
+                                                </div>
                                             </div>
                                             @if($member->health_notes)
                                                 <p class="text-xs text-gray-500 mt-1">{{ $member->health_notes }}</p>

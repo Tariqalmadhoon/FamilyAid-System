@@ -6,7 +6,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Edit: {{ $household->head_name }}</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('messages.actions.edit') }}: {{ $household->head_name }}</h2>
         </div>
     </x-slot>
 
@@ -19,18 +19,18 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Head National ID <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_national_id') }} <span class="text-red-500">*</span></label>
                             <input type="tel" name="head_national_id" value="{{ old('head_national_id', $household->head_national_id) }}" maxlength="9" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,9)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             @error('head_national_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Head Name <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_name') }} <span class="text-red-500">*</span></label>
                             <input type="text" name="head_name" value="{{ old('head_name', $household->head_name) }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                         </div>
                     </div>
 
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Region <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.region') }} <span class="text-red-500">*</span></label>
                         <select name="region_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             @foreach($regions as $region)
                                 <optgroup label="{{ $region->name }}">
@@ -43,38 +43,64 @@
                     </div>
 
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.address') }}</label>
                         <textarea name="address_text" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">{{ old('address_text', $household->address_text) }}</textarea>
+                    </div>
+
+                    <!-- Previous Residence -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" x-data="{ prevGov: '{{ old('previous_governorate', $household->previous_governorate) }}', allAreas: @json($previousAreas) }">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_governorate') }}</label>
+                            <select name="previous_governorate" x-model="prevGov" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                <option value="">{{ __('messages.onboarding_form.previous_governorate_placeholder') }}</option>
+                                @foreach($previousGovernorates as $key => $label)
+                                    <option value="{{ $key }}" {{ old('previous_governorate', $household->previous_governorate) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('previous_governorate')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_area') }}</label>
+                            <select name="previous_area" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                <option value="">{{ __('messages.onboarding_form.previous_area_placeholder') }}</option>
+                                <template x-if="prevGov && allAreas[prevGov]">
+                                    <template x-for="[aKey, aLabel] in Object.entries(allAreas[prevGov] || {})" :key="aKey">
+                                        <option :value="aKey" x-text="aLabel" :selected="aKey === '{{ old('previous_area', $household->previous_area) }}'"></option>
+                                    </template>
+                                </template>
+                            </select>
+                            @error('previous_area')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Housing Type</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.housing_type') }}</label>
                             <select name="housing_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
-                                <option value="">-- Select --</option>
+                                <option value="">{{ __('messages.actions.select') }}</option>
                                 @foreach($housingTypes as $type)
-                                    <option value="{{ $type }}" {{ old('housing_type', $household->housing_type) === $type ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $type)) }}</option>
+                                    <option value="{{ $type }}" {{ old('housing_type', $household->housing_type) === $type ? 'selected' : '' }}>{{ __('messages.housing_types.' . $type) }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.status.status') ?? __('messages.status.title') ?? 'الحالة' }} <span class="text-red-500">*</span></label>
                             <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
-                                <option value="pending" {{ old('status', $household->status) === 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="verified" {{ old('status', $household->status) === 'verified' ? 'selected' : '' }}>Verified</option>
-                                <option value="suspended" {{ old('status', $household->status) === 'suspended' ? 'selected' : '' }}>Suspended</option>
-                                <option value="rejected" {{ old('status', $household->status) === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                <option value="pending" {{ old('status', $household->status) === 'pending' ? 'selected' : '' }}>{{ __('messages.status.pending') }}</option>
+                                <option value="verified" {{ old('status', $household->status) === 'verified' ? 'selected' : '' }}>{{ __('messages.status.verified') }}</option>
+                                <option value="suspended" {{ old('status', $household->status) === 'suspended' ? 'selected' : '' }}>{{ __('messages.status.suspended') }}</option>
+                                <option value="rejected" {{ old('status', $household->status) === 'rejected' ? 'selected' : '' }}>{{ __('messages.status.rejected') }}</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Primary Phone</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.primary_phone') }}</label>
                             <input type="tel" name="primary_phone" value="{{ old('primary_phone', $household->primary_phone) }}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Secondary Phone</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.secondary_phone') }}</label>
                             <input type="tel" name="secondary_phone" value="{{ old('secondary_phone', $household->secondary_phone) }}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                         </div>
                     </div>
@@ -107,19 +133,19 @@
                     </div>
 
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.program.notes') ?? 'ملاحظات' }}</label>
                         <textarea name="notes" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">{{ old('notes', $household->notes) }}</textarea>
                     </div>
 
                     <div class="mt-6 flex justify-between">
-                        <form action="{{ route('admin.households.destroy', $household) }}" method="POST" onsubmit="return confirm('Delete this household?')">
+                        <form action="{{ route('admin.households.destroy', $household) }}" method="POST" onsubmit="return confirm('{{ __('messages.confirm.delete') ?? 'حذف هذه الأسرة؟' }}')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="px-4 py-2 text-red-600 hover:text-red-800 text-sm">Delete Household</button>
+                            <button type="submit" class="px-4 py-2 text-red-600 hover:text-red-800 text-sm">{{ __('messages.actions.delete') }} {{ __('messages.households_admin.title') ?? '' }}</button>
                         </form>
                         <div class="flex space-x-3">
-                            <a href="{{ route('admin.households.show', $household) }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</a>
-                            <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">Save Changes</button>
+                            <a href="{{ route('admin.households.show', $household) }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.cancel') }}</a>
+                            <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.actions.save') }}</button>
                         </div>
                     </div>
                 </form>

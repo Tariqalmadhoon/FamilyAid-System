@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-@if ($errors->any())
+{{-- @if ($errors->any())
     <div class="alert alert-danger">
         <ul>
             @foreach ($errors->all() as $error)
@@ -13,7 +13,7 @@
             @endforeach
         </ul>
     </div>
-@endif
+@endif --}}
 
 
 
@@ -23,7 +23,7 @@
         $errorStep = 2; // Step 3: members
     } elseif ($errors->hasAny(['housing_type', 'primary_phone', 'secondary_phone', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'condition_type', 'condition_notes'])) {
         $errorStep = 1; // Step 2: housing/contact
-    } elseif ($errors->hasAny(['region_id', 'address_text'])) {
+    } elseif ($errors->hasAny(['region_id', 'address_text', 'previous_governorate', 'previous_area'])) {
         $errorStep = 0; // Step 1: address
     }
     $initialStep = $errorStep ?? old('wizard_step', 0);
@@ -97,11 +97,7 @@
                             >
                                 <option value="">{{ __('messages.onboarding_form.select_region_placeholder') }}</option>
                                 @foreach($regions as $region)
-                                    <optgroup label="{{ $region->name }}">
-                                        @foreach($region->children as $child)
-                                            <option value="{{ $child->id }}" @selected($prefill['region_id'] == $child->id)>{{ $child->name }}</option>
-                                        @endforeach
-                                    </optgroup>
+                                    <option value="{{ $region->id }}" @selected($prefill['region_id'] == $region->id)>{{ $region->name }}</option>
                                 @endforeach
                             </select>
                             @error('region_id')
@@ -124,6 +120,53 @@
                             @error('address_text')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <!-- Previous Residence Section -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="text-md font-medium text-gray-800 mb-4">{{ __('messages.onboarding_form.previous_residence_title') }} <span class="text-red-500">*</span></h4>
+
+                            <!-- Previous Governorate -->
+                            <div class="mb-4">
+                                <label for="previous_governorate" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_governorate') }} <span class="text-red-500">*</span></label>
+                                <select
+                                    id="previous_governorate"
+                                    name="previous_governorate"
+                                    x-model="formData.previous_governorate"
+                                    @change="formData.previous_area = ''"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    required
+                                >
+                                    <option value="">{{ __('messages.onboarding_form.previous_governorate_placeholder') }}</option>
+                                    @foreach(__('messages.previous_governorates') as $key => $label)
+                                        <option value="{{ $key }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('previous_governorate')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Previous Area (dependent on governorate) -->
+                            <div class="mb-4">
+                                <label for="previous_area" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_area') }} <span class="text-red-500">*</span></label>
+                                <select
+                                    id="previous_area"
+                                    name="previous_area"
+                                    x-model="formData.previous_area"
+                                    :disabled="!formData.previous_governorate"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    required
+                                >
+                                    <option value="">{{ __('messages.onboarding_form.previous_area_placeholder') }}</option>
+                                    <template x-for="[key, label] in Object.entries(allAreas[formData.previous_governorate] || {})" :key="key">
+                                        <option :value="key" x-text="label"></option>
+                                    </template>
+                                </select>
+                                @error('previous_area')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -196,39 +239,29 @@
 
                         <!-- Household Health -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-                            <input type="hidden" name="has_war_injury" value="0">
                             <label class="flex items-center gap-2">
-                                <input type="checkbox" name="has_war_injury" value="1" @change="handleHouseholdHealthToggle" x-model="formData.has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <input type="checkbox" name="has_war_injury" x-model="formData.has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
                                 <span class="text-sm text-gray-700">{{ __('messages.health.has_war_injury') }}</span>
                             </label>
-                            <input type="hidden" name="has_chronic_disease" value="0">
                             <label class="flex items-center gap-2">
-                                <input type="checkbox" name="has_chronic_disease" value="1" @change="handleHouseholdHealthToggle" x-model="formData.has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <input type="checkbox" name="has_chronic_disease" x-model="formData.has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
                                 <span class="text-sm text-gray-700">{{ __('messages.health.has_chronic_disease') }}</span>
                             </label>
-                            <input type="hidden" name="has_disability" value="0">
                             <label class="flex items-center gap-2">
-                                <input type="checkbox" name="has_disability" value="1" @change="handleHouseholdHealthToggle" x-model="formData.has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <input type="checkbox" name="has_disability" x-model="formData.has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
                                 <span class="text-sm text-gray-700">{{ __('messages.health.has_disability') }}</span>
                             </label>
                         </div>
 
-                        <div class="mt-4" x-show="householdNeedsCondition || fieldError('condition_type')" x-transition x-effect="if (!householdNeedsCondition) { formData.condition_type = ''; }">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                {{ __('messages.health.condition_type') }}
-                                <span class="text-red-500" x-show="householdNeedsCondition">*</span>
-                            </label>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.health.condition_type') }}</label>
                             <input
                                 type="text"
                                 name="condition_type"
                                 x-model="formData.condition_type"
-                                :disabled="!householdNeedsCondition"
-                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                :class="fieldError('condition_type') ? 'border-red-300' : 'border-gray-300'"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                 placeholder="{{ __('messages.health.condition_type_placeholder') }}"
                             >
-                            <p class="mt-1 text-sm text-red-600" x-show="fieldError('condition_type')" x-text="fieldError('condition_type')"></p>
-                            <p class="mt-1 text-xs text-gray-500" x-show="householdNeedsCondition">{{ __('Required when any health condition is selected.') }}</p>
                         </div>
 
                         <div class="mt-3">
@@ -312,7 +345,6 @@
                                                 :class="fieldError(`members.${index}.relation_to_head`) ? 'border-red-300' : 'border-gray-300'"
                                                 required
                                             >
-                                                <option value="">{{ __('messages.actions.select') }}</option>
                                                 @foreach($relations as $value => $label)
                                                     <option value="{{ $value }}">{{ $label }}</option>
                                                 @endforeach
@@ -320,7 +352,7 @@
                                             <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.relation_to_head`)" x-text="fieldError(`members.${index}.relation_to_head`)"></p>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_national_id_optional') }}</label>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_national_id_optional') }} <span class="text-red-500">*</span></label>
                                             <input
                                                 type="text"
                                                 :name="'members[' + index + '][national_id]'"
@@ -331,6 +363,7 @@
                                                 maxlength="9"
                                                 inputmode="numeric"
                                                 @input="filterDigits($event, 9)"
+                                                required
                                             >
                                             <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.national_id`)" x-text="fieldError(`members.${index}.national_id`)"></p>
                                         </div>
@@ -358,37 +391,28 @@
                                             <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.birth_date`)" x-text="fieldError(`members.${index}.birth_date`)"></p>
                                         </div>
                                         <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                            <input type="hidden" :name="'members[' + index + '][has_war_injury]'" value="0">
                                             <label class="flex items-center gap-2 text-xs text-gray-700">
-                                                <input type="checkbox" value="1" :name="'members[' + index + '][has_war_injury]'" @change="handleMemberHealthToggle(member)" x-model="member.has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <input type="checkbox" :name="'members[' + index + '][has_war_injury]'" x-model="member.has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
                                                 <span>{{ __('messages.health.has_war_injury') }}</span>
                                             </label>
-                                            <input type="hidden" :name="'members[' + index + '][has_chronic_disease]'" value="0">
                                             <label class="flex items-center gap-2 text-xs text-gray-700">
-                                                <input type="checkbox" value="1" :name="'members[' + index + '][has_chronic_disease]'" @change="handleMemberHealthToggle(member)" x-model="member.has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <input type="checkbox" :name="'members[' + index + '][has_chronic_disease]'" x-model="member.has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
                                                 <span>{{ __('messages.health.has_chronic_disease') }}</span>
                                             </label>
-                                            <input type="hidden" :name="'members[' + index + '][has_disability]'" value="0">
                                             <label class="flex items-center gap-2 text-xs text-gray-700">
-                                                <input type="checkbox" value="1" :name="'members[' + index + '][has_disability]'" @change="handleMemberHealthToggle(member)" x-model="member.has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <input type="checkbox" :name="'members[' + index + '][has_disability]'" x-model="member.has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
                                                 <span>{{ __('messages.health.has_disability') }}</span>
                                             </label>
                                         </div>
-                                        <div x-show="memberNeedsCondition(member) || fieldError(`members.${index}.condition_type`)" x-transition x-effect="if (!memberNeedsCondition(member)) { member.condition_type = ''; }">
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">
-                                                {{ __('messages.health.condition_type') }}
-                                                <span class="text-red-500" x-show="memberNeedsCondition(member)">*</span>
-                                            </label>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.health.condition_type') }}</label>
                                             <input
                                                 type="text"
                                                 :name="'members[' + index + '][condition_type]'"
                                                 x-model="member.condition_type"
-                                                :disabled="!memberNeedsCondition(member)"
                                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                                :class="fieldError(`members.${index}.condition_type`) ? 'border-red-300' : 'border-gray-300'"
                                                 placeholder="{{ __('messages.health.condition_type_placeholder') }}"
                                             >
-                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.condition_type`)" x-text="fieldError(`members.${index}.condition_type`)"></p>
                                         </div>
                                         <div class="sm:col-span-2">
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.health.condition_notes') }}</label>
@@ -435,6 +459,10 @@
                                     <button type="button" @click="step = 0" class="text-teal-600 hover:text-teal-800 text-sm">{{ __('messages.onboarding_form.edit') }}</button>
                                 </div>
                                 <p class="text-sm text-gray-600" x-text="formData.address_text || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
+                                <div x-show="formData.previous_governorate" class="mt-2 pt-2 border-t border-gray-200">
+                                    <span class="text-sm text-gray-500">{{ __('messages.onboarding_form.previous_residence_review') }}</span>
+                                    <span class="text-sm text-gray-700 ml-1" x-text="(allGovernorates[formData.previous_governorate] || '') + ' - ' + (allAreas[formData.previous_governorate]?.[formData.previous_area] || '')"></span>
+                                </div>
                             </div>
 
                             <!-- Housing Summary -->
@@ -551,9 +579,13 @@
                     { title: '{{ __('messages.onboarding_form.step_members') }}' },
                     { title: '{{ __('messages.onboarding_form.step_review') }}' }
                 ],
+                allGovernorates: @json(__('messages.previous_governorates')),
+                allAreas: @json(__('messages.previous_areas')),
                 formData: {
                     region_id: '{{ $prefill['region_id'] }}',
                     address_text: @json($prefill['address_text']),
+                    previous_governorate: '{{ $prefill['previous_governorate'] }}',
+                    previous_area: '{{ $prefill['previous_area'] }}',
                     housing_type: '{{ $prefill['housing_type'] }}',
                     primary_phone: '{{ $prefill['primary_phone'] }}',
                     secondary_phone: '{{ $prefill['secondary_phone'] }}',
@@ -563,7 +595,7 @@
                     condition_type: @json($prefill['condition_type']),
                     condition_notes: @json($prefill['condition_notes'])
                 },
-                members: @json($prefill['members']),
+                members: @json($prefill['members']).map(member => ({ ...member, relation_to_head: 'son' })),
 
                 fieldError(key) {
                     const messages = this.errors[key];
@@ -573,19 +605,13 @@
                     return '';
                 },
 
-                get householdNeedsCondition() {
-                    return this.formData.has_war_injury || this.formData.has_chronic_disease || this.formData.has_disability;
-                },
-
                 get canProceed() {
                     if (this.step === 0) {
-                        return this.formData.region_id && this.formData.address_text;
+                        return this.formData.region_id && this.formData.address_text && this.formData.previous_governorate && this.formData.previous_area;
                     }
                     if (this.step === 1) {
                         const digits = (this.formData.primary_phone || '').replace(/\\D/g, '');
-                        const needsCondition = this.householdNeedsCondition;
-                        const hasConditionText = (this.formData.condition_type || '').trim().length > 0;
-                        return this.formData.housing_type && digits.length === 10 && (!needsCondition || hasConditionText);
+                        return this.formData.housing_type && digits.length === 10;
                     }
                     if (this.step === 2) {
                         if (this.members.length === 0) return true;
@@ -598,8 +624,7 @@
                             }).join('').replace(/\\D/g, '');
                             return member.full_name
                                 && member.relation_to_head
-                                && (!member.national_id || idDigits.length === 9)
-                                && (!this.memberNeedsCondition(member) || (member.condition_type || '').trim().length > 0);
+                                && idDigits.length === 9;
                         });
                     }
                     return true;
@@ -621,7 +646,7 @@
                     this.members.push({
                         full_name: '',
                         national_id: '',
-                        relation_to_head: '',
+                        relation_to_head: 'son',
                         gender: '',
                         birth_date: '',
                         has_war_injury: false,
@@ -636,29 +661,13 @@
                     this.members.splice(index, 1);
                 },
 
-                memberNeedsCondition(member) {
-                    return !!(member.has_war_injury || member.has_chronic_disease || member.has_disability);
-                },
-
-                handleHouseholdHealthToggle() {
-                    if (!this.householdNeedsCondition) {
-                        this.formData.condition_type = '';
-                    }
-                },
-
-                handleMemberHealthToggle(member) {
-                    if (!this.memberNeedsCondition(member)) {
-                        member.condition_type = '';
-                    }
-                },
-
                 handleSubmit(e) {
                     if (this.submitting) {
                         e.preventDefault();
                         return;
                     }
                     this.submitting = true;
-                    // normalize member IDs to western digits before submit; drop invalid optional IDs
+                    // normalize member IDs to western digits before submit
                     const eastern = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
                     const western = ['0','1','2','3','4','5','6','7','8','9'];
                     const normalize = (val) => {
@@ -672,7 +681,7 @@
                         const cleaned = normalize(member.national_id).replace(/\\D/g, '');
                         return {
                             ...member,
-                            national_id: cleaned.length === 9 ? cleaned : '',
+                            national_id: cleaned,
                         };
                     });
                 },

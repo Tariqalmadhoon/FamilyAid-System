@@ -15,10 +15,16 @@
         </div>
     </x-slot>
 
+    <style>
+        .p-3{
+            margin: 10px;
+        }
+    </style>
+
     <div class="py-8" x-data="{ showToast: {{ session('success') ? 'true' : 'false' }}, toastMessage: '{{ session('success') }}' }">
         <!-- Toast Notification -->
-        <div 
-            x-show="showToast" 
+        <div
+            x-show="showToast"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
             x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -51,7 +57,7 @@
                         </svg>
                         {{ __('messages.citizen.last_benefit_title') }}
                     </h3>
-                    
+
                     @if($lastDistribution)
                         <div class="flex items-center justify-between p-4 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-lg border border-teal-100">
                             <div>
@@ -129,7 +135,7 @@
                         </svg>
                         {{ __('messages.citizen.benefit_history') }}
                     </h3>
-                    
+
                     @if($distributions->count() > 0)
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
@@ -177,7 +183,7 @@
                         </h3>
                         <a href="{{ route('citizen.household.edit') }}" class="text-teal-600 hover:text-teal-800 text-sm font-medium">{{ __('messages.actions.edit') }}</a>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-3">
                             <div>

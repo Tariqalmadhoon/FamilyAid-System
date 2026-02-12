@@ -6,7 +6,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Record Distribution') }}</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('messages.distributions.record') }}</h2>
         </div>
     </x-slot>
 
@@ -22,12 +22,12 @@
 
                     <!-- Household Search -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Household <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.distributions.table.household') }} <span class="text-red-500">*</span></label>
                         
                         @if($household)
                             <div class="p-3 bg-teal-50 border border-teal-200 rounded-lg mb-2">
                                 <p class="font-medium text-teal-800">{{ $household->head_name }}</p>
-                                <p class="text-sm text-teal-600">{{ $household->head_national_id }} • {{ $household->region->name ?? '' }}</p>
+                                <p class="text-sm text-teal-600">{{ $household->head_national_id }} - {{ $household->region->name ?? '' }}</p>
                             </div>
                             <input type="hidden" name="household_id" value="{{ $household->id }}">
                         @else
@@ -38,14 +38,14 @@
                                     x-model="searchQuery" 
                                     @input.debounce.300ms="search"
                                     @focus="showResults = true"
-                                    placeholder="Search by National ID, name, or phone..."
+                                    placeholder="{{ __('messages.distributions.search_placeholder') }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                 >
                                 <div x-show="showResults && results.length > 0" @click.away="showResults = false" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
                                     <template x-for="result in results" :key="result.id">
                                         <div @click="selectHousehold(result)" class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0">
                                             <p class="font-medium text-gray-900" x-text="result.head_name"></p>
-                                            <p class="text-sm text-gray-500"><span x-text="result.head_national_id"></span> • <span x-text="result.region"></span></p>
+                                            <p class="text-sm text-gray-500"><span x-text="result.head_national_id"></span> - <span x-text="result.region"></span></p>
                                         </div>
                                     </template>
                                 </div>
@@ -69,9 +69,9 @@
 
                     <!-- Program Select -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Aid Program <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.distributions.table.program') }} <span class="text-red-500">*</span></label>
                         <select name="aid_program_id" x-model="selectedProgram" @change="checkEligibility" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
-                            <option value="">-- Select Program --</option>
+                            <option value="">{{ __('messages.actions.select') }}</option>
                             @foreach($programs as $program)
                                 <option value="{{ $program->id }}">{{ $program->name }}</option>
                             @endforeach
@@ -86,19 +86,19 @@
 
                     <!-- Distribution Date -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.distributions.table.date') }} <span class="text-red-500">*</span></label>
                         <input type="date" name="distribution_date" value="{{ old('distribution_date', date('Y-m-d')) }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                     </div>
 
                     <!-- Notes -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea name="notes" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" placeholder="Optional notes...">{{ old('notes') }}</textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.program.notes') }}</label>
+                        <textarea name="notes" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" placeholder="{{ __('messages.general.optional') }}">{{ old('notes') }}</textarea>
                     </div>
 
                     <div class="flex justify-end space-x-3">
-                        <a href="{{ route('admin.distributions.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</a>
-                        <button type="submit" :disabled="!isEligible && selectedProgram && (selectedHousehold.id || {{ $household ? 'true' : 'false' }})" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">Record Distribution</button>
+                        <a href="{{ route('admin.distributions.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.cancel') }}</a>
+                        <button type="submit" :disabled="!isEligible && selectedProgram && (selectedHousehold.id || {{ $household ? 'true' : 'false' }})" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">{{ __('messages.distributions.record') }}</button>
                     </div>
                 </form>
             </div>

@@ -12,6 +12,11 @@
             </a>
         </div>
     </x-slot>
+<style>
+    .flex{
+        gap: 5px;
+    }
+</style>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -71,7 +76,7 @@
                             <a href="{{ route('admin.households.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition">{{ __('messages.actions.clear') }}</a>
                         </div>
                     </div>
-                    
+
                     <!-- Row 2: Health & Child Filters -->
                     <div class="flex flex-wrap gap-4 pt-2 border-t border-gray-100">
                         <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -91,6 +96,34 @@
                             <span class="text-blue-700 font-medium">{{ __('messages.child_filter.has_child_under_2') }}</span>
                         </label>
                     </div>
+
+                    <!-- Row 3: Previous Residence Filters -->
+                    <div x-data="{ prevGov: '{{ $filters['previous_governorate'] ?? '' }}', allAreas: @json($previousAreas) }" class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 border-t border-gray-100">
+                        <div>
+                            <select name="previous_governorate" x-model="prevGov" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                                <option value="">{{ __('messages.households_admin.all_previous_governorates') }}</option>
+                                @foreach($previousGovernorates as $key => $label)
+                                    <option value="{{ $key }}" {{ ($filters['previous_governorate'] ?? '') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <select name="previous_area" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">
+                                <option value="">{{ __('messages.households_admin.all_previous_areas') }}</option>
+                                <template x-if="prevGov && allAreas[prevGov]">
+                                    <template x-for="[aKey, aLabel] in Object.entries(allAreas[prevGov] || {})" :key="aKey">
+                                        <option :value="aKey" x-text="aLabel" :selected="aKey === '{{ $filters['previous_area'] ?? '' }}'"></option>
+                                    </template>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer h-full">
+                                <input type="checkbox" name="outside_al_qarara" value="1" {{ ($filters['outside_al_qarara'] ?? '') ? 'checked' : '' }} class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+                                <span class="text-orange-700 font-medium">{{ __('messages.households_admin.outside_al_qarara') }}</span>
+                            </label>
+                        </div>
+                    </div>
                 </form>
             </div>
 
@@ -105,6 +138,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.region') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.members') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.status') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.previous_residence') }}</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.actions') }}</th>
                             </tr>
                         </thead>
@@ -138,6 +172,16 @@
                                             @endif
                                         </div>
                                     </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        @if($household->previous_governorate)
+                                            <span class="text-gray-700">{{ __('messages.previous_governorates.' . $household->previous_governorate) }}</span>
+                                            @if($household->previous_area)
+                                                <br><span class="text-xs text-gray-400">{{ __('messages.previous_areas.' . $household->previous_governorate . '.' . $household->previous_area) }}</span>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-300">—</span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                         <div class="flex items-center justify-end space-x-2">
                                             @if($household->status === 'pending')
@@ -165,13 +209,13 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">{{ __('messages.households_admin.no_results') }}</td>
+                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">{{ __('messages.households_admin.no_results') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                
+
                 @if($households->hasPages())
                     <div class="px-6 py-4 border-t">
                         {{ $households->links() }}

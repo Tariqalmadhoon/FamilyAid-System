@@ -34,7 +34,7 @@ class OnboardingValidationTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
 
         $this->region = Region::create([
-            'name' => 'Central',
+            'name' => 'مخيم الامام مالك بن انس',
             'parent_id' => null,
             'code' => Str::random(5),
             'is_active' => true,
@@ -61,6 +61,8 @@ class OnboardingValidationTest extends TestCase
         return array_merge([
             'region_id' => $this->region->id,
             'address_text' => '123 Test Street',
+            'previous_governorate' => 'north_gaza',
+            'previous_area' => 'jabalia',
             'housing_type' => 'owned',
             'primary_phone' => '1234567890',
             'secondary_phone' => null,
@@ -146,7 +148,7 @@ class OnboardingValidationTest extends TestCase
                 [
                     'full_name' => 'Member One',
                     'relation_to_head' => 'son',
-                    'national_id' => null,
+                    'national_id' => '111111111',
                     'has_war_injury' => 1,
                     'has_chronic_disease' => 0,
                     'has_disability' => 0,
@@ -155,8 +157,8 @@ class OnboardingValidationTest extends TestCase
                 ],
                 [
                     'full_name' => 'Member Two',
-                    'relation_to_head' => 'daughter',
-                    'national_id' => null,
+                    'relation_to_head' => 'son',
+                    'national_id' => '222222222',
                     'has_war_injury' => 0,
                     'has_chronic_disease' => 0,
                     'has_disability' => 0,
@@ -180,7 +182,7 @@ class OnboardingValidationTest extends TestCase
                 [
                     'full_name' => 'Member One',
                     'relation_to_head' => 'son',
-                    'national_id' => null,
+                    'national_id' => '333333333',
                     'has_war_injury' => 0,
                     'has_chronic_disease' => 1,
                     'has_disability' => 0,
@@ -189,8 +191,8 @@ class OnboardingValidationTest extends TestCase
                 ],
                 [
                     'full_name' => 'Member Two',
-                    'relation_to_head' => 'daughter',
-                    'national_id' => null,
+                    'relation_to_head' => 'son',
+                    'national_id' => '444444444',
                     'has_war_injury' => 0,
                     'has_chronic_disease' => 0,
                     'has_disability' => 0,
@@ -212,6 +214,108 @@ class OnboardingValidationTest extends TestCase
         $this->assertDatabaseHas('household_members', [
             'full_name' => 'Member Two',
             'condition_type' => null,
+        ]);
+    }
+
+    public function test_member_relation_must_be_son_only(): void
+    {
+        $user = $this->makeCitizen();
+        $payload = $this->basePayload([
+            'members' => [
+                [
+                    'full_name' => 'Member One',
+                    'relation_to_head' => 'daughter',
+                    'national_id' => '555555555',
+                    'has_war_injury' => 0,
+                    'has_chronic_disease' => 0,
+                    'has_disability' => 0,
+                    'condition_type' => '',
+                    'health_notes' => '',
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($user)->from(route('citizen.onboarding'))->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertSessionHasErrors(['members.0.relation_to_head']);
+        $this->assertDatabaseCount('households', 0);
+    }
+
+    public function test_member_national_id_is_required(): void
+    {
+        $user = $this->makeCitizen();
+        $payload = $this->basePayload([
+            'members' => [
+                [
+                    'full_name' => 'Member One',
+                    'relation_to_head' => 'son',
+                    'national_id' => '',
+                    'has_war_injury' => 0,
+                    'has_chronic_disease' => 0,
+                    'has_disability' => 0,
+                    'condition_type' => '',
+                    'health_notes' => '',
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($user)->from(route('citizen.onboarding'))->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertSessionHasErrors(['members.0.national_id']);
+        $this->assertDatabaseCount('households', 0);
+    }
+
+    public function test_region_must_be_in_allowed_camps_list(): void
+    {
+        $user = $this->makeCitizen();
+
+        $disallowedRegion = Region::create([
+            'name' => 'Central',
+            'parent_id' => null,
+            'code' => Str::random(5),
+            'is_active' => true,
+        ]);
+
+        $payload = $this->basePayload([
+            'region_id' => $disallowedRegion->id,
+        ]);
+
+        $response = $this->actingAs($user)->from(route('citizen.onboarding'))->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertSessionHasErrors(['region_id']);
+        $this->assertDatabaseCount('households', 0);
+    }
+
+    public function test_previous_residence_fields_are_required(): void
+    {
+        $user = $this->makeCitizen();
+        $payload = $this->basePayload([
+            'previous_governorate' => '',
+            'previous_area' => '',
+        ]);
+
+        $response = $this->actingAs($user)->from(route('citizen.onboarding'))->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertSessionHasErrors(['previous_governorate', 'previous_area']);
+        $this->assertDatabaseCount('households', 0);
+    }
+
+    public function test_previous_residence_saved_on_successful_onboarding(): void
+    {
+        $user = $this->makeCitizen();
+        $payload = $this->basePayload([
+            'previous_governorate' => 'gaza',
+            'previous_area' => 'rimal',
+        ]);
+
+        $response = $this->actingAs($user)->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertRedirect(route('citizen.dashboard'));
+
+        $this->assertDatabaseHas('households', [
+            'head_national_id' => $user->national_id,
+            'previous_governorate' => 'gaza',
+            'previous_area' => 'rimal',
         ]);
     }
 }

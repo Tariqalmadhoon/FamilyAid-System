@@ -22,7 +22,7 @@ return [
     'remember_me' => 'تذكرني',
     
     // Form labels
-    'national_id' => 'الرقم الوطني',
+    'national_id' => 'رقم الهوية ',
     'name' => 'الاسم الكامل',
     'first_name' => 'الاسم الأول',
     'father_name' => 'اسم الأب',

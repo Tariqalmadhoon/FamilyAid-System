@@ -44,11 +44,13 @@ class HouseholdsExport
             __('messages.exports.households.status'),
             __('messages.exports.households.members_count'),
             __('messages.exports.households.member_names'),
+            __('messages.exports.households.previous_governorate'),
+            __('messages.exports.households.previous_area'),
             __('messages.exports.households.registered_date'),
         ];
         
         // Write headers
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
         foreach ($headers as $index => $header) {
             $cell = $columns[$index] . '1';
             $sheet->setCellValue($cell, $header);
@@ -68,7 +70,7 @@ class HouseholdsExport
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ];
-        $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
         
         // Get data
         $query = Household::with(['region', 'members']);
@@ -82,6 +84,10 @@ class HouseholdsExport
         }
         
         $households = $query->orderBy('created_at', 'desc')->get();
+
+        // Load governorate/area translation maps for display
+        $governorateLabels = __('messages.previous_governorates');
+        $areaLabels = __('messages.previous_areas');
         
         // Write data
         $row = 2;
@@ -96,7 +102,9 @@ class HouseholdsExport
             $sheet->setCellValue('H' . $row, __('messages.status.' . $household->status));
             $sheet->setCellValue('I' . $row, $household->members->count());
             $sheet->setCellValue('J' . $row, $household->members->pluck('full_name')->implode('، '));
-            $sheet->setCellValue('K' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
+            $sheet->setCellValue('K' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
+            $sheet->setCellValue('L' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
+            $sheet->setCellValue('M' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
             $row++;
         }
         

@@ -5,6 +5,11 @@
         </h2>
     </x-slot>
 
+    <style>
+        .p-2{
+            margin: 10px
+        }
+    </style>
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Stats Grid -->

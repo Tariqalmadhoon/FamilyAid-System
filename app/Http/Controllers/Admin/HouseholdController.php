@@ -61,11 +61,27 @@ class HouseholdController extends Controller
             $query->hasChildUnderMonths(24);
         }
 
+        // Previous Residence filters
+        if ($prevGov = $request->input('previous_governorate')) {
+            $query->where('previous_governorate', $prevGov);
+        }
+        if ($prevArea = $request->input('previous_area')) {
+            $query->where('previous_area', $prevArea);
+        }
+
+        // Quick preset: Outside Al-Qarara
+        if ($request->input('outside_al_qarara')) {
+            $query->where(function ($q) {
+                $q->where('previous_governorate', '!=', 'khan_younis')
+                  ->orWhereNotIn('previous_area', ['al_qarara', 'qarara_sharqiya']);
+            });
+        }
+
         $households = $query->latest()->paginate(15)->withQueryString();
 
         $regions = Region::with('children')->whereNull('parent_id')->get();
 
-        $filters = $request->only(['search', 'status', 'region_id', 'housing_type', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'has_child_under_2']);
+        $filters = $request->only(['search', 'status', 'region_id', 'housing_type', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'has_child_under_2', 'previous_governorate', 'previous_area', 'outside_al_qarara']);
 
         $pendingUsers = User::where('is_staff', false)
             ->whereNull('household_id')
@@ -81,6 +97,8 @@ class HouseholdController extends Controller
                 return $v !== null && $v !== '' && $v !== false;
             })->isNotEmpty(),
             'pendingUsers' => $pendingUsers,
+            'previousGovernorates' => __('messages.previous_governorates'),
+            'previousAreas' => __('messages.previous_areas'),
         ]);
     }
 
@@ -94,6 +112,8 @@ class HouseholdController extends Controller
         return view('admin.households.create', [
             'regions' => $regions,
             'housingTypes' => ['owned', 'rented', 'family_hosted', 'other'],
+            'previousGovernorates' => __('messages.previous_governorates'),
+            'previousAreas' => __('messages.previous_areas'),
         ]);
     }
 
@@ -117,6 +137,8 @@ class HouseholdController extends Controller
             'has_disability' => ['nullable', 'boolean'],
             'condition_type' => ['nullable', 'string', 'max:255'],
             'condition_notes' => ['nullable', 'string', 'max:1000'],
+            'previous_governorate' => ['nullable', 'string', 'max:100'],
+            'previous_area' => ['nullable', 'string', 'max:100'],
         ]);
 
         // Normalize checkbox values
@@ -155,6 +177,8 @@ class HouseholdController extends Controller
             'household' => $household,
             'regions' => $regions,
             'housingTypes' => ['owned', 'rented', 'family_hosted', 'other'],
+            'previousGovernorates' => __('messages.previous_governorates'),
+            'previousAreas' => __('messages.previous_areas'),
         ]);
     }
 
@@ -178,6 +202,8 @@ class HouseholdController extends Controller
             'has_disability' => ['nullable', 'boolean'],
             'condition_type' => ['nullable', 'string', 'max:255'],
             'condition_notes' => ['nullable', 'string', 'max:1000'],
+            'previous_governorate' => ['nullable', 'string', 'max:100'],
+            'previous_area' => ['nullable', 'string', 'max:100'],
         ]);
 
         // Normalize checkbox values
