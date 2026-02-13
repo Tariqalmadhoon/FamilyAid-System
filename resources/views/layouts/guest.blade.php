@@ -108,7 +108,8 @@
 
         <!-- Footer -->
         <p class="mt-8 text-sm text-slate-400 animate-enter" style="animation-delay: 0.2s;">
-            © {{ date('Y') }} {{ __('messages.app_name') }} Developed by Tariq Almadhoun
+© {{ date('Y') }} تجمع مخيمات العائدون – القرارة
+جميع الحقوق محفوظة
         </p>
     </div>
 
