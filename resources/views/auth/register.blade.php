@@ -8,7 +8,7 @@
     <!-- Form -->
 <form method="POST" action="{{ route('register') }}" x-data="registerForm()" @submit="loading = true" class="p-8">
     @csrf
-        
+
         <!-- Honeypot -->
         <div style="display: none;">
             <input type="text" name="website" value="">
@@ -22,12 +22,12 @@
                     <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                         {{ __('auth.first_name') }} <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="text" 
-                        name="first_name" 
+                    <input
+                        type="text"
+                        name="first_name"
                         x-model="form.first_name"
-                        value="{{ old('first_name') }}" 
-                        required 
+                        value="{{ old('first_name') }}"
+                        required
                         maxlength="120"
                         class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}"
                         dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
@@ -40,11 +40,11 @@
                     <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                         {{ __('auth.father_name') }}
                     </label>
-                    <input 
-                        type="text" 
-                        name="father_name" 
+                    <input
+                        type="text"
+                        name="father_name"
                         x-model="form.father_name"
-                        value="{{ old('father_name') }}" 
+                        value="{{ old('father_name') }}"
                         maxlength="120"
                         class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}"
                         dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
@@ -57,11 +57,11 @@
                     <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                         {{ __('auth.grandfather_name') }}
                     </label>
-                    <input 
-                        type="text" 
-                        name="grandfather_name" 
+                    <input
+                        type="text"
+                        name="grandfather_name"
                         x-model="form.grandfather_name"
-                        value="{{ old('grandfather_name') }}" 
+                        value="{{ old('grandfather_name') }}"
                         maxlength="120"
                         class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}"
                         dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
@@ -74,12 +74,12 @@
                     <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                         {{ __('auth.last_name') }} <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="text" 
-                        name="last_name" 
+                    <input
+                        type="text"
+                        name="last_name"
                         x-model="form.last_name"
-                        value="{{ old('last_name') }}" 
-                        required 
+                        value="{{ old('last_name') }}"
+                        required
                         maxlength="120"
                         class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}"
                         dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
@@ -93,12 +93,12 @@
                 <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                     {{ __('auth.national_id') }} <span class="text-red-500">*</span>
                 </label>
-                <input 
-                    type="tel" 
-                    name="national_id" 
+                <input
+                    type="tel"
+                    name="national_id"
                     x-model="form.national_id"
-                    value="{{ old('national_id') }}" 
-                    required 
+                    value="{{ old('national_id') }}"
+                    required
                     maxlength="9"
                     inputmode="numeric"
                     pattern="[0-9]{9}"
@@ -115,11 +115,11 @@
                 <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                     {{ __('auth.phone') }} <span class="text-red-500">*</span>
                 </label>
-                <input 
-                    type="tel" 
-                    name="phone" 
+                <input
+                    type="tel"
+                    name="phone"
                     x-model="form.phone"
-                    value="{{ old('phone') }}" 
+                    value="{{ old('phone') }}"
                     required
                     maxlength="10"
                     inputmode="numeric"
@@ -140,21 +140,42 @@
 
         <!-- Step 2: Security & Password -->
         <div x-show="step === 2" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-            
+
             <!-- Password -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                     {{ __('auth.password_label') }}
                 </label>
-                <input 
-                    type="password" 
-                    name="password" 
-                    required 
-                    x-model="form.password"
-                    @input="evaluateStrength()"
-                    class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
-                    dir="ltr"
-                >
+                <div class="relative">
+                    <input
+                        :type="showPassword ? 'text' : 'password'"
+                        name="password"
+                        required
+                        x-model="form.password"
+                        @input="evaluateStrength()"
+                        class="input-focus-transition w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+                        dir="ltr"
+                    >
+                    <button
+                    style="margin:8px"
+                        type="button"
+                        @click="showPassword = !showPassword"
+                        class="absolute inset-y-0 left-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                        :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                    >
+                        <svg x-show="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 3C5 3 1.73 6.11.46 9.17a2.3 2.3 0 000 1.66C1.73 13.89 5 17 10 17s8.27-3.11 9.54-6.17a2.3 2.3 0 000-1.66C18.27 6.11 15 3 10 3zm0 11a4 4 0 110-8 4 4 0 010 8z" />
+                            <path d="M10 8a2 2 0 100 4 2 2 0 000-4z" />
+                        </svg>
+                        <svg x-show="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M3.28 2.22a.75.75 0 10-1.06 1.06l2.1 2.1A11.34 11.34 0 00.46 9.17a2.3 2.3 0 000 1.66C1.73 13.89 5 17 10 17a10.5 10.5 0 005.01-1.2l1.71 1.71a.75.75 0 101.06-1.06L3.28 2.22zM10 15.5c-4.3 0-7.2-2.67-8.13-5 .69-1.73 2.42-3.65 5.15-4.52l1.42 1.42A4 4 0 0010 14a3.9 3.9 0 002.08-.58l1.79 1.79A8.8 8.8 0 0110 15.5z" />
+                            <path d="M10 5c5 0 8.27 3.11 9.54 6.17a2.3 2.3 0 010 1.66c-.28.67-.66 1.32-1.12 1.93l-1.08-1.08c.3-.42.55-.86.74-1.32-.94-2.33-3.83-5-8.08-5-.75 0-1.45.08-2.1.23L6.71 6.4A8.7 8.7 0 0110 5z" />
+                        </svg>
+
+
+
+                    </button>
+                </div>
                 @error('password')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
 
                 <!-- Strength indicator -->
@@ -172,14 +193,33 @@
                 <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                     {{ __('auth.password_confirmation') }}
                 </label>
-                <input 
-                    type="password" 
-                    name="password_confirmation" 
-                    required 
-                    x-model="form.password_confirmation"
-                    class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
-                    dir="ltr"
-                >
+                <div class="relative">
+                    <input
+                        :type="showPasswordConfirmation ? 'text' : 'password'"
+                        name="password_confirmation"
+                        required
+                        x-model="form.password_confirmation"
+                        class="input-focus-transition w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+                        dir="ltr"
+                    >
+                    <button
+                                        style="margin:8px"
+
+                        type="button"
+                        @click="showPasswordConfirmation = !showPasswordConfirmation"
+                        class="absolute inset-y-0 left-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                        :aria-label="showPasswordConfirmation ? 'Hide password confirmation' : 'Show password confirmation'"
+                    >
+                        <svg x-show="!showPasswordConfirmation" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 3C5 3 1.73 6.11.46 9.17a2.3 2.3 0 000 1.66C1.73 13.89 5 17 10 17s8.27-3.11 9.54-6.17a2.3 2.3 0 000-1.66C18.27 6.11 15 3 10 3zm0 11a4 4 0 110-8 4 4 0 010 8z" />
+                            <path d="M10 8a2 2 0 100 4 2 2 0 000-4z" />
+                        </svg>
+                        <svg x-show="showPasswordConfirmation" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M3.28 2.22a.75.75 0 10-1.06 1.06l2.1 2.1A11.34 11.34 0 00.46 9.17a2.3 2.3 0 000 1.66C1.73 13.89 5 17 10 17a10.5 10.5 0 005.01-1.2l1.71 1.71a.75.75 0 101.06-1.06L3.28 2.22zM10 15.5c-4.3 0-7.2-2.67-8.13-5 .69-1.73 2.42-3.65 5.15-4.52l1.42 1.42A4 4 0 0010 14a3.9 3.9 0 002.08-.58l1.79 1.79A8.8 8.8 0 0110 15.5z" />
+                            <path d="M10 5c5 0 8.27 3.11 9.54 6.17a2.3 2.3 0 010 1.66c-.28.67-.66 1.32-1.12 1.93l-1.08-1.08c.3-.42.55-.86.74-1.32-.94-2.33-3.83-5-8.08-5-.75 0-1.45.08-2.1.23L6.71 6.4A8.7 8.7 0 0110 5z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="mb-6"></div>
 
@@ -188,8 +228,8 @@
                 <button type="button" @click="step = 1" class="flex-1 py-3 px-4 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition-all">
                     {{ __('messages.actions.back') }}
                 </button>
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     :class="{ 'btn-loading opacity-70': loading }"
                     :disabled="loading"
                     class="flex-1 py-3 px-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl hover:from-teal-600 hover:to-teal-700 transition-all"
@@ -208,13 +248,15 @@
             </a>
         </p>
     </form>
-    
+
     @push('scripts')
     <script>
         function registerForm() {
             return {
                 loading: false,
                 step: 1,
+                showPassword: false,
+                showPasswordConfirmation: false,
                 form: {
                     first_name: @json(old('first_name')),
                     father_name: @json(old('father_name')),
