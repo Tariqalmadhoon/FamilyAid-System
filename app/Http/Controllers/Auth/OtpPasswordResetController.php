@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Throwable;
 
 class OtpPasswordResetController extends Controller
 {
@@ -32,13 +33,24 @@ class OtpPasswordResetController extends Controller
      */
     public function sendOtp(Request $request): RedirectResponse
     {
+        $this->normalizeNumericInputs($request);
+
         $request->validate([
-            'identifier' => ['required', 'digits_between:9,10'],
+            'identifier' => ['required', 'digits:9'],
+            'phone_country_code' => ['required', 'in:+970,+972'],
         ]);
 
-        $user = User::where('national_id', $request->identifier)
-            ->orWhere('phone', $request->identifier)
-            ->first();
+        $identifierDigits = preg_replace('/\D/', '', (string) $request->identifier) ?? '';
+        $phoneCandidates = $this->buildPhoneCandidates(
+            $identifierDigits,
+            (string) $request->phone_country_code
+        );
+
+        $user = User::where('national_id', $identifierDigits)->first();
+
+        if (!$user && !empty($phoneCandidates)) {
+            $user = User::whereIn('phone', $phoneCandidates)->first();
+        }
 
         if (!$user || !$user->phone) {
             return back()->withErrors(['identifier' => __('auth.failed')]);
@@ -63,10 +75,91 @@ class OtpPasswordResetController extends Controller
             ]
         );
 
-        $this->sms->send($user->phone, __('auth.code_sent') . ' ' . $code);
+        try {
+            $this->sms->send($user->phone, __('auth.code_sent') . ' ' . $code);
+        } catch (Throwable $e) {
+            report($e);
+            $providerMessage = mb_strtolower($e->getMessage());
+            $errorMessage = __('auth.sms_send_failed');
+
+            if (str_contains($providerMessage, 'balance')) {
+                $errorMessage = __('auth.sms_balance_low');
+            } elseif (str_contains($providerMessage, 'verified sms.to account')) {
+                $errorMessage = __('auth.sms_verified_only');
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors(['identifier' => $errorMessage])
+                ->with('show_support_whatsapp', true);
+        }
 
         return redirect()->route('password.otp.verify', ['user' => $user->id])
             ->with('status', __('auth.code_sent'));
+    }
+
+    /**
+     * Convert Arabic-Indic digits to western digits for numeric inputs.
+     */
+    protected function normalizeNumericInputs(Request $request): void
+    {
+        $map = [
+            "\u{0660}" => '0', "\u{0661}" => '1', "\u{0662}" => '2', "\u{0663}" => '3', "\u{0664}" => '4',
+            "\u{0665}" => '5', "\u{0666}" => '6', "\u{0667}" => '7', "\u{0668}" => '8', "\u{0669}" => '9',
+            "\u{06F0}" => '0', "\u{06F1}" => '1', "\u{06F2}" => '2', "\u{06F3}" => '3', "\u{06F4}" => '4',
+            "\u{06F5}" => '5', "\u{06F6}" => '6', "\u{06F7}" => '7', "\u{06F8}" => '8', "\u{06F9}" => '9',
+        ];
+
+        $request->merge([
+            'identifier' => strtr((string) $request->input('identifier', ''), $map),
+        ]);
+    }
+
+    /**
+     * Build backward-compatible phone candidates (local + E.164).
+     */
+    protected function buildPhoneCandidates(string $identifierDigits, string $countryCode): array
+    {
+        $digits = preg_replace('/\D/', '', $identifierDigits) ?? '';
+        if ($digits === '') {
+            return [];
+        }
+
+        $selectedCountry = preg_replace('/\D/', '', $countryCode) ?? '';
+        $countries = array_values(array_unique(array_filter([$selectedCountry, '970', '972'])));
+
+        $local = $digits;
+        if (str_starts_with($local, '00')) {
+            $local = substr($local, 2);
+        }
+
+        if (str_starts_with($local, '970') || str_starts_with($local, '972')) {
+            $local = substr($local, 3);
+        }
+
+        if (str_starts_with($local, '0')) {
+            $local = substr($local, 1);
+        }
+
+        $candidates = [$digits];
+
+        if ($local !== '') {
+            $candidates[] = '0' . $local;
+            foreach ($countries as $cc) {
+                $candidates[] = $cc . $local;
+                $candidates[] = '+' . $cc . $local;
+            }
+        }
+
+        if (str_starts_with($digits, '00')) {
+            $candidates[] = '+' . substr($digits, 2);
+        }
+
+        if (strlen($digits) >= 11 && !str_starts_with($digits, '+')) {
+            $candidates[] = '+' . $digits;
+        }
+
+        return array_values(array_unique(array_filter($candidates)));
     }
 
     /**
@@ -124,3 +217,4 @@ class OtpPasswordResetController extends Controller
         return redirect()->route('login')->with('status', __('auth.password_reset_success'));
     }
 }
+

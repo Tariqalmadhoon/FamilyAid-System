@@ -27,6 +27,22 @@ return [
 
     'sms' => [
         'driver' => env('SMS_DRIVER', 'log'),
+        'default_country_code' => env('SMS_DEFAULT_COUNTRY_CODE', '+970'),
+        'timeout' => (int) env('SMS_TIMEOUT', 10),
+        'connect_timeout' => (int) env('SMS_CONNECT_TIMEOUT', 5),
+        'twilio' => [
+            'sid' => env('TWILIO_ACCOUNT_SID'),
+            'token' => env('TWILIO_AUTH_TOKEN'),
+            'from' => env('TWILIO_FROM'),
+            'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID'),
+        ],
+        'smsto' => [
+            'endpoint' => env('SMSTO_ENDPOINT', 'https://api.sms.to/sms/send'),
+            'api_key' => env('SMSTO_API_KEY'),
+            'sender_id' => env('SMSTO_SENDER_ID'),
+            'callback_url' => env('SMSTO_CALLBACK_URL'),
+            'bypass_opt_out' => (bool) env('SMSTO_BYPASS_OPT_OUT', false),
+        ],
     ],
 
     'ses' => [

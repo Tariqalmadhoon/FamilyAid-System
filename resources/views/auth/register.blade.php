@@ -115,25 +115,45 @@
                 <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                     {{ __('auth.phone') }} <span class="text-red-500">*</span>
                 </label>
-                <input
-                    type="tel"
-                    name="phone"
-                    x-model="form.phone"
-                    value="{{ old('phone') }}"
-                    required
-                    maxlength="10"
-                    inputmode="numeric"
-                    pattern="[0-9]{10}"
-                    class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
-                    dir="ltr"
-                    @input="filterDigits($event, 10)"
-                >
+                <div class="flex items-center gap-2" dir="ltr">
+                    <div class="relative w-32 sm:w-36">
+                        <select
+                            name="phone_country_code"
+                            x-model="form.phone_country_code"
+                            class="input-focus-transition w-full appearance-none pl-3 pr-9 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+                            dir="ltr"
+                        >
+                            <option value="+970">+970</option>
+                            <option value="+972">+972</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500">
+
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <input
+                            type="tel"
+                            name="phone"
+                            x-model="form.phone"
+                            value="{{ old('phone') }}"
+                            required
+                            maxlength="9"
+                            inputmode="numeric"
+                            pattern="[0-9]{9}"
+                            placeholder="590000000"
+                            class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+                            dir="ltr"
+                            @input="filterDigits($event, 9)"
+                        >
+                    </div>
+                </div>
+                @error('phone_country_code')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
                 @error('phone')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
                 <p class="mt-1 text-xs text-slate-500">{{ __('auth.phone_hint') }}</p>
             </div>
 
             <!-- Next Button -->
-            <button type="button" @click="step = 2" :disabled="!step1Valid" class="w-full py-3.5 px-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl hover:from-teal-600 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <button style="margin-top: 10px" type="button" @click="step = 2" :disabled="!step1Valid" class="w-full py-3.5 px-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl hover:from-teal-600 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                 {{ __('messages.actions.next') }}
             </button>
         </div>
@@ -263,6 +283,7 @@
                     grandfather_name: @json(old('grandfather_name')),
                     last_name: @json(old('last_name')),
                     national_id: @json(old('national_id')),
+                    phone_country_code: @json(old('phone_country_code', '+970')),
                     phone: @json(old('phone')),
                     password: '',
                     password_confirmation: '',
@@ -283,11 +304,13 @@
                     const first = (this.form.first_name || '').trim();
                     const last = (this.form.last_name || '').trim();
                     const nid = (this.form.national_id || '').trim();
+                    const phoneCountryCode = (this.form.phone_country_code || '').trim();
                     const phone = (this.form.phone || '').trim();
                     return first.length >= 2
                         && last.length >= 2
                         && nid.length === 9
-                        && phone.length === 10;
+                        && ['+970', '+972'].includes(phoneCountryCode)
+                        && phone.length === 9;
                 },
                 strengthBar: { width: 0, class: 'bg-red-500', label: '', textClass: 'text-red-600' },
                 strengthHint: '',

@@ -30,7 +30,7 @@ return [
     'last_name' => 'Last Name',
     'phone' => 'Phone Number',
     'national_id_hint' => 'National ID must be exactly 9 digits.',
-    'phone_hint' => 'Phone number must be exactly 10 digits.',
+    'phone_hint' => 'Choose country code (+970 or +972), then enter a 9-digit phone number without the leading zero.',
     'password_label' => 'Password',
     'password_confirmation' => 'Confirm Password',
 
@@ -67,6 +67,12 @@ return [
     'resend_code' => 'Resend Code',
     'code_sent' => 'A verification code has been sent.',
     'code_invalid' => 'Invalid or expired code.',
+    'sms_send_failed' => 'Could not send verification code to phone. Check SMS provider settings and try again.',
+    'sms_balance_low' => 'Sending is temporarily unavailable. Please contact technical support.',
+    'sms_verified_only' => 'This sms.to account can only send to its verified number. Top up or fully activate the account for general sending.',
+    'sms_log_mode_notice' => 'SMS is currently in LOG mode and does not send real messages. Enable sms.to in .env.',
+    'support_contact_notice' => 'Need help? Contact technical support.',
+    'contact_support_whatsapp' => 'Contact Support on WhatsApp',
     'otp_placeholder' => '6-digit code',
     
     // Success/Error
@@ -90,3 +96,4 @@ return [
     'hide_guidance' => 'Hide guidance',
 
 ];
+
