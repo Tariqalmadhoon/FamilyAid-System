@@ -40,7 +40,8 @@ class RegisteredUserController extends Controller
             'grandfather_name' => ['nullable', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120', 'min:2'],
             'national_id' => ['required', 'digits:9', 'unique:users,national_id'],
-            'phone' => ['required', 'digits:10'],
+            'phone_country_code' => ['required', 'in:+970,+972'],
+            'phone' => ['required', 'digits:9'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             // Honeypot field - should be empty
             'website' => ['nullable', 'max:0'],
@@ -62,7 +63,10 @@ class RegisteredUserController extends Controller
                 $request->grandfather_name,
                 $request->last_name,
             ])->filter()->implode(' ');
-            $phone = preg_replace('/\D/', '', $request->phone);
+            $phone = $this->normalizePhoneE164(
+                (string) $request->phone,
+                (string) $request->phone_country_code
+            );
 
             $user = User::create([
                 'name' => $fullName,
@@ -106,5 +110,28 @@ class RegisteredUserController extends Controller
             'national_id' => $convert($request->input('national_id')),
             'phone' => $convert($request->input('phone')),
         ]);
+    }
+
+    /**
+     * Normalize local phone with selected country code to E.164 format.
+     */
+    protected function normalizePhoneE164(string $phone, string $countryCode): string
+    {
+        $digits = preg_replace('/\D/', '', $phone) ?? '';
+        $countryDigits = preg_replace('/\D/', '', $countryCode) ?? '';
+
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+
+        if (str_starts_with($digits, '0')) {
+            $digits = substr($digits, 1);
+        }
+
+        if ($countryDigits !== '' && str_starts_with($digits, $countryDigits)) {
+            return '+' . $digits;
+        }
+
+        return '+' . $countryDigits . $digits;
     }
 }
