@@ -1,33 +1,27 @@
-name: Deploy alaedoon-camps.org
+name: Deploy
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Deploy via SSH
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH (git pull)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            set -e
-            cd ${{ secrets.DEPLOY_PATH }}
-
-            echo "== Pull latest =="
-            git pull origin main
-
-            echo "== Composer =="
-            composer install --no-dev --prefer-dist --optimize-autoloader
-
-            echo "== Laravel cache & migrate =="
-            php artisan migrate --force
-            php artisan optimize:clear
-            php artisan config:cache
-            php artisan route:cache || true
-            php artisan view:cache || true
+            cd /home/u360313589/domains/alaedoon-camps.org/public_html
+            pwd
+            ls -la .git
+            git pull origin master
