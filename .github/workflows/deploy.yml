@@ -22,6 +22,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd /home/u360313589/domains/alaedoon-camps.org/public_html
-            pwd
-            ls -la .git
+            git fetch origin
+            git reset --hard origin/main
+            git clean -fd -e .env -e storage -e storage/**
             git pull origin main
