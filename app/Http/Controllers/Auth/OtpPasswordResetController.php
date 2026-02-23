@@ -97,6 +97,7 @@ class OtpPasswordResetController extends Controller
         return redirect()->route('password.otp.verify', ['user' => $user->id])
             ->with('status', __('auth.code_sent'));
     }
+    
 
     /**
      * Convert Arabic-Indic digits to western digits for numeric inputs.

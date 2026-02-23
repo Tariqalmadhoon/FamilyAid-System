@@ -108,7 +108,7 @@
 
         <!-- Footer -->
         <p class="mt-8 text-sm text-slate-400 animate-enter" style="animation-delay: 0.2s;">
-© {{ date('Y') }} تجمع مخيمات العائدون – القرارة
+© {{ date('Y') }} تجمع مخيمات العائدين – القرارة
 جميع الحقوق محفوظة
         </p>
     </div>
