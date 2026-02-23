@@ -22,6 +22,27 @@ return [
         'logout' => 'Logout',
     ],
 
+    // Account Security
+    'account_security' => [
+        'menu' => 'Account Security',
+        'title' => 'Account Security',
+        'change_password' => 'Change Password',
+        'subtitle' => 'For better protection, enter your current password then choose a strong new one.',
+        'current_password' => 'Current Password',
+        'new_password' => 'New Password',
+        'confirm_new_password' => 'Confirm New Password',
+        'password_strength' => 'Password Strength',
+        'strength_empty' => 'Not Set',
+        'strength_very_weak' => 'Very Weak',
+        'strength_weak' => 'Weak',
+        'strength_medium' => 'Medium',
+        'strength_strong' => 'Strong',
+        'strength_very_strong' => 'Very Strong',
+        'show_password' => 'Show Password',
+        'hide_password' => 'Hide Password',
+        'password_updated' => 'Password updated successfully.',
+    ],
+
     // Actions
     'actions' => [
         'save' => 'Save',
