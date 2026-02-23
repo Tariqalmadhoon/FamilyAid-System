@@ -25,6 +25,10 @@ class OnboardingController extends Controller
         'مخيم ام القرى' => 'CAMP-UMM-ALQURA',
         'مخيم عثمان بن عفان' => 'CAMP-UTHMAN-AFFAN',
         'مخيم الايمان' => 'CAMP-IMAN',
+        'مخيم الصمود' => 'CAMP-SUMUD',
+        'مخيم النور' => 'CAMP-NOOR',
+        'مخيم المسمكة' => 'CAMP-MASMAKA',
+        'مخيم الصابرين' => 'CAMP-SABIREEN',
     ];
 
     private const ALLOWED_ONBOARDING_PARENT_NAME = 'المخيمات';
