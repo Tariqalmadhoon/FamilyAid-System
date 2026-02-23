@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DistributionController;
 use App\Http\Controllers\Admin\HouseholdController;
 use App\Http\Controllers\Admin\ImportExportController;
+use App\Http\Controllers\AccountSecurityController;
 use App\Http\Controllers\Citizen\DashboardController;
 use App\Http\Controllers\Citizen\MemberController;
 use App\Http\Controllers\Citizen\OnboardingController;
@@ -40,6 +41,12 @@ Route::get('/dashboard', function () {
     
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
+
+// Account security
+Route::middleware(['auth'])->group(function () {
+    Route::get('/account/security', [AccountSecurityController::class, 'edit'])
+        ->name('account.security.edit');
+});
 
 // Citizen routes
 Route::middleware(['auth', 'role:citizen'])->prefix('citizen')->name('citizen.')->group(function () {

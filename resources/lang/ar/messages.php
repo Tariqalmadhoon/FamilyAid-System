@@ -22,6 +22,27 @@ return [
         'logout' => 'تسجيل الخروج',
     ],
 
+    // Account Security
+    'account_security' => [
+        'menu' => 'أمان الحساب',
+        'title' => 'أمان الحساب',
+        'change_password' => 'تغيير كلمة المرور',
+        'subtitle' => 'لحماية حسابك، أدخل كلمة المرور الحالية ثم كلمة مرور جديدة قوية.',
+        'current_password' => 'كلمة المرور الحالية',
+        'new_password' => 'كلمة المرور الجديدة',
+        'confirm_new_password' => 'تأكيد كلمة المرور الجديدة',
+        'password_strength' => 'قوة كلمة المرور',
+        'strength_empty' => 'غير محددة',
+        'strength_very_weak' => 'ضعيفة جداً',
+        'strength_weak' => 'ضعيفة',
+        'strength_medium' => 'متوسطة',
+        'strength_strong' => 'قوية',
+        'strength_very_strong' => 'قوية جداً',
+        'show_password' => 'إظهار كلمة المرور',
+        'hide_password' => 'إخفاء كلمة المرور',
+        'password_updated' => 'تم تحديث كلمة المرور بنجاح.',
+    ],
+
     // Actions
     'actions' => [
         'title' => 'الإجراءات',
