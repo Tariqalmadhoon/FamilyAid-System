@@ -11,7 +11,7 @@
                     {{ __('messages.members.manage_title') }}
                 </h2>
             </div>
-            <span class="text-sm text-gray-500">{{ __('messages.members.count', ['count' => $members->count()]) }}</span>
+            <span class="text-sm text-gray-500">{{ __('messages.members.count', ['count' => $members->count() + ($household->spouse_full_name ? 1 : 0)]) }}</span>
         </div>
     </x-slot>
 
@@ -46,6 +46,31 @@
                     </svg>
                     {{ __('messages.members.add_btn') }}
                 </button>
+            </div>
+
+            <div class="mb-4 bg-white border border-gray-100 rounded-lg shadow-sm p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">{{ __('messages.onboarding_form.spouse_section_title') }}</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ $household->spouse_full_name ?? '-' }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $household->spouse_national_id ?? '-' }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ optional($household->spouse_birth_date)->format('Y-m-d') ?? '-' }}</p>
+                        <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                            <span class="px-2 py-1 rounded {{ $household->spouse_has_war_injury ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.war_injury') }}: {{ $household->spouse_has_war_injury ? 'نعم' : 'لا' }}</span>
+                            <span class="px-2 py-1 rounded {{ $household->spouse_has_chronic_disease ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.chronic_disease') }}: {{ $household->spouse_has_chronic_disease ? 'نعم' : 'لا' }}</span>
+                            <span class="px-2 py-1 rounded {{ $household->spouse_has_disability ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.disability') }}: {{ $household->spouse_has_disability ? 'نعم' : 'لا' }}</span>
+                        </div>
+                        @if($household->spouse_condition_type)
+                            <p class="text-xs text-gray-600 mt-1">{{ $household->spouse_condition_type }}</p>
+                        @endif
+                        @if($household->spouse_health_notes)
+                            <p class="text-xs text-gray-500 mt-1">{{ $household->spouse_health_notes }}</p>
+                        @endif
+                    </div>
+                    <a href="{{ route('citizen.household.edit') }}" class="inline-flex items-center px-3 py-1.5 rounded-md border border-teal-200 bg-teal-50 text-teal-700 text-xs font-medium hover:bg-teal-100 transition">
+                        {{ __('messages.actions.edit') }}
+                    </a>
+                </div>
             </div>
 
             <!-- Members List -->

@@ -10,6 +10,7 @@ use App\Models\Region;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -124,10 +125,26 @@ class HouseholdController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $allowedRegionIds = $this->allowedCampRegionIds();
+        $request->merge([
+            'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
+            'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
+            'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
+            'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
+            'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+            'spouse_condition_type' => trim((string) $request->input('spouse_condition_type')),
+        ]);
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id'],
             'head_name' => ['required', 'string', 'max:255'],
+            'spouse_full_name' => ['required', 'string', 'max:255'],
+            'spouse_national_id' => ['required', 'digits:9', 'different:head_national_id', 'unique:households,spouse_national_id'],
+            'spouse_birth_date' => ['required', 'date', 'before:today'],
+            'spouse_has_war_injury' => ['nullable', 'boolean'],
+            'spouse_has_chronic_disease' => ['nullable', 'boolean'],
+            'spouse_has_disability' => ['nullable', 'boolean'],
+            'spouse_condition_type' => ['nullable', 'string', 'max:255'],
+            'spouse_health_notes' => ['nullable', 'string', 'max:1000'],
             'region_id' => ['required', Rule::in($allowedRegionIds)],
             'address_text' => ['nullable', 'string', 'max:500'],
             'housing_type' => ['nullable', 'in:owned,rented,family_hosted,other'],
@@ -146,10 +163,30 @@ class HouseholdController extends Controller
             'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
+        $validator->after(function ($validator) use ($request) {
+            $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+                || $request->boolean('spouse_has_chronic_disease')
+                || $request->boolean('spouse_has_disability');
+
+            if ($spouseHasHealthFlag && blank($request->input('spouse_condition_type'))) {
+                $validator->errors()->add('spouse_condition_type', __('validation.required', ['attribute' => __('messages.onboarding_form.spouse_condition_type')]));
+            }
+        });
+
+        $validated = $validator->validate();
+
+        $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+            || $request->boolean('spouse_has_chronic_disease')
+            || $request->boolean('spouse_has_disability');
+
         // Normalize checkbox values
         $validated['has_war_injury'] = $request->boolean('has_war_injury');
         $validated['has_chronic_disease'] = $request->boolean('has_chronic_disease');
         $validated['has_disability'] = $request->boolean('has_disability');
+        $validated['spouse_has_war_injury'] = $request->boolean('spouse_has_war_injury');
+        $validated['spouse_has_chronic_disease'] = $request->boolean('spouse_has_chronic_disease');
+        $validated['spouse_has_disability'] = $request->boolean('spouse_has_disability');
+        $validated['spouse_condition_type'] = $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null;
 
         $household = Household::create($validated);
 
@@ -193,10 +230,26 @@ class HouseholdController extends Controller
     public function update(Request $request, Household $household): RedirectResponse
     {
         $allowedRegionIds = $this->allowedCampRegionIds();
+        $request->merge([
+            'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
+            'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
+            'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
+            'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
+            'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+            'spouse_condition_type' => trim((string) $request->input('spouse_condition_type')),
+        ]);
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id,' . $household->id],
             'head_name' => ['required', 'string', 'max:255'],
+            'spouse_full_name' => ['required', 'string', 'max:255'],
+            'spouse_national_id' => ['required', 'digits:9', 'different:head_national_id', 'unique:households,spouse_national_id,' . $household->id],
+            'spouse_birth_date' => ['required', 'date', 'before:today'],
+            'spouse_has_war_injury' => ['nullable', 'boolean'],
+            'spouse_has_chronic_disease' => ['nullable', 'boolean'],
+            'spouse_has_disability' => ['nullable', 'boolean'],
+            'spouse_condition_type' => ['nullable', 'string', 'max:255'],
+            'spouse_health_notes' => ['nullable', 'string', 'max:1000'],
             'region_id' => ['required', Rule::in($allowedRegionIds)],
             'address_text' => ['nullable', 'string', 'max:500'],
             'housing_type' => ['nullable', 'in:owned,rented,family_hosted,other'],
@@ -215,10 +268,30 @@ class HouseholdController extends Controller
             'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
+        $validator->after(function ($validator) use ($request) {
+            $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+                || $request->boolean('spouse_has_chronic_disease')
+                || $request->boolean('spouse_has_disability');
+
+            if ($spouseHasHealthFlag && blank($request->input('spouse_condition_type'))) {
+                $validator->errors()->add('spouse_condition_type', __('validation.required', ['attribute' => __('messages.onboarding_form.spouse_condition_type')]));
+            }
+        });
+
+        $validated = $validator->validate();
+
+        $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+            || $request->boolean('spouse_has_chronic_disease')
+            || $request->boolean('spouse_has_disability');
+
         // Normalize checkbox values
         $validated['has_war_injury'] = $request->boolean('has_war_injury');
         $validated['has_chronic_disease'] = $request->boolean('has_chronic_disease');
         $validated['has_disability'] = $request->boolean('has_disability');
+        $validated['spouse_has_war_injury'] = $request->boolean('spouse_has_war_injury');
+        $validated['spouse_has_chronic_disease'] = $request->boolean('spouse_has_chronic_disease');
+        $validated['spouse_has_disability'] = $request->boolean('spouse_has_disability');
+        $validated['spouse_condition_type'] = $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null;
 
         $before = $household->toArray();
         $household->update($validated);

@@ -21,6 +21,8 @@ class Region extends Model
         'مخيم النور',
         'مخيم المسمكة',
         'مخيم الصابرين',
+        'مخيم الصديق',
+        'مخيم المطاحن',
     ];
 
     protected $fillable = [

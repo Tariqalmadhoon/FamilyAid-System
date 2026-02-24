@@ -50,6 +50,14 @@ class ImportExportController extends Controller
         $headers = [
             'national_id',
             'head_name',
+            'spouse_full_name',
+            'spouse_national_id',
+            'spouse_birth_date',
+            'spouse_war_injury',
+            'spouse_chronic_disease',
+            'spouse_disability',
+            'spouse_condition_type',
+            'spouse_health_notes',
             'region',
             'address',
             'housing_type',
@@ -59,8 +67,16 @@ class ImportExportController extends Controller
         ];
 
         $example = [
-            '1234567890',
+            '123456789',
             'John Doe',
+            'Jane Doe',
+            '987654321',
+            '1990-05-12',
+            '0',
+            '1',
+            '0',
+            'Diabetes',
+            'Needs periodic medication',
             'District A',
             '123 Main Street',
             'owned',

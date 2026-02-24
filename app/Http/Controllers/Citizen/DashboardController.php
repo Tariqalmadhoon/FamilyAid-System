@@ -9,6 +9,7 @@ use App\Models\Household;
 use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -97,12 +98,31 @@ class DashboardController extends Controller
             ->all();
 
         $request->merge([
+            'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
+            'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
+            'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
+            'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
+            'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+            'spouse_condition_type' => trim((string) $request->input('spouse_condition_type')),
             'payment_account_number' => preg_replace('/\D+/', '', (string) $request->input('payment_account_number', '')),
             'payment_account_holder_name' => trim((string) $request->input('payment_account_holder_name')),
         ]);
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'region_id' => ['required', Rule::in($allowedRegionIds)],
+            'spouse_full_name' => ['required', 'string', 'max:255'],
+            'spouse_national_id' => [
+                'required',
+                'digits:9',
+                Rule::notIn([$user->national_id]),
+                Rule::unique('households', 'spouse_national_id')->ignore($user->household_id),
+            ],
+            'spouse_birth_date' => ['required', 'date', 'before:today'],
+            'spouse_has_war_injury' => ['nullable', 'boolean'],
+            'spouse_has_chronic_disease' => ['nullable', 'boolean'],
+            'spouse_has_disability' => ['nullable', 'boolean'],
+            'spouse_condition_type' => ['nullable', 'string', 'max:255'],
+            'spouse_health_notes' => ['nullable', 'string', 'max:1000'],
             'address_text' => ['required', 'string', 'max:500'],
             'payment_account_type' => ['required', 'in:wallet,bank'],
             'payment_account_number' => ['required', 'digits_between:6,30'],
@@ -119,6 +139,22 @@ class DashboardController extends Controller
             'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
+        $validator->after(function ($validator) use ($request) {
+            $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+                || $request->boolean('spouse_has_chronic_disease')
+                || $request->boolean('spouse_has_disability');
+
+            if ($spouseHasHealthFlag && blank($request->input('spouse_condition_type'))) {
+                $validator->errors()->add('spouse_condition_type', __('validation.required', ['attribute' => __('messages.onboarding_form.spouse_condition_type')]));
+            }
+        });
+
+        $validated = $validator->validate();
+
+        $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+            || $request->boolean('spouse_has_chronic_disease')
+            || $request->boolean('spouse_has_disability');
+
         $household = Household::find($user->household_id);
         $before = $household->toArray();
 
@@ -126,6 +162,10 @@ class DashboardController extends Controller
             'has_war_injury' => $request->boolean('has_war_injury'),
             'has_chronic_disease' => $request->boolean('has_chronic_disease'),
             'has_disability' => $request->boolean('has_disability'),
+            'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
+            'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
+            'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+            'spouse_condition_type' => $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null,
         ]));
 
         AuditLog::log(

@@ -80,7 +80,7 @@
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-900">{{ __('messages.citizen.manage_members') }}</p>
-                            <p class="text-xs text-gray-500">{{ __('messages.citizen.member_count', ['count' => $household->members->count()]) }}</p>
+                            <p class="text-xs text-gray-500">{{ __('messages.citizen.member_count', ['count' => $household->members->count() + ($household->spouse_full_name ? 1 : 0)]) }}</p>
                         </div>
                     </div>
                 </a>
@@ -170,11 +170,35 @@
                                 <p class="text-sm font-medium text-gray-900">{{ $household->head_national_id }}</p>
                             </div>
                             <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_full_name') }}</span>
+                                <p class="text-sm font-medium text-gray-900">{{ $household->spouse_full_name ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_national_id') }}</span>
+                                <p class="text-sm font-medium text-gray-900">{{ $household->spouse_national_id ?? '-' }}</p>
+                            </div>
+                            <div>
                                 <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.phone') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->primary_phone ?? '-' }}</p>
                             </div>
                         </div>
                         <div class="space-y-3">
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_birth_date') }}</span>
+                                <p class="text-sm font-medium text-gray-900">{{ optional($household->spouse_birth_date)->format('Y-m-d') ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_health_title') }}</span>
+                                <div class="mt-1 flex flex-wrap gap-2 text-xs">
+                                    <span class="px-2 py-1 rounded {{ $household->spouse_has_war_injury ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.war_injury') }}: {{ $household->spouse_has_war_injury ? 'نعم' : 'لا' }}</span>
+                                    <span class="px-2 py-1 rounded {{ $household->spouse_has_chronic_disease ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.chronic_disease') }}: {{ $household->spouse_has_chronic_disease ? 'نعم' : 'لا' }}</span>
+                                    <span class="px-2 py-1 rounded {{ $household->spouse_has_disability ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.disability') }}: {{ $household->spouse_has_disability ? 'نعم' : 'لا' }}</span>
+                                </div>
+                                <p class="text-sm font-medium text-gray-900 mt-2">{{ $household->spouse_condition_type ?? __('messages.onboarding_form.not_provided') }}</p>
+                                @if($household->spouse_health_notes)
+                                    <p class="text-xs text-gray-500 mt-1">{{ $household->spouse_health_notes }}</p>
+                                @endif
+                            </div>
                             <div>
                                 <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.housing_type') }}</span>
                                 <p class="text-sm font-medium text-gray-900 capitalize">

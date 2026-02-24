@@ -15,6 +15,14 @@ class Household extends Model
     protected $fillable = [
         'head_national_id',
         'head_name',
+        'spouse_full_name',
+        'spouse_national_id',
+        'spouse_birth_date',
+        'spouse_has_war_injury',
+        'spouse_has_chronic_disease',
+        'spouse_has_disability',
+        'spouse_condition_type',
+        'spouse_health_notes',
         'region_id',
         'address_text',
         'housing_type',
@@ -40,6 +48,10 @@ class Household extends Model
         'has_war_injury' => 'boolean',
         'has_chronic_disease' => 'boolean',
         'has_disability' => 'boolean',
+        'spouse_birth_date' => 'date',
+        'spouse_has_war_injury' => 'boolean',
+        'spouse_has_chronic_disease' => 'boolean',
+        'spouse_has_disability' => 'boolean',
     ];
 
     /**

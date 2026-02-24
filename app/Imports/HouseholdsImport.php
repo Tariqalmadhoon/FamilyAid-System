@@ -49,9 +49,36 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
                     continue;
                 }
 
+                $spouseNationalId = $this->normalizeNationalId($row['spouse_national_id'] ?? null);
+                if ($spouseNationalId && Household::where('spouse_national_id', $spouseNationalId)->exists()) {
+                    $this->errors[] = "Row {$rowNum}: Spouse National ID '{$spouseNationalId}' already exists";
+                    $this->failureCount++;
+                    continue;
+                }
+
+                $spouseHasWarInjury = $this->normalizeBoolean($row['spouse_war_injury'] ?? null);
+                $spouseHasChronicDisease = $this->normalizeBoolean($row['spouse_chronic_disease'] ?? null);
+                $spouseHasDisability = $this->normalizeBoolean($row['spouse_disability'] ?? null);
+                $spouseConditionType = trim((string) ($row['spouse_condition_type'] ?? ''));
+                $spouseHasHealthFlag = $spouseHasWarInjury || $spouseHasChronicDisease || $spouseHasDisability;
+
+                if ($spouseHasHealthFlag && $spouseConditionType === '') {
+                    $this->errors[] = "Row {$rowNum}: spouse_condition_type is required when spouse health flags are selected";
+                    $this->failureCount++;
+                    continue;
+                }
+
                 $household = Household::create([
                     'head_national_id' => $row['national_id'],
                     'head_name' => $row['head_name'],
+                    'spouse_full_name' => $row['spouse_full_name'] ?? null,
+                    'spouse_national_id' => $spouseNationalId,
+                    'spouse_birth_date' => $row['spouse_birth_date'] ?? null,
+                    'spouse_has_war_injury' => $spouseHasWarInjury,
+                    'spouse_has_chronic_disease' => $spouseHasChronicDisease,
+                    'spouse_has_disability' => $spouseHasDisability,
+                    'spouse_condition_type' => $spouseHasHealthFlag ? $spouseConditionType : null,
+                    'spouse_health_notes' => $row['spouse_health_notes'] ?? null,
                     'region_id' => $region->id,
                     'address_text' => $row['address'] ?? null,
                     'housing_type' => $this->normalizeHousingType($row['housing_type'] ?? null),
@@ -98,6 +125,14 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
         return [
             'national_id' => ['required', 'digits:9'],
             'head_name' => ['required', 'string', 'max:255'],
+            'spouse_full_name' => ['required', 'string', 'max:255'],
+            'spouse_national_id' => ['required', 'digits:9'],
+            'spouse_birth_date' => ['required', 'date', 'before:today'],
+            'spouse_war_injury' => ['nullable'],
+            'spouse_chronic_disease' => ['nullable'],
+            'spouse_disability' => ['nullable'],
+            'spouse_condition_type' => ['nullable', 'string', 'max:255'],
+            'spouse_health_notes' => ['nullable', 'string', 'max:1000'],
             'region' => ['required', 'string'],
         ];
     }
@@ -107,6 +142,10 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
         return [
             'national_id.required' => 'National ID is required',
             'head_name.required' => 'Head name is required',
+            'spouse_full_name.required' => 'Spouse full name is required',
+            'spouse_national_id.required' => 'Spouse national ID is required',
+            'spouse_birth_date.required' => 'Spouse birth date is required',
+            'spouse_condition_type.max' => 'Spouse condition type is too long',
             'region.required' => 'Region is required',
         ];
     }
@@ -135,6 +174,13 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
         if (!$value) return null;
         $digits = preg_replace('/\\D/', '', (string) $value);
         return substr($digits, 0, 10);
+    }
+
+    private function normalizeNationalId($value): ?string
+    {
+        if (!$value) return null;
+        $digits = preg_replace('/\\D/', '', (string) $value);
+        return substr($digits, 0, 9);
     }
 
     /**

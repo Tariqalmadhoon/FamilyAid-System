@@ -29,6 +29,55 @@
                         </div>
                     </div>
 
+                    <div class="mt-4 border-t border-gray-200 pt-4">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-3">{{ __('messages.onboarding_form.spouse_section_title') }} <span class="text-red-500">*</span></h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.spouse_full_name') }} <span class="text-red-500">*</span></label>
+                                <input type="text" name="spouse_full_name" value="{{ old('spouse_full_name', $household->spouse_full_name) }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                                @error('spouse_full_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.spouse_national_id') }} <span class="text-red-500">*</span></label>
+                                <input type="tel" name="spouse_national_id" value="{{ old('spouse_national_id', $household->spouse_national_id) }}" maxlength="9" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,9)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                                @error('spouse_national_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.spouse_birth_date') }} <span class="text-red-500">*</span></label>
+                                <input type="date" name="spouse_birth_date" value="{{ old('spouse_birth_date', optional($household->spouse_birth_date)->toDateString()) }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                                @error('spouse_birth_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-sm font-medium text-gray-700 mb-2">{{ __('messages.onboarding_form.spouse_health_title') }}</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                    <input type="checkbox" name="spouse_has_war_injury" value="1" {{ old('spouse_has_war_injury', $household->spouse_has_war_injury) ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span>{{ __('messages.health.war_injury') }}</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                    <input type="checkbox" name="spouse_has_chronic_disease" value="1" {{ old('spouse_has_chronic_disease', $household->spouse_has_chronic_disease) ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span>{{ __('messages.health.chronic_disease') }}</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                    <input type="checkbox" name="spouse_has_disability" value="1" {{ old('spouse_has_disability', $household->spouse_has_disability) ? 'checked' : '' }} class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span>{{ __('messages.health.disability') }}</span>
+                                </label>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">{{ __('messages.onboarding_form.spouse_condition_type_required_hint') }}</p>
+                            <div class="mt-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.spouse_condition_type') }}</label>
+                                <input type="text" name="spouse_condition_type" value="{{ old('spouse_condition_type', $household->spouse_condition_type) }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm" placeholder="{{ __('messages.onboarding_form.spouse_condition_type_placeholder') }}">
+                                @error('spouse_condition_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="mt-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.spouse_health_notes') }}</label>
+                                <textarea name="spouse_health_notes" rows="2" placeholder="{{ __('messages.onboarding_form.spouse_health_notes_placeholder') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm">{{ old('spouse_health_notes', $household->spouse_health_notes) }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mt-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.region') }} <span class="text-red-500">*</span></label>
                         <select name="region_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>

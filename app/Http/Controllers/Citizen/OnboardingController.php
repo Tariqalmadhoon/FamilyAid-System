@@ -29,6 +29,8 @@ class OnboardingController extends Controller
         'مخيم النور' => 'CAMP-NOOR',
         'مخيم المسمكة' => 'CAMP-MASMAKA',
         'مخيم الصابرين' => 'CAMP-SABIREEN',
+        'مخيم الصديق' => 'CAMP-SEDEEQ',
+        'مخيم المطاحن' => 'CAMP-MATAHIN',
     ];
 
     private const ALLOWED_ONBOARDING_PARENT_NAME = 'المخيمات';
@@ -54,22 +56,30 @@ class OnboardingController extends Controller
         $regions = $this->allowedOnboardingRegions();
 
         $prefill = [
-            'region_id' => old('region_id', $existingHousehold->region_id ?? ''),
-            'address_text' => old('address_text', $existingHousehold->address_text ?? ''),
-            'previous_governorate' => old('previous_governorate', $existingHousehold->previous_governorate ?? ''),
-            'previous_area' => old('previous_area', $existingHousehold->previous_area ?? ''),
-            'payment_account_type' => old('payment_account_type', $existingHousehold->payment_account_type ?? ''),
-            'payment_account_number' => old('payment_account_number', $existingHousehold->payment_account_number ?? ''),
-            'payment_account_holder_name' => old('payment_account_holder_name', $existingHousehold->payment_account_holder_name ?? ''),
-            'housing_type' => old('housing_type', $existingHousehold->housing_type ?? ''),
-            'primary_phone' => old('primary_phone', $existingHousehold->primary_phone ?? ''),
-            'secondary_phone' => old('secondary_phone', $existingHousehold->secondary_phone ?? ''),
-            'has_war_injury' => old('has_war_injury', $existingHousehold->has_war_injury ?? false),
-            'has_chronic_disease' => old('has_chronic_disease', $existingHousehold->has_chronic_disease ?? false),
-            'has_disability' => old('has_disability', $existingHousehold->has_disability ?? false),
-            'condition_type' => old('condition_type', $existingHousehold->condition_type ?? ''),
-            'condition_notes' => old('condition_notes', $existingHousehold->condition_notes ?? ''),
-            'members' => old('members', $existingHousehold?->members?->map(function ($member) {
+            'region_id' => old('region_id', $existingHousehold?->region_id ?? ''),
+            'spouse_full_name' => old('spouse_full_name', $existingHousehold?->spouse_full_name ?? ''),
+            'spouse_national_id' => old('spouse_national_id', $existingHousehold?->spouse_national_id ?? ''),
+            'spouse_birth_date' => old('spouse_birth_date', optional($existingHousehold?->spouse_birth_date)->toDateString() ?? ''),
+            'spouse_has_war_injury' => old('spouse_has_war_injury', $existingHousehold?->spouse_has_war_injury ?? false),
+            'spouse_has_chronic_disease' => old('spouse_has_chronic_disease', $existingHousehold?->spouse_has_chronic_disease ?? false),
+            'spouse_has_disability' => old('spouse_has_disability', $existingHousehold?->spouse_has_disability ?? false),
+            'spouse_condition_type' => old('spouse_condition_type', $existingHousehold?->spouse_condition_type ?? ''),
+            'spouse_health_notes' => old('spouse_health_notes', $existingHousehold?->spouse_health_notes ?? ''),
+            'address_text' => old('address_text', $existingHousehold?->address_text ?? ''),
+            'previous_governorate' => old('previous_governorate', $existingHousehold?->previous_governorate ?? ''),
+            'previous_area' => old('previous_area', $existingHousehold?->previous_area ?? ''),
+            'payment_account_type' => old('payment_account_type', $existingHousehold?->payment_account_type ?? ''),
+            'payment_account_number' => old('payment_account_number', $existingHousehold?->payment_account_number ?? ''),
+            'payment_account_holder_name' => old('payment_account_holder_name', $existingHousehold?->payment_account_holder_name ?? ''),
+            'housing_type' => old('housing_type', $existingHousehold?->housing_type ?? ''),
+            'primary_phone' => old('primary_phone', $existingHousehold?->primary_phone ?? ''),
+            'secondary_phone' => old('secondary_phone', $existingHousehold?->secondary_phone ?? ''),
+            'has_war_injury' => old('has_war_injury', $existingHousehold?->has_war_injury ?? false),
+            'has_chronic_disease' => old('has_chronic_disease', $existingHousehold?->has_chronic_disease ?? false),
+            'has_disability' => old('has_disability', $existingHousehold?->has_disability ?? false),
+            'condition_type' => old('condition_type', $existingHousehold?->condition_type ?? ''),
+            'condition_notes' => old('condition_notes', $existingHousehold?->condition_notes ?? ''),
+            'members' => old('members', $existingHousehold?->members?->where('relation_to_head', self::ALLOWED_MEMBER_RELATION)?->map(function ($member) {
                 return [
                     'full_name' => $member->full_name,
                     'national_id' => $member->national_id,
@@ -117,6 +127,12 @@ class OnboardingController extends Controller
             'has_war_injury' => $request->boolean('has_war_injury'),
             'has_chronic_disease' => $request->boolean('has_chronic_disease'),
             'has_disability' => $request->boolean('has_disability'),
+            'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
+            'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
+            'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
+            'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
+            'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+            'spouse_condition_type' => trim((string) $request->input('spouse_condition_type')),
             'payment_account_number' => preg_replace('/\D+/', '', (string) $request->input('payment_account_number', '')),
             'payment_account_holder_name' => trim((string) $request->input('payment_account_holder_name')),
             'condition_type' => trim((string) $request->input('condition_type')),
@@ -125,6 +141,7 @@ class OnboardingController extends Controller
         if (is_array($request->input('members'))) {
             $normalizedMembers = collect($request->input('members'))->map(function ($member) {
                 return array_merge($member, [
+                    'relation_to_head' => self::ALLOWED_MEMBER_RELATION,
                     'has_war_injury' => isset($member['has_war_injury']) ? filter_var($member['has_war_injury'], FILTER_VALIDATE_BOOLEAN) : false,
                     'has_chronic_disease' => isset($member['has_chronic_disease']) ? filter_var($member['has_chronic_disease'], FILTER_VALIDATE_BOOLEAN) : false,
                     'has_disability' => isset($member['has_disability']) ? filter_var($member['has_disability'], FILTER_VALIDATE_BOOLEAN) : false,
@@ -137,6 +154,19 @@ class OnboardingController extends Controller
         $validator = Validator::make($request->all(), [
             // Step 1: Region & Address
             'region_id' => ['required', Rule::in($allowedRegionIds)],
+            'spouse_full_name' => ['required', 'string', 'max:255'],
+            'spouse_national_id' => [
+                'required',
+                'digits:9',
+                Rule::notIn([$user->national_id]),
+                Rule::unique('households', 'spouse_national_id')->ignore($existingHouseholdId),
+            ],
+            'spouse_birth_date' => ['required', 'date', 'before:today'],
+            'spouse_has_war_injury' => ['nullable', 'boolean'],
+            'spouse_has_chronic_disease' => ['nullable', 'boolean'],
+            'spouse_has_disability' => ['nullable', 'boolean'],
+            'spouse_condition_type' => ['nullable', 'string', 'max:255'],
+            'spouse_health_notes' => ['nullable', 'string', 'max:1000'],
             'address_text' => ['required', 'string', 'max:500'],
             'previous_governorate' => ['required', 'string', 'max:100'],
             'previous_area' => ['required', 'string', 'max:100'],
@@ -187,6 +217,14 @@ class OnboardingController extends Controller
                 $validator->errors()->add('condition_type', __('validation.required', ['attribute' => __('messages.health.condition_type')]));
             }
 
+            $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+                || $request->boolean('spouse_has_chronic_disease')
+                || $request->boolean('spouse_has_disability');
+
+            if ($spouseHasHealthFlag && blank($request->input('spouse_condition_type'))) {
+                $validator->errors()->add('spouse_condition_type', __('validation.required', ['attribute' => __('messages.onboarding_form.spouse_condition_type')]));
+            }
+
             foreach ($request->input('members', []) as $index => $member) {
                 $hasFlag = filter_var(Arr::get($member, 'has_war_injury'), FILTER_VALIDATE_BOOLEAN)
                     || filter_var(Arr::get($member, 'has_chronic_disease'), FILTER_VALIDATE_BOOLEAN)
@@ -206,10 +244,21 @@ class OnboardingController extends Controller
             $householdHasHealthFlag = $request->boolean('has_war_injury')
                 || $request->boolean('has_chronic_disease')
                 || $request->boolean('has_disability');
+            $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+                || $request->boolean('spouse_has_chronic_disease')
+                || $request->boolean('spouse_has_disability');
 
             $payload = [
                 'head_national_id' => $user->national_id,
                 'head_name' => $user->full_name,
+                'spouse_full_name' => $validated['spouse_full_name'],
+                'spouse_national_id' => $validated['spouse_national_id'],
+                'spouse_birth_date' => $validated['spouse_birth_date'],
+                'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
+                'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
+                'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+                'spouse_condition_type' => $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null,
+                'spouse_health_notes' => $validated['spouse_health_notes'] ?? null,
                 'region_id' => $validated['region_id'],
                 'address_text' => $validated['address_text'],
                 'previous_governorate' => $validated['previous_governorate'],

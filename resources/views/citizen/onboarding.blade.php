@@ -19,7 +19,7 @@
 
 @php
     $errorStep = null;
-    if ($errors->hasAny(['members', 'members.*'])) {
+    if ($errors->hasAny(['spouse_full_name', 'spouse_national_id', 'spouse_birth_date', 'spouse_has_war_injury', 'spouse_has_chronic_disease', 'spouse_has_disability', 'spouse_condition_type', 'spouse_health_notes', 'members', 'members.*'])) {
         $errorStep = 2; // Step 3: members
     } elseif ($errors->hasAny(['housing_type', 'primary_phone', 'secondary_phone', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'condition_type', 'condition_notes'])) {
         $errorStep = 1; // Step 2: housing/contact
@@ -342,7 +342,7 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: Family Members -->
+                    <!-- Step 3: Spouse & Children -->
                     <div
                         x-show="step === 2"
                         x-transition:enter="transition ease-out duration-300"
@@ -353,8 +353,122 @@
                         x-transition:leave-end="opacity-0 transform -translate-x-4"
                         class="p-6"
                     >
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-medium text-gray-900">{{ __('messages.onboarding_form.family_members_title') }}</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('messages.onboarding_form.family_members_title') }}</h3>
+
+                        <div class="mb-5 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sky-900">
+                            <div class="flex items-start gap-3">
+                                <svg class="h-5 w-5 mt-0.5 text-sky-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-semibold">{{ __('messages.onboarding_form.children_notice_title') }}</p>
+                                    <p class="text-sm mt-1">{{ __('messages.onboarding_form.children_notice_text') }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6 rounded-lg border p-4" :class="fieldError('spouse_full_name') || fieldError('spouse_national_id') || fieldError('spouse_birth_date') || fieldError('spouse_condition_type') ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'">
+                            <h4 class="text-sm font-semibold text-gray-800 mb-3">{{ __('messages.onboarding_form.spouse_section_title') }}</h4>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-3">
+                                    <label for="spouse_full_name" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_full_name') }} <span class="text-red-500">*</span></label>
+                                    <input
+                                        id="spouse_full_name"
+                                        type="text"
+                                        name="spouse_full_name"
+                                        x-model="formData.spouse_full_name"
+                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                        :class="fieldError('spouse_full_name') ? 'border-red-300' : 'border-gray-300'"
+                                        placeholder="{{ __('messages.onboarding_form.spouse_full_name_placeholder') }}"
+                                        required
+                                    >
+                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_full_name')" x-text="fieldError('spouse_full_name')"></p>
+                                </div>
+
+                                <div>
+                                    <label for="spouse_national_id" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_national_id') }} <span class="text-red-500">*</span></label>
+                                    <input
+                                        id="spouse_national_id"
+                                        type="text"
+                                        name="spouse_national_id"
+                                        x-model="formData.spouse_national_id"
+                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                        :class="fieldError('spouse_national_id') ? 'border-red-300' : 'border-gray-300'"
+                                        placeholder="{{ __('messages.onboarding_form.spouse_national_id_placeholder') }}"
+                                        maxlength="9"
+                                        inputmode="numeric"
+                                        @input="filterDigits($event, 9)"
+                                        required
+                                    >
+                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_national_id')" x-text="fieldError('spouse_national_id')"></p>
+                                </div>
+
+                                <div>
+                                    <label for="spouse_birth_date" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_birth_date') }} <span class="text-red-500">*</span></label>
+                                    <input
+                                        id="spouse_birth_date"
+                                        type="date"
+                                        name="spouse_birth_date"
+                                        x-model="formData.spouse_birth_date"
+                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                        :class="fieldError('spouse_birth_date') ? 'border-red-300' : 'border-gray-300'"
+                                        required
+                                    >
+                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_birth_date')" x-text="fieldError('spouse_birth_date')"></p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <p class="text-xs font-semibold text-gray-700 mb-2">{{ __('messages.onboarding_form.spouse_health_title') }}</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <label class="flex items-center gap-2 text-xs text-gray-700">
+                                        <input type="checkbox" name="spouse_has_war_injury" x-model="formData.spouse_has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span>{{ __('messages.health.has_war_injury') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 text-xs text-gray-700">
+                                        <input type="checkbox" name="spouse_has_chronic_disease" x-model="formData.spouse_has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span>{{ __('messages.health.has_chronic_disease') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 text-xs text-gray-700">
+                                        <input type="checkbox" name="spouse_has_disability" x-model="formData.spouse_has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span>{{ __('messages.health.has_disability') }}</span>
+                                    </label>
+                                </div>
+
+                                <p class="mt-2 text-xs text-gray-500">{{ __('messages.onboarding_form.spouse_condition_type_required_hint') }}</p>
+
+                                <div x-show="spouseNeedsConditionType()" x-transition class="mt-3">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                                        {{ __('messages.onboarding_form.spouse_condition_type') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="spouse_condition_type"
+                                        x-model="formData.spouse_condition_type"
+                                        :required="spouseNeedsConditionType()"
+                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                        :class="fieldError('spouse_condition_type') ? 'border-red-300' : 'border-gray-300'"
+                                        placeholder="{{ __('messages.onboarding_form.spouse_condition_type_placeholder') }}"
+                                    >
+                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_condition_type')" x-text="fieldError('spouse_condition_type')"></p>
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_health_notes') }}</label>
+                                    <textarea
+                                        name="spouse_health_notes"
+                                        x-model="formData.spouse_health_notes"
+                                        rows="2"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                        placeholder="{{ __('messages.onboarding_form.spouse_health_notes_placeholder') }}"
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-base font-medium text-gray-900">{{ __('messages.onboarding_form.children_section_title') }}</h4>
                             <button
                                 type="button"
                                 @click="addMember"
@@ -374,13 +488,13 @@
                             <template x-for="(member, index) in members" :key="index">
                                 <div
                                     class="border rounded-lg p-4"
-                                    :class="fieldError(`members.${index}.full_name`) || fieldError(`members.${index}.relation_to_head`) || fieldError(`members.${index}.national_id`) || fieldError(`members.${index}.birth_date`) ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'"
+                                    :class="fieldError(`members.${index}.full_name`) || fieldError(`members.${index}.national_id`) || fieldError(`members.${index}.birth_date`) ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'"
                                     x-transition:enter="transition ease-out duration-200"
                                     x-transition:enter-start="opacity-0 transform scale-95"
                                     x-transition:enter-end="opacity-100 transform scale-100"
                                 >
                                     <div class="flex items-center justify-between mb-3">
-                                        <span class="text-sm font-medium text-gray-700">{{ __('messages.onboarding_form.member_label') }} <span x-text="index + 1"></span></span>
+                                        <span class="text-sm font-medium text-gray-700">{{ __('messages.onboarding_form.child_label') }} <span x-text="index + 1"></span></span>
                                         <button type="button" @click="removeMember(index)" class="text-red-500 hover:text-red-700 transition">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -403,19 +517,9 @@
                                             <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.full_name`)" x-text="fieldError(`members.${index}.full_name`)"></p>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_relation') }} <span class="text-red-500">*</span></label>
-                                            <select
-                                                :name="'members[' + index + '][relation_to_head]'"
-                                                x-model="member.relation_to_head"
-                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                                :class="fieldError(`members.${index}.relation_to_head`) ? 'border-red-300' : 'border-gray-300'"
-                                                required
-                                            >
-                                                @foreach($relations as $value => $label)
-                                                    <option value="{{ $value }}">{{ $label }}</option>
-                                                @endforeach
-                                            </select>
-                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError(`members.${index}.relation_to_head`)" x-text="fieldError(`members.${index}.relation_to_head`)"></p>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_relation') }}</label>
+                                            <input type="hidden" :name="'members[' + index + '][relation_to_head]'" value="son">
+                                            <input type="text" class="block w-full rounded-md border-gray-300 bg-gray-100 text-gray-600 shadow-sm text-sm" value="{{ __('messages.relations.son') }}" readonly>
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.member_national_id_optional') }} <span class="text-red-500">*</span></label>
@@ -503,8 +607,8 @@
                                 <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
-                                <p class="text-sm">{{ __('messages.onboarding_form.members_empty_title') }}</p>
-                                <p class="text-xs text-gray-400 mt-1">{{ __('messages.onboarding_form.members_empty_helper') }}</p>
+                                <p class="text-sm">{{ __('messages.onboarding_form.children_empty_title') }}</p>
+                                <p class="text-xs text-gray-400 mt-1">{{ __('messages.onboarding_form.children_empty_helper') }}</p>
                             </div>
                         </div>
                     </div>
@@ -568,23 +672,41 @@
                                 </div>
                             </div>
 
-                            <!-- Members Summary -->
+                            <!-- Spouse & Children Summary -->
                             <div class="bg-gray-50 rounded-lg p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-medium text-gray-700">{{ __('messages.onboarding_form.members_summary_title') }} (<span x-text="members.length"></span>)</h4>
+                                    <h4 class="font-medium text-gray-700">{{ __('messages.onboarding_form.members_summary_title') }}</h4>
                                     <button type="button" @click="step = 2" class="text-teal-600 hover:text-teal-800 text-sm">{{ __('messages.onboarding_form.edit') }}</button>
+                                </div>
+
+                                <div class="mb-3 p-3 rounded border border-gray-200 bg-white text-sm">
+                                    <p class="font-medium text-gray-800 mb-1">{{ __('messages.onboarding_form.spouse_section_title') }}</p>
+                                    <p class="text-gray-700" x-text="formData.spouse_full_name || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
+                                    <p class="text-gray-500 mt-1" x-text="formData.spouse_national_id || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
+                                    <p class="text-gray-500 mt-1" x-text="formData.spouse_birth_date || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
+                                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                        <span x-show="formData.spouse_has_war_injury" class="px-2 py-1 rounded-full bg-red-50 text-red-700">{{ __('messages.health.war_injury') }}</span>
+                                        <span x-show="formData.spouse_has_chronic_disease" class="px-2 py-1 rounded-full bg-amber-50 text-amber-700">{{ __('messages.health.chronic_disease') }}</span>
+                                        <span x-show="formData.spouse_has_disability" class="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ __('messages.health.disability') }}</span>
+                                    </div>
+                                    <p class="text-gray-500 mt-2" x-show="formData.spouse_condition_type">
+                                        <span class="font-medium">{{ __('messages.onboarding_form.spouse_condition_type') }}:</span>
+                                        <span x-text="formData.spouse_condition_type"></span>
+                                    </p>
+                                </div>
+
+                                <div class="text-sm font-medium text-gray-700 mb-2">
+                                    {{ __('messages.onboarding_form.children_section_title') }} (<span x-text="members.length"></span>)
                                 </div>
                                 <div x-show="members.length > 0" class="space-y-2">
                                     <template x-for="(member, index) in members" :key="index">
                                         <div class="flex items-center text-sm">
                                             <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs mr-2" x-text="index + 1"></span>
                                             <span class="text-gray-700" x-text="member.full_name"></span>
-                                            <span class="text-gray-400 mx-1">-</span>
-                                            <span class="text-gray-500 capitalize" x-text="member.relation_to_head"></span>
                                         </div>
                                     </template>
                                 </div>
-                                <p x-show="members.length === 0" class="text-sm text-gray-500">{{ __('messages.onboarding_form.members_none') }}</p>
+                                <p x-show="members.length === 0" class="text-sm text-gray-500">{{ __('messages.onboarding_form.children_none') }}</p>
                             </div>
 
                             <!-- Status Notice -->
@@ -672,6 +794,14 @@
                 },
                 formData: {
                     region_id: '{{ $prefill['region_id'] }}',
+                    spouse_full_name: @json($prefill['spouse_full_name']),
+                    spouse_national_id: '{{ $prefill['spouse_national_id'] }}',
+                    spouse_birth_date: '{{ $prefill['spouse_birth_date'] }}',
+                    spouse_has_war_injury: Boolean({{ $prefill['spouse_has_war_injury'] ? 'true' : 'false' }}),
+                    spouse_has_chronic_disease: Boolean({{ $prefill['spouse_has_chronic_disease'] ? 'true' : 'false' }}),
+                    spouse_has_disability: Boolean({{ $prefill['spouse_has_disability'] ? 'true' : 'false' }}),
+                    spouse_condition_type: @json($prefill['spouse_condition_type']),
+                    spouse_health_notes: @json($prefill['spouse_health_notes']),
                     address_text: @json($prefill['address_text']),
                     previous_governorate: '{{ $prefill['previous_governorate'] }}',
                     previous_area: '{{ $prefill['previous_area'] }}',
@@ -705,6 +835,10 @@
                     return Boolean(member && (member.has_war_injury || member.has_chronic_disease || member.has_disability));
                 },
 
+                spouseNeedsConditionType() {
+                    return Boolean(this.formData.spouse_has_war_injury || this.formData.spouse_has_chronic_disease || this.formData.spouse_has_disability);
+                },
+
                 get canProceed() {
                     if (this.step === 0) {
                         const hasHolderName = String(this.formData.payment_account_holder_name || '').trim().length > 0;
@@ -723,6 +857,13 @@
                         return this.formData.housing_type && digits.length === 10 && (!needsConditionType || hasConditionType);
                     }
                     if (this.step === 2) {
+                        const spouseIdDigits = (this.formData.spouse_national_id || '').replace(/\D/g, '');
+                        const spouseReady = String(this.formData.spouse_full_name || '').trim().length > 0
+                            && spouseIdDigits.length === 9
+                            && String(this.formData.spouse_birth_date || '').trim().length > 0;
+                        if (!spouseReady) return false;
+                        if (this.spouseNeedsConditionType() && String(this.formData.spouse_condition_type || '').trim().length === 0) return false;
+
                         if (this.members.length === 0) return true;
                         return this.members.every(member => {
                             const eastern = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
@@ -734,7 +875,6 @@
                             const needsConditionType = this.memberNeedsConditionType(member);
                             const hasConditionType = String(member.condition_type || '').trim().length > 0;
                             return member.full_name
-                                && member.relation_to_head
                                 && idDigits.length === 9
                                 && (!needsConditionType || hasConditionType);
                         });
@@ -810,6 +950,7 @@
                     if (event.target.id === 'primary_phone') this.formData.primary_phone = digits;
                     if (event.target.id === 'secondary_phone') this.formData.secondary_phone = digits;
                     if (event.target.id === 'payment_account_number') this.formData.payment_account_number = digits;
+                    if (event.target.id === 'spouse_national_id') this.formData.spouse_national_id = digits;
                     if (event.target.name?.includes('[national_id]')) {
                         const idx = Number(event.target.name.match(/members\\[(\\d+)\\]/)[1]);
                         this.members[idx].national_id = digits;
