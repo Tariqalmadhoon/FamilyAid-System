@@ -35,6 +35,23 @@
                         </div>
                         <dl class="grid grid-cols-2 gap-4">
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.head_national_id') ?? 'الرقم الوطني لرب الأسرة' }}</dt><dd class="font-medium">{{ $household->head_national_id }}</dd></div>
+                            <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_national_id') }}</dt><dd class="font-medium">{{ $household->spouse_national_id ?? '-' }}</dd></div>
+                            <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_full_name') }}</dt><dd class="font-medium">{{ $household->spouse_full_name ?? '-' }}</dd></div>
+                            <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_birth_date') }}</dt><dd class="font-medium">{{ optional($household->spouse_birth_date)->format('Y-m-d') ?? '-' }}</dd></div>
+                            <div class="col-span-2">
+                                <dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_health_title') }}</dt>
+                                <dd class="mt-2">
+                                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                                        <span class="px-2 py-1 rounded {{ $household->spouse_has_war_injury ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.war_injury') }}: {{ $household->spouse_has_war_injury ? 'نعم' : 'لا' }}</span>
+                                        <span class="px-2 py-1 rounded {{ $household->spouse_has_chronic_disease ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.chronic_disease') }}: {{ $household->spouse_has_chronic_disease ? 'نعم' : 'لا' }}</span>
+                                        <span class="px-2 py-1 rounded {{ $household->spouse_has_disability ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-gray-100 text-gray-500' }}">{{ __('messages.health.disability') }}: {{ $household->spouse_has_disability ? 'نعم' : 'لا' }}</span>
+                                    </div>
+                                    <p class="text-sm font-medium mt-2 text-slate-700">{{ $household->spouse_condition_type ?? __('messages.onboarding_form.not_provided') }}</p>
+                                    @if($household->spouse_health_notes)
+                                        <p class="text-xs text-gray-600 mt-1">{{ $household->spouse_health_notes }}</p>
+                                    @endif
+                                </dd>
+                            </div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.region') ?? 'المنطقة' }}</dt><dd class="font-medium">{{ $household->region->name ?? '-' }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.housing_type') ?? 'نوع السكن' }}</dt><dd class="font-medium capitalize">{{ str_replace('_', ' ', $household->housing_type ?? '-') }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.primary_phone') ?? 'الهاتف الأساسي' }}</dt><dd class="font-medium">{{ $household->primary_phone ?? '-' }}</dd></div>
