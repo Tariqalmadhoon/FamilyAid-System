@@ -355,14 +355,29 @@
                     >
                         <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('messages.onboarding_form.family_members_title') }}</h3>
 
-                        <div class="mb-5 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sky-900">
-                            <div class="flex items-start gap-3">
-                                <svg class="h-5 w-5 mt-0.5 text-sky-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <div>
+                        <div
+                            x-show="step === 2"
+                            x-transition:enter="transform transition ease-out duration-500"
+                            x-transition:enter-start="opacity-0 -translate-y-2 scale-95"
+                            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                            x-transition:leave="transform transition ease-in duration-200"
+                            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                            x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
+                            class="mb-5 rounded-xl border border-yellow-200 bg-yellow-50/95 p-4 text-yellow-900 shadow-sm ring-1 ring-yellow-100"
+                            role="alert"
+                            aria-live="polite"
+
+                            style="background-color: rgb(13 148 136 / var(--tw-bg-opacity, 1)) ; color:aliceblue";
+                        >
+                            <div  class="flex items-start gap-3">
+                                <div class="mt-0.5 h-6 w-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center flex-shrink-0">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div >
                                     <p class="text-sm font-semibold">{{ __('messages.onboarding_form.children_notice_title') }}</p>
-                                    <p class="text-sm mt-1">{{ __('messages.onboarding_form.children_notice_text') }}</p>
+                                    <p class="text-sm mt-1 leading-6">{{ __('messages.onboarding_form.children_notice_text') }}</p>
                                 </div>
                             </div>
                         </div>
