@@ -502,6 +502,7 @@
                         <div class="space-y-4">
                             <template x-for="(member, index) in members" :key="index">
                                 <div
+                                    data-member-card
                                     class="border rounded-lg p-4"
                                     :class="fieldError(`members.${index}.full_name`) || fieldError(`members.${index}.national_id`) || fieldError(`members.${index}.birth_date`) ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'"
                                     x-transition:enter="transition ease-out duration-200"
@@ -921,6 +922,17 @@
                         has_disability: false,
                         condition_type: '',
                         health_notes: ''
+                    });
+
+                    this.$nextTick(() => {
+                        const cards = document.querySelectorAll('[data-member-card]');
+                        const lastCard = cards[cards.length - 1];
+                        if (lastCard) {
+                            lastCard.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
                     });
                 },
 
