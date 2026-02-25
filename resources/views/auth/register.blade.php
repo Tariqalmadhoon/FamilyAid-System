@@ -1,4 +1,12 @@
 <x-guest-layout>
+    @php
+        $registerInitialStep = 1;
+        if ($errors->hasAny(['first_name', 'father_name', 'grandfather_name', 'last_name', 'national_id', 'phone_country_code', 'phone', 'website'])) {
+            $registerInitialStep = 1;
+        } elseif ($errors->hasAny(['password', 'password_confirmation'])) {
+            $registerInitialStep = 2;
+        }
+    @endphp
     <!-- Header -->
     <div class="p-8 pb-0">
         <h1 class="text-2xl font-bold text-slate-800 text-center">{{ __('auth.register') }}</h1>
@@ -6,7 +14,7 @@
     </div>
 
     <!-- Form -->
-<form method="POST" action="{{ route('register') }}" x-data="registerForm()" @submit="loading = true" class="p-8">
+<form method="POST" action="{{ route('register') }}" x-data="registerForm({ initialStep: {{ $registerInitialStep }} })" @submit="loading = true" class="p-8">
     @csrf
 
         <!-- Honeypot -->
@@ -271,10 +279,10 @@
 
     @push('scripts')
     <script>
-        function registerForm() {
+        function registerForm(config = {}) {
             return {
                 loading: false,
-                step: 1,
+                step: Number(config.initialStep ?? 1),
                 showPassword: false,
                 showPasswordConfirmation: false,
                 form: {
