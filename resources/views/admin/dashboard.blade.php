@@ -75,6 +75,69 @@
                 </div>
             </div>
 
+            <!-- Camp Statistics -->
+            <div class="mb-8" x-data="{ open: false }">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <button
+                        type="button"
+                        @click="open = !open"
+                        class="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition"
+                    >
+                        <div class="text-right">
+                            <p class="text-base font-semibold text-gray-900">إحصائيات المخيمات</p>
+                            <p class="text-sm text-gray-500">عدد الأسر المسجلة في كل مخيم</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-semibold text-teal-700 bg-teal-50 px-3 py-1 rounded-full">
+                                {{ number_format($totalCampRegistered) }} مسجل
+                            </span>
+                            <svg
+                                class="w-5 h-5 text-gray-500 transform transition-transform duration-300"
+                                :class="{ 'rotate-180': open }"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <div
+                        x-show="open"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 -translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-2"
+                        class="border-t border-gray-100"
+                    >
+                        @if($campStats->isEmpty())
+                            <div class="p-6 text-center text-gray-500">لا توجد مخيمات متاحة حالياً.</div>
+                        @else
+                            <div class="p-4 sm:p-5 space-y-3">
+                                @foreach($campStats as $camp)
+                                    @php
+                                        $count = (int) $camp->households_count;
+                                        $percent = (int) round(($count / $maxCampRegistered) * 100);
+                                    @endphp
+                                    <a href="{{ route('admin.households.index', ['region_id' => $camp->id]) }}" class="block rounded-lg border border-gray-100 p-3 hover:border-teal-200 hover:bg-teal-50/40 transition">
+                                        <div class="flex items-center justify-between gap-3 mb-2">
+                                            <p class="font-medium text-gray-800">{{ $camp->name }}</p>
+                                            <span class="text-sm font-semibold text-teal-700">{{ number_format($count) }}</span>
+                                        </div>
+                                        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-500" style="width: {{ $percent }}%;"></div>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
             <!-- Quick Actions -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <a href="{{ route('admin.households.create') }}" class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition flex items-center">

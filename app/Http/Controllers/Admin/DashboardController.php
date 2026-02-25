@@ -45,6 +45,15 @@ class DashboardController extends Controller
             ->with('region')
             ->get();
 
+        $campStats = Region::query()
+            ->allowedCamps()
+            ->withCount('households')
+            ->orderBy('name')
+            ->get();
+
+        $totalCampRegistered = (int) $campStats->sum('households_count');
+        $maxCampRegistered = (int) max(1, (int) $campStats->max('households_count'));
+
         $recentUsers = User::latest()->limit(5)->get();
 
         return view('admin.dashboard', [
@@ -52,6 +61,9 @@ class DashboardController extends Controller
             'recentHouseholds' => $recentHouseholds,
             'recentDistributions' => $recentDistributions,
             'householdsByRegion' => $householdsByRegion,
+            'campStats' => $campStats,
+            'totalCampRegistered' => $totalCampRegistered,
+            'maxCampRegistered' => $maxCampRegistered,
             'recentUsers' => $recentUsers,
         ]);
     }
