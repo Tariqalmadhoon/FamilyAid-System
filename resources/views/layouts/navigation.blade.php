@@ -42,6 +42,9 @@
                         <x-nav-link :href="route('admin.import-export.index')" :active="request()->routeIs('admin.import-export.*')">
                             {{ __('messages.nav.import_export') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.barcode-export')" :active="request()->routeIs('admin.barcode-export')">
+                            {{ __('messages.nav.barcode_export') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -113,6 +116,7 @@
                 <x-responsive-nav-link :href="route('admin.households.index')">{{ __('messages.nav.households') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.programs.index')">{{ __('messages.nav.programs') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.distributions.index')">{{ __('messages.nav.distributions') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.barcode-export')">{{ __('messages.nav.barcode_export') }}</x-responsive-nav-link>
             @endif
         </div>
 
