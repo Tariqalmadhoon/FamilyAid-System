@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AidProgramController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BarcodeExportController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DistributionController;
 use App\Http\Controllers\Admin\HouseholdController;
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'role:citizen'])->prefix('citizen')->name('citizen.')
 Route::middleware(['auth', 'role:admin|data_entry|auditor|distributor'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/barcode-export', [BarcodeExportController::class, 'index'])->name('barcode-export');
     
     // Households
     Route::post('/households/bulk-destroy', [HouseholdController::class, 'bulkDestroy'])->name('households.bulk-destroy');

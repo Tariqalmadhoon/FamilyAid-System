@@ -15,6 +15,7 @@ return [
         'programs' => 'البرامج',
         'distributions' => 'التوزيعات',
         'import_export' => 'استيراد/تصدير',
+        'barcode_export' => 'تصدير باركود',
         'audit_logs' => 'سجلات التدقيق',
         'members' => 'الزوجة والابناء',
         'settings' => 'الإعدادات',
@@ -41,6 +42,15 @@ return [
         'show_password' => 'إظهار كلمة المرور',
         'hide_password' => 'إخفاء كلمة المرور',
         'password_updated' => 'تم تحديث كلمة المرور بنجاح.',
+    ],
+
+    // Barcode Export
+    'barcode_export' => [
+        'title' => 'تصدير باركود',
+        'registration_title' => 'رابط التسجيل في تجمع مخيمات العائدين - القرارة',
+        'scan_instruction' => 'يرجى مسح الباركود التالي',
+        'or_visit' => 'أو الدخول إلى الرابط',
+        'print' => 'طباعة',
     ],
 
     // Actions

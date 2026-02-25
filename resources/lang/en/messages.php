@@ -15,6 +15,7 @@ return [
         'programs' => 'Programs',
         'distributions' => 'Distributions',
         'import_export' => 'Import/Export',
+        'barcode_export' => 'Barcode Export',
         'audit_logs' => 'Audit Logs',
         'members' => 'Spouse & Children',
         'settings' => 'Settings',
@@ -41,6 +42,15 @@ return [
         'show_password' => 'Show Password',
         'hide_password' => 'Hide Password',
         'password_updated' => 'Password updated successfully.',
+    ],
+
+    // Barcode Export
+    'barcode_export' => [
+        'title' => 'Barcode Export',
+        'registration_title' => 'Registration Link for Returning Camps Gathering - Al-Qarara',
+        'scan_instruction' => 'Please scan the following barcode',
+        'or_visit' => 'Or visit the link',
+        'print' => 'Print',
     ],
 
     // Actions
