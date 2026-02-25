@@ -13,7 +13,7 @@
     <div class="py-8">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white rounded-lg shadow-sm">
-                <form method="POST" action="{{ route('admin.households.update', $household) }}" class="p-6">
+                <form id="household-edit-form" method="POST" action="{{ route('admin.households.update', $household) }}" class="p-6">
                     @csrf
                     @method('PUT')
 
@@ -96,27 +96,30 @@
                         <textarea name="address_text" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">{{ old('address_text', $household->address_text) }}</textarea>
                     </div>
 
+                    @php
+                        $selectedPreviousGovernorate = old('previous_governorate', $household->previous_governorate);
+                        $selectedPreviousArea = old('previous_area', $household->previous_area);
+                        $previousAreaOptions = $previousAreas[$selectedPreviousGovernorate] ?? [];
+                    @endphp
                     <!-- Previous Residence -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" x-data="{ prevGov: '{{ old('previous_governorate', $household->previous_governorate) }}', allAreas: @json($previousAreas) }">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_governorate') }}</label>
-                            <select name="previous_governorate" x-model="prevGov" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_governorate') }} <span class="text-red-500">*</span></label>
+                            <select id="previous_governorate" name="previous_governorate" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                                 <option value="">{{ __('messages.onboarding_form.previous_governorate_placeholder') }}</option>
                                 @foreach($previousGovernorates as $key => $label)
-                                    <option value="{{ $key }}" {{ old('previous_governorate', $household->previous_governorate) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                    <option value="{{ $key }}" @selected($selectedPreviousGovernorate === $key)>{{ $label }}</option>
                                 @endforeach
                             </select>
                             @error('previous_governorate')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_area') }}</label>
-                            <select name="previous_area" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_area') }} <span class="text-red-500">*</span></label>
+                            <select id="previous_area" name="previous_area" data-selected="{{ $selectedPreviousArea }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed" @disabled(!$selectedPreviousGovernorate) required>
                                 <option value="">{{ __('messages.onboarding_form.previous_area_placeholder') }}</option>
-                                <template x-if="prevGov && allAreas[prevGov]">
-                                    <template x-for="[aKey, aLabel] in Object.entries(allAreas[prevGov] || {})" :key="aKey">
-                                        <option :value="aKey" x-text="aLabel" :selected="aKey === '{{ old('previous_area', $household->previous_area) }}'"></option>
-                                    </template>
-                                </template>
+                                @foreach($previousAreaOptions as $aKey => $aLabel)
+                                    <option value="{{ $aKey }}" @selected($selectedPreviousArea === $aKey)>{{ $aLabel }}</option>
+                                @endforeach
                             </select>
                             @error('previous_area')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
@@ -133,13 +136,11 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.status.status') ?? __('messages.status.title') ?? 'الحالة' }} <span class="text-red-500">*</span></label>
-                            <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
-                                <option value="pending" {{ old('status', $household->status) === 'pending' ? 'selected' : '' }}>{{ __('messages.status.pending') }}</option>
-                                <option value="verified" {{ old('status', $household->status) === 'verified' ? 'selected' : '' }}>{{ __('messages.status.verified') }}</option>
-                                <option value="suspended" {{ old('status', $household->status) === 'suspended' ? 'selected' : '' }}>{{ __('messages.status.suspended') }}</option>
-                                <option value="rejected" {{ old('status', $household->status) === 'rejected' ? 'selected' : '' }}>{{ __('messages.status.rejected') }}</option>
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.status.status') }}</label>
+                            <div class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                                {{ __('messages.status.' . $household->status) }}
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">يتم تغيير الحالة من إجراء التوثيق فقط.</p>
                         </div>
                     </div>
 
@@ -182,23 +183,69 @@
                     </div>
 
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.program.notes') ?? 'ملاحظات' }}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.program.notes') }}</label>
                         <textarea name="notes" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">{{ old('notes', $household->notes) }}</textarea>
                     </div>
 
                     <div class="mt-6 flex justify-between">
-                        <form action="{{ route('admin.households.destroy', $household) }}" method="POST" onsubmit="return confirm('{{ __('messages.confirm.delete') ?? 'حذف هذه الأسرة؟' }}')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="px-4 py-2 text-red-600 hover:text-red-800 text-sm">{{ __('messages.actions.delete') }} {{ __('messages.households_admin.title') ?? '' }}</button>
-                        </form>
+                        <button type="button" onclick="if(confirm('{{ __('messages.confirm.delete') }}')) document.getElementById('delete-household-form').submit();" class="px-4 py-2 text-red-600 hover:text-red-800 text-sm">
+                            {{ __('messages.actions.delete') }} {{ __('messages.households_admin.title') ?? '' }}
+                        </button>
                         <div class="flex space-x-3">
                             <a href="{{ route('admin.households.show', $household) }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.cancel') }}</a>
                             <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.actions.save') }}</button>
                         </div>
                     </div>
                 </form>
+                <form id="delete-household-form" action="{{ route('admin.households.destroy', $household) }}" method="POST" class="hidden">
+                    @csrf
+                    @method('DELETE')
+                </form>
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const governorateSelect = document.getElementById('previous_governorate');
+            const areaSelect = document.getElementById('previous_area');
+            if (!governorateSelect || !areaSelect) {
+                return;
+            }
+
+            const allAreas = @json($previousAreas);
+            const areaPlaceholder = @json(__('messages.onboarding_form.previous_area_placeholder'));
+
+            const populateAreas = function (selectedValue) {
+                const governorate = governorateSelect.value;
+                const options = allAreas[governorate] || {};
+
+                areaSelect.innerHTML = '';
+
+                const placeholderOption = document.createElement('option');
+                placeholderOption.value = '';
+                placeholderOption.textContent = areaPlaceholder;
+                areaSelect.appendChild(placeholderOption);
+
+                Object.entries(options).forEach(function ([key, label]) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = label;
+                    areaSelect.appendChild(option);
+                });
+
+                areaSelect.disabled = !governorate;
+
+                if (selectedValue && Object.prototype.hasOwnProperty.call(options, selectedValue)) {
+                    areaSelect.value = selectedValue;
+                }
+            };
+
+            governorateSelect.addEventListener('change', function () {
+                populateAreas('');
+            });
+
+            populateAreas(areaSelect.dataset.selected || areaSelect.value || '');
+        });
+    </script>
 </x-app-layout>
+
