@@ -100,27 +100,30 @@
                         <textarea name="address_text" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">{{ old('address_text') }}</textarea>
                     </div>
 
+                    @php
+                        $selectedPreviousGovernorate = old('previous_governorate');
+                        $selectedPreviousArea = old('previous_area');
+                        $previousAreaOptions = $previousAreas[$selectedPreviousGovernorate] ?? [];
+                    @endphp
                     <!-- Previous Residence -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" x-data="{ prevGov: '{{ old('previous_governorate') }}', allAreas: @json($previousAreas) }">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_governorate') }}</label>
-                            <select name="previous_governorate" x-model="prevGov" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_governorate') }} <span class="text-red-500">*</span></label>
+                            <select id="previous_governorate" name="previous_governorate" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                                 <option value="">{{ __('messages.onboarding_form.previous_governorate_placeholder') }}</option>
                                 @foreach($previousGovernorates as $key => $label)
-                                    <option value="{{ $key }}" {{ old('previous_governorate') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                    <option value="{{ $key }}" @selected($selectedPreviousGovernorate === $key)>{{ $label }}</option>
                                 @endforeach
                             </select>
                             @error('previous_governorate')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_area') }}</label>
-                            <select name="previous_area" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.onboarding_form.previous_area') }} <span class="text-red-500">*</span></label>
+                            <select id="previous_area" name="previous_area" data-selected="{{ $selectedPreviousArea }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed" @disabled(!$selectedPreviousGovernorate) required>
                                 <option value="">{{ __('messages.onboarding_form.previous_area_placeholder') }}</option>
-                                <template x-if="prevGov && allAreas[prevGov]">
-                                    <template x-for="[aKey, aLabel] in Object.entries(allAreas[prevGov] || {})" :key="aKey">
-                                        <option :value="aKey" x-text="aLabel" :selected="aKey === '{{ old('previous_area') }}'"></option>
-                                    </template>
-                                </template>
+                                @foreach($previousAreaOptions as $aKey => $aLabel)
+                                    <option value="{{ $aKey }}" @selected($selectedPreviousArea === $aKey)>{{ $aLabel }}</option>
+                                @endforeach
                             </select>
                             @error('previous_area')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
@@ -197,4 +200,47 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const governorateSelect = document.getElementById('previous_governorate');
+            const areaSelect = document.getElementById('previous_area');
+            if (!governorateSelect || !areaSelect) {
+                return;
+            }
+
+            const allAreas = @json($previousAreas);
+            const areaPlaceholder = @json(__('messages.onboarding_form.previous_area_placeholder'));
+
+            const populateAreas = function (selectedValue) {
+                const governorate = governorateSelect.value;
+                const options = allAreas[governorate] || {};
+
+                areaSelect.innerHTML = '';
+
+                const placeholderOption = document.createElement('option');
+                placeholderOption.value = '';
+                placeholderOption.textContent = areaPlaceholder;
+                areaSelect.appendChild(placeholderOption);
+
+                Object.entries(options).forEach(function ([key, label]) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = label;
+                    areaSelect.appendChild(option);
+                });
+
+                areaSelect.disabled = !governorate;
+
+                if (selectedValue && Object.prototype.hasOwnProperty.call(options, selectedValue)) {
+                    areaSelect.value = selectedValue;
+                }
+            };
+
+            governorateSelect.addEventListener('change', function () {
+                populateAreas('');
+            });
+
+            populateAreas(areaSelect.dataset.selected || areaSelect.value || '');
+        });
+    </script>
 </x-app-layout>

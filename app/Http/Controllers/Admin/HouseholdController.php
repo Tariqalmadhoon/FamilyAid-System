@@ -125,6 +125,7 @@ class HouseholdController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $allowedRegionIds = $this->allowedCampRegionIds();
+        $previousGovernorates = array_keys((array) __('messages.previous_governorates'));
         $request->merge([
             'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
             'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
@@ -132,6 +133,8 @@ class HouseholdController extends Controller
             'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
             'spouse_has_disability' => $request->boolean('spouse_has_disability'),
             'spouse_condition_type' => trim((string) $request->input('spouse_condition_type')),
+            'previous_governorate' => trim((string) $request->input('previous_governorate')),
+            'previous_area' => trim((string) $request->input('previous_area')),
         ]);
 
         $validator = Validator::make($request->all(), [
@@ -157,8 +160,8 @@ class HouseholdController extends Controller
             'has_disability' => ['nullable', 'boolean'],
             'condition_type' => ['nullable', 'string', 'max:255'],
             'condition_notes' => ['nullable', 'string', 'max:1000'],
-            'previous_governorate' => ['nullable', 'string', 'max:100'],
-            'previous_area' => ['nullable', 'string', 'max:100'],
+            'previous_governorate' => ['required', Rule::in($previousGovernorates)],
+            'previous_area' => ['required', 'string', 'max:100'],
         ], [
             'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
@@ -170,6 +173,14 @@ class HouseholdController extends Controller
 
             if ($spouseHasHealthFlag && blank($request->input('spouse_condition_type'))) {
                 $validator->errors()->add('spouse_condition_type', __('validation.required', ['attribute' => __('messages.onboarding_form.spouse_condition_type')]));
+            }
+
+            $previousAreas = (array) __('messages.previous_areas');
+            $gov = (string) $request->input('previous_governorate');
+            $area = (string) $request->input('previous_area');
+            $validAreas = array_keys((array) ($previousAreas[$gov] ?? []));
+            if ($gov !== '' && $area !== '' && !in_array($area, $validAreas, true)) {
+                $validator->errors()->add('previous_area', __('validation.in', ['attribute' => __('messages.onboarding_form.previous_area')]));
             }
         });
 
@@ -230,6 +241,7 @@ class HouseholdController extends Controller
     public function update(Request $request, Household $household): RedirectResponse
     {
         $allowedRegionIds = $this->allowedCampRegionIds();
+        $previousGovernorates = array_keys((array) __('messages.previous_governorates'));
         $request->merge([
             'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
             'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
@@ -237,6 +249,8 @@ class HouseholdController extends Controller
             'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
             'spouse_has_disability' => $request->boolean('spouse_has_disability'),
             'spouse_condition_type' => trim((string) $request->input('spouse_condition_type')),
+            'previous_governorate' => trim((string) $request->input('previous_governorate')),
+            'previous_area' => trim((string) $request->input('previous_area')),
         ]);
 
         $validator = Validator::make($request->all(), [
@@ -255,15 +269,14 @@ class HouseholdController extends Controller
             'housing_type' => ['nullable', 'in:owned,rented,family_hosted,other'],
             'primary_phone' => ['nullable', 'digits:10'],
             'secondary_phone' => ['nullable', 'digits:10'],
-            'status' => ['required', 'in:pending,verified,suspended,rejected'],
             'notes' => ['nullable', 'string'],
             'has_war_injury' => ['nullable', 'boolean'],
             'has_chronic_disease' => ['nullable', 'boolean'],
             'has_disability' => ['nullable', 'boolean'],
             'condition_type' => ['nullable', 'string', 'max:255'],
             'condition_notes' => ['nullable', 'string', 'max:1000'],
-            'previous_governorate' => ['nullable', 'string', 'max:100'],
-            'previous_area' => ['nullable', 'string', 'max:100'],
+            'previous_governorate' => ['required', Rule::in($previousGovernorates)],
+            'previous_area' => ['required', 'string', 'max:100'],
         ], [
             'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
@@ -275,6 +288,14 @@ class HouseholdController extends Controller
 
             if ($spouseHasHealthFlag && blank($request->input('spouse_condition_type'))) {
                 $validator->errors()->add('spouse_condition_type', __('validation.required', ['attribute' => __('messages.onboarding_form.spouse_condition_type')]));
+            }
+
+            $previousAreas = (array) __('messages.previous_areas');
+            $gov = (string) $request->input('previous_governorate');
+            $area = (string) $request->input('previous_area');
+            $validAreas = array_keys((array) ($previousAreas[$gov] ?? []));
+            if ($gov !== '' && $area !== '' && !in_array($area, $validAreas, true)) {
+                $validator->errors()->add('previous_area', __('validation.in', ['attribute' => __('messages.onboarding_form.previous_area')]));
             }
         });
 
@@ -291,7 +312,14 @@ class HouseholdController extends Controller
         $validated['spouse_has_war_injury'] = $request->boolean('spouse_has_war_injury');
         $validated['spouse_has_chronic_disease'] = $request->boolean('spouse_has_chronic_disease');
         $validated['spouse_has_disability'] = $request->boolean('spouse_has_disability');
-        $validated['spouse_condition_type'] = $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null;
+        $validated['spouse_condition_type'] = $spouseHasHealthFlag
+            ? ($validated['spouse_condition_type'] ?? null)
+            : $household->spouse_condition_type;
+        $validated['spouse_health_notes'] = $spouseHasHealthFlag
+            ? ($validated['spouse_health_notes'] ?? null)
+            : $household->spouse_health_notes;
+        // Status must not change from the edit form; verification action controls status.
+        $validated['status'] = $household->status;
 
         $before = $household->toArray();
         $household->update($validated);
@@ -355,7 +383,7 @@ class HouseholdController extends Controller
             }
         }
 
-        // All passed — delete each with audit log
+        // All passed - delete each with audit log
         $count = 0;
         foreach ($households as $household) {
             $before = $household->toArray();
