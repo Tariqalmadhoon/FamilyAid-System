@@ -26,6 +26,7 @@ class User extends Authenticatable
         'father_name',
         'grandfather_name',
         'last_name',
+        'birth_date',
         'national_id',
         'phone',
         'password',
@@ -53,6 +54,7 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
+        'birth_date' => 'date',
         'is_staff' => 'boolean',
     ];
 

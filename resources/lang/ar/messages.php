@@ -200,6 +200,7 @@ return [
     // Household
     'household' => [
         'head_name' => 'اسم رب الأسرة',
+        'head_birth_date' => 'تاريخ ميلاد رب الأسرة',
         'head_national_id' => 'رقم الهوية  لرب الأسرة',
         'spouse_full_name' => 'اسم الزوجة',
         'spouse_national_id' => 'رقم هوية الزوجة',
@@ -536,6 +537,7 @@ return [
         'households' => [
             'national_id' => 'رقم الهوية ',
             'head_name' => 'اسم رب الأسرة',
+            'head_birth_date' => 'تاريخ ميلاد رب الأسرة',
             'spouse_full_name' => 'اسم الزوجة',
             'spouse_national_id' => 'رقم هوية الزوجة',
             'spouse_birth_date' => 'تاريخ ميلاد الزوجة',

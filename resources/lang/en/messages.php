@@ -353,6 +353,7 @@ return [
     // Household
     'household' => [
         'head_name' => 'Head of Household',
+        'head_birth_date' => 'Head Birth Date',
         'head_national_id' => 'National ID of Head',
         'spouse_full_name' => 'Spouse Name',
         'spouse_national_id' => 'Spouse National ID',
@@ -524,6 +525,7 @@ return [
         'households' => [
             'national_id' => 'National ID',
             'head_name' => 'Head Name',
+            'head_birth_date' => 'Head Birth Date',
             'spouse_full_name' => 'Spouse Name',
             'spouse_national_id' => 'Spouse National ID',
             'spouse_birth_date' => 'Spouse Birth Date',

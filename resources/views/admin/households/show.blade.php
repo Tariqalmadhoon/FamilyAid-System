@@ -35,6 +35,7 @@
                         </div>
                         <dl class="grid grid-cols-2 gap-4">
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.head_national_id') ?? 'الرقم الوطني لرب الأسرة' }}</dt><dd class="font-medium">{{ $household->head_national_id }}</dd></div>
+                            <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.head_birth_date') }}</dt><dd class="font-medium">{{ optional($household->head_birth_date)->format('Y-m-d') ?? '-' }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_national_id') }}</dt><dd class="font-medium">{{ $household->spouse_national_id ?? '-' }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_full_name') }}</dt><dd class="font-medium">{{ $household->spouse_full_name ?? '-' }}</dd></div>
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_birth_date') }}</dt><dd class="font-medium">{{ optional($household->spouse_birth_date)->format('Y-m-d') ?? '-' }}</dd></div>

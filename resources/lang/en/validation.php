@@ -147,6 +147,7 @@ return [
         'full_name' => 'full name',
         'national_id' => 'national ID',
         'head_name' => 'head name',
+        'head_birth_date' => 'head birth date',
         'head_national_id' => 'head national ID',
         'spouse_full_name' => 'spouse full name',
         'spouse_national_id' => 'spouse national ID',

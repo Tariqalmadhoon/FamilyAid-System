@@ -170,6 +170,10 @@
                                 <p class="text-sm font-medium text-gray-900">{{ $household->head_national_id }}</p>
                             </div>
                             <div>
+                                <span class="text-xs text-gray-500 uppercase">{{ __('messages.household.head_birth_date') }}</span>
+                                <p class="text-sm font-medium text-gray-900">{{ optional($household->head_birth_date)->format('Y-m-d') ?? '-' }}</p>
+                            </div>
+                            <div>
                                 <span class="text-xs text-gray-500 uppercase">{{ __('messages.onboarding_form.spouse_full_name') }}</span>
                                 <p class="text-sm font-medium text-gray-900">{{ $household->spouse_full_name ?? '-' }}</p>
                             </div>
