@@ -252,6 +252,8 @@ class OnboardingController extends Controller
             $payload = [
                 'head_national_id' => $user->national_id,
                 'head_name' => $user->full_name,
+                'head_birth_date' => $user->birth_date
+                    ?? Household::whereKey($existingHouseholdId)->value('head_birth_date'),
                 'spouse_full_name' => $validated['spouse_full_name'],
                 'spouse_national_id' => $validated['spouse_national_id'],
                 'spouse_birth_date' => $validated['spouse_birth_date'],

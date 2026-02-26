@@ -36,6 +36,7 @@ class HouseholdsExport
         $headers = [
             __('messages.exports.households.national_id'),
             __('messages.exports.households.head_name'),
+            __('messages.exports.households.head_birth_date'),
             __('messages.exports.households.spouse_full_name'),
             __('messages.exports.households.spouse_national_id'),
             __('messages.exports.households.spouse_birth_date'),
@@ -61,7 +62,7 @@ class HouseholdsExport
         ];
 
         // Write headers
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
+        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y'];
         foreach ($headers as $index => $header) {
             $cell = $columns[$index] . '1';
             $sheet->setCellValue($cell, $header);
@@ -81,7 +82,7 @@ class HouseholdsExport
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ];
-        $sheet->getStyle('A1:X1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:Y1')->applyFromArray($headerStyle);
 
         // Get data
         $query = Household::with(['region', 'members']);
@@ -105,28 +106,29 @@ class HouseholdsExport
         foreach ($households as $household) {
             $sheet->setCellValue('A' . $row, $household->head_national_id ?? '');
             $sheet->setCellValue('B' . $row, $household->head_name ?? '');
-            $sheet->setCellValue('C' . $row, $household->spouse_full_name ?? '');
-            $sheet->setCellValue('D' . $row, $household->spouse_national_id ?? '');
-            $sheet->setCellValue('E' . $row, $household->spouse_birth_date ? $household->spouse_birth_date->format('Y-m-d') : '');
-            $sheet->setCellValue('F' . $row, $household->spouse_has_war_injury ? 1 : 0);
-            $sheet->setCellValue('G' . $row, $household->spouse_has_chronic_disease ? 1 : 0);
-            $sheet->setCellValue('H' . $row, $household->spouse_has_disability ? 1 : 0);
-            $sheet->setCellValue('I' . $row, $household->spouse_condition_type ?? '');
-            $sheet->setCellValue('J' . $row, $household->spouse_health_notes ?? '');
-            $sheet->setCellValue('K' . $row, $household->region->name ?? '');
-            $sheet->setCellValue('L' . $row, $household->address_text ?? '');
-            $sheet->setCellValue('M' . $row, $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '');
-            $sheet->setCellValue('N' . $row, $household->primary_phone ?? '');
-            $sheet->setCellValue('O' . $row, $household->secondary_phone ?? '');
-            $sheet->setCellValue('P' . $row, $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '');
-            $sheet->setCellValue('Q' . $row, $household->payment_account_number ?? '');
-            $sheet->setCellValue('R' . $row, $household->payment_account_holder_name ?? '');
-            $sheet->setCellValue('S' . $row, __('messages.status.' . $household->status));
-            $sheet->setCellValue('T' . $row, $household->members->count());
-            $sheet->setCellValue('U' . $row, $household->members->pluck('full_name')->implode(', '));
-            $sheet->setCellValue('V' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
-            $sheet->setCellValue('W' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
-            $sheet->setCellValue('X' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
+            $sheet->setCellValue('C' . $row, $household->head_birth_date ? $household->head_birth_date->format('Y-m-d') : '');
+            $sheet->setCellValue('D' . $row, $household->spouse_full_name ?? '');
+            $sheet->setCellValue('E' . $row, $household->spouse_national_id ?? '');
+            $sheet->setCellValue('F' . $row, $household->spouse_birth_date ? $household->spouse_birth_date->format('Y-m-d') : '');
+            $sheet->setCellValue('G' . $row, $household->spouse_has_war_injury ? 1 : 0);
+            $sheet->setCellValue('H' . $row, $household->spouse_has_chronic_disease ? 1 : 0);
+            $sheet->setCellValue('I' . $row, $household->spouse_has_disability ? 1 : 0);
+            $sheet->setCellValue('J' . $row, $household->spouse_condition_type ?? '');
+            $sheet->setCellValue('K' . $row, $household->spouse_health_notes ?? '');
+            $sheet->setCellValue('L' . $row, $household->region->name ?? '');
+            $sheet->setCellValue('M' . $row, $household->address_text ?? '');
+            $sheet->setCellValue('N' . $row, $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '');
+            $sheet->setCellValue('O' . $row, $household->primary_phone ?? '');
+            $sheet->setCellValue('P' . $row, $household->secondary_phone ?? '');
+            $sheet->setCellValue('Q' . $row, $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '');
+            $sheet->setCellValue('R' . $row, $household->payment_account_number ?? '');
+            $sheet->setCellValue('S' . $row, $household->payment_account_holder_name ?? '');
+            $sheet->setCellValue('T' . $row, __('messages.status.' . $household->status));
+            $sheet->setCellValue('U' . $row, $household->members->count());
+            $sheet->setCellValue('V' . $row, $household->members->pluck('full_name')->implode(', '));
+            $sheet->setCellValue('W' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
+            $sheet->setCellValue('X' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
+            $sheet->setCellValue('Y' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
             $row++;
         }
 

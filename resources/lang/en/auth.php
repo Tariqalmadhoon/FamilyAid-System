@@ -28,6 +28,7 @@ return [
     'father_name' => 'Father Name',
     'grandfather_name' => 'Grandfather Name',
     'last_name' => 'Last Name',
+    'birth_date' => 'Head Birth Date',
     'phone' => 'Phone Number',
     'national_id_hint' => 'National ID must be exactly 9 digits.',
     'phone_hint' => 'Choose country code (+970 or +972), then enter a 9-digit phone number without the leading zero.',

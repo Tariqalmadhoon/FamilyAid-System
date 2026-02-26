@@ -70,6 +70,7 @@ class LinkOrphanCitizens extends Command
                 $household->update([
                     'head_name' => $user->full_name,
                     'head_national_id' => $user->national_id,
+                    'head_birth_date' => $user->birth_date ?? $household->head_birth_date,
                 ]);
 
                 $user->household_id = $household->id;

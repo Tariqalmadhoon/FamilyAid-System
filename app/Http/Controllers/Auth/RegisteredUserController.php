@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -39,6 +40,7 @@ class RegisteredUserController extends Controller
             'father_name' => ['nullable', 'string', 'max:120'],
             'grandfather_name' => ['nullable', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120', 'min:2'],
+            'birth_date' => ['required', 'date', 'before:today'],
             'national_id' => ['required', 'digits:9', 'unique:users,national_id'],
             'phone_country_code' => ['required', 'in:+970,+972'],
             'phone' => ['required', 'digits:9'],
@@ -74,14 +76,16 @@ class RegisteredUserController extends Controller
                 'father_name' => $request->father_name,
                 'grandfather_name' => $request->grandfather_name,
                 'last_name' => $request->last_name,
+                'birth_date' => $request->birth_date,
                 'national_id' => $request->national_id,
                 'phone' => $phone,
                 'password' => Hash::make($request->password),
                 'is_staff' => false,
             ]);
 
-            // Assign citizen role
-            $user->assignRole('citizen');
+            // Ensure citizen role exists for web guard before assignment.
+            $citizenRole = Role::findOrCreate('citizen', 'web');
+            $user->assignRole($citizenRole);
 
             return $user;
         });

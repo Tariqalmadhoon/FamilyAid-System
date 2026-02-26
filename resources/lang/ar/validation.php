@@ -147,6 +147,7 @@ return [
         'full_name' => 'الاسم الكامل',
         'national_id' => ' رقم الهوية ',
         'head_name' => 'اسم رب الأسرة',
+        'head_birth_date' => 'تاريخ ميلاد رب الأسرة',
         'head_national_id' => 'رقم الهوية   لرب الأسرة',
         'spouse_full_name' => 'الاسم الرباعي للزوجة',
         'spouse_national_id' => 'رقم هوية الزوجة',

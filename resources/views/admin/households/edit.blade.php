@@ -26,6 +26,12 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_name') }} <span class="text-red-500">*</span></label>
                             <input type="text" name="head_name" value="{{ old('head_name', $household->head_name) }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                            @error('head_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_birth_date') }} <span class="text-red-500">*</span></label>
+                            <input type="date" name="head_birth_date" value="{{ old('head_birth_date', optional($household->head_birth_date)->toDateString()) }}" max="{{ now()->subDay()->toDateString() }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                            @error('head_birth_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
 

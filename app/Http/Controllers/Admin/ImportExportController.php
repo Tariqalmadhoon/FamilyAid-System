@@ -50,6 +50,7 @@ class ImportExportController extends Controller
         $headers = [
             'national_id',
             'head_name',
+            'head_birth_date',
             'spouse_full_name',
             'spouse_national_id',
             'spouse_birth_date',
@@ -69,6 +70,7 @@ class ImportExportController extends Controller
         $example = [
             '123456789',
             'John Doe',
+            '1987-03-10',
             'Jane Doe',
             '987654321',
             '1990-05-12',

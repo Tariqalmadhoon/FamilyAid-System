@@ -1,7 +1,7 @@
 <x-guest-layout>
     @php
         $registerInitialStep = 1;
-        if ($errors->hasAny(['first_name', 'father_name', 'grandfather_name', 'last_name', 'national_id', 'phone_country_code', 'phone', 'website'])) {
+        if ($errors->hasAny(['first_name', 'father_name', 'grandfather_name', 'last_name', 'birth_date', 'national_id', 'phone_country_code', 'phone', 'website'])) {
             $registerInitialStep = 1;
         } elseif ($errors->hasAny(['password', 'password_confirmation'])) {
             $registerInitialStep = 2;
@@ -93,6 +93,23 @@
                         dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
                     >
                     @error('last_name')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
+                </div>
+
+                <!-- Birth Date -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
+                        {{ __('auth.birth_date') }} <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="date"
+                        name="birth_date"
+                        x-model="form.birth_date"
+                        value="{{ old('birth_date') }}"
+                        required
+                        max="{{ now()->subDay()->toDateString() }}"
+                        class="input-focus-transition w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}"
+                    >
+                    @error('birth_date')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
                 </div>
             </div>
 
@@ -290,6 +307,7 @@
                     father_name: @json(old('father_name')),
                     grandfather_name: @json(old('grandfather_name')),
                     last_name: @json(old('last_name')),
+                    birth_date: @json(old('birth_date')),
                     national_id: @json(old('national_id')),
                     phone_country_code: @json(old('phone_country_code', '+970')),
                     phone: @json(old('phone')),
@@ -311,11 +329,13 @@
                 get step1Valid() {
                     const first = (this.form.first_name || '').trim();
                     const last = (this.form.last_name || '').trim();
+                    const birthDate = (this.form.birth_date || '').trim();
                     const nid = (this.form.national_id || '').trim();
                     const phoneCountryCode = (this.form.phone_country_code || '').trim();
                     const phone = (this.form.phone || '').trim();
                     return first.length >= 2
                         && last.length >= 2
+                        && birthDate.length > 0
                         && nid.length === 9
                         && ['+970', '+972'].includes(phoneCountryCode)
                         && phone.length === 9;

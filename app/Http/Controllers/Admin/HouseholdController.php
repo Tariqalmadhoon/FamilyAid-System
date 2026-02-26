@@ -140,6 +140,7 @@ class HouseholdController extends Controller
         $validator = Validator::make($request->all(), [
             'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id'],
             'head_name' => ['required', 'string', 'max:255'],
+            'head_birth_date' => ['required', 'date', 'before:today'],
             'spouse_full_name' => ['required', 'string', 'max:255'],
             'spouse_national_id' => ['required', 'digits:9', 'different:head_national_id', 'unique:households,spouse_national_id'],
             'spouse_birth_date' => ['required', 'date', 'before:today'],
@@ -256,6 +257,7 @@ class HouseholdController extends Controller
         $validator = Validator::make($request->all(), [
             'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id,' . $household->id],
             'head_name' => ['required', 'string', 'max:255'],
+            'head_birth_date' => ['required', 'date', 'before:today'],
             'spouse_full_name' => ['required', 'string', 'max:255'],
             'spouse_national_id' => ['required', 'digits:9', 'different:head_national_id', 'unique:households,spouse_national_id,' . $household->id],
             'spouse_birth_date' => ['required', 'date', 'before:today'],

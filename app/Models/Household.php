@@ -15,6 +15,7 @@ class Household extends Model
     protected $fillable = [
         'head_national_id',
         'head_name',
+        'head_birth_date',
         'spouse_full_name',
         'spouse_national_id',
         'spouse_birth_date',
@@ -45,6 +46,7 @@ class Household extends Model
     protected $casts = [
         'status' => 'string',
         'housing_type' => 'string',
+        'head_birth_date' => 'date',
         'has_war_injury' => 'boolean',
         'has_chronic_disease' => 'boolean',
         'has_disability' => 'boolean',
