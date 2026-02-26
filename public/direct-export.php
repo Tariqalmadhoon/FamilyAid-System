@@ -76,20 +76,28 @@ function createHouseholdsExport(): Spreadsheet
         'A' => '#',
         'B' => __('messages.exports.households.national_id'),
         'C' => __('messages.exports.households.head_name'),
-        'D' => __('messages.exports.households.region'),
-        'E' => __('messages.exports.households.address'),
-        'F' => __('messages.exports.households.housing_type'),
-        'G' => __('messages.exports.households.primary_phone'),
-        'H' => __('messages.exports.households.secondary_phone'),
-        'I' => __('messages.exports.households.payment_account_type'),
-        'J' => __('messages.exports.households.payment_account_number'),
-        'K' => __('messages.exports.households.payment_account_holder_name'),
-        'L' => __('messages.exports.households.status'),
-        'M' => __('messages.exports.households.members_count'),
-        'N' => __('messages.exports.households.member_names'),
-        'O' => __('messages.exports.households.previous_governorate'),
-        'P' => __('messages.exports.households.previous_area'),
-        'Q' => __('messages.exports.households.registered_date'),
+        'D' => __('messages.exports.households.spouse_full_name'),
+        'E' => __('messages.exports.households.spouse_national_id'),
+        'F' => __('messages.exports.households.spouse_birth_date'),
+        'G' => __('messages.exports.households.spouse_has_war_injury'),
+        'H' => __('messages.exports.households.spouse_has_chronic_disease'),
+        'I' => __('messages.exports.households.spouse_has_disability'),
+        'J' => __('messages.exports.households.spouse_condition_type'),
+        'K' => __('messages.exports.households.spouse_health_notes'),
+        'L' => __('messages.exports.households.region'),
+        'M' => __('messages.exports.households.address'),
+        'N' => __('messages.exports.households.housing_type'),
+        'O' => __('messages.exports.households.primary_phone'),
+        'P' => __('messages.exports.households.secondary_phone'),
+        'Q' => __('messages.exports.households.payment_account_type'),
+        'R' => __('messages.exports.households.payment_account_number'),
+        'S' => __('messages.exports.households.payment_account_holder_name'),
+        'T' => __('messages.exports.households.status'),
+        'U' => __('messages.exports.households.members_count'),
+        'V' => __('messages.exports.households.member_names'),
+        'W' => __('messages.exports.households.previous_governorate'),
+        'X' => __('messages.exports.households.previous_area'),
+        'Y' => __('messages.exports.households.registered_date'),
     ];
 
     foreach ($headers as $col => $header) {
@@ -101,7 +109,7 @@ function createHouseholdsExport(): Spreadsheet
         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D9488']],
         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
     ];
-    $sheet->getStyle('A1:Q1')->applyFromArray($headerStyle);
+    $sheet->getStyle('A1:Y1')->applyFromArray($headerStyle);
 
     $query = \App\Models\Household::with(['region', 'members']);
 
@@ -123,20 +131,28 @@ function createHouseholdsExport(): Spreadsheet
         $sheet->setCellValue('A' . $row, $sequenceNumber);
         $sheet->setCellValue('B' . $row, $household->head_national_id ?? '');
         $sheet->setCellValue('C' . $row, $household->head_name ?? '');
-        $sheet->setCellValue('D' . $row, $household->region->name ?? '');
-        $sheet->setCellValue('E' . $row, $household->address_text ?? '');
-        $sheet->setCellValue('F' . $row, $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '');
-        $sheet->setCellValue('G' . $row, $household->primary_phone ?? '');
-        $sheet->setCellValue('H' . $row, $household->secondary_phone ?? '');
-        $sheet->setCellValue('I' . $row, $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '');
-        $sheet->setCellValue('J' . $row, $household->payment_account_number ?? '');
-        $sheet->setCellValue('K' . $row, $household->payment_account_holder_name ?? '');
-        $sheet->setCellValue('L' . $row, __('messages.status.' . $household->status));
-        $sheet->setCellValue('M' . $row, $household->members->count());
-        $sheet->setCellValue('N' . $row, $household->members->pluck('full_name')->implode('، '));
-        $sheet->setCellValue('O' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
-        $sheet->setCellValue('P' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
-        $sheet->setCellValue('Q' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
+        $sheet->setCellValue('D' . $row, $household->spouse_full_name ?? '');
+        $sheet->setCellValue('E' . $row, $household->spouse_national_id ?? '');
+        $sheet->setCellValue('F' . $row, $household->spouse_birth_date ? $household->spouse_birth_date->format('Y-m-d') : '');
+        $sheet->setCellValue('G' . $row, $household->spouse_has_war_injury ? 1 : 0);
+        $sheet->setCellValue('H' . $row, $household->spouse_has_chronic_disease ? 1 : 0);
+        $sheet->setCellValue('I' . $row, $household->spouse_has_disability ? 1 : 0);
+        $sheet->setCellValue('J' . $row, $household->spouse_condition_type ?? '');
+        $sheet->setCellValue('K' . $row, $household->spouse_health_notes ?? '');
+        $sheet->setCellValue('L' . $row, $household->region->name ?? '');
+        $sheet->setCellValue('M' . $row, $household->address_text ?? '');
+        $sheet->setCellValue('N' . $row, $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '');
+        $sheet->setCellValue('O' . $row, $household->primary_phone ?? '');
+        $sheet->setCellValue('P' . $row, $household->secondary_phone ?? '');
+        $sheet->setCellValue('Q' . $row, $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '');
+        $sheet->setCellValue('R' . $row, $household->payment_account_number ?? '');
+        $sheet->setCellValue('S' . $row, $household->payment_account_holder_name ?? '');
+        $sheet->setCellValue('T' . $row, __('messages.status.' . $household->status));
+        $sheet->setCellValue('U' . $row, $household->members->count());
+        $sheet->setCellValue('V' . $row, $household->members->pluck('full_name')->implode(', '));
+        $sheet->setCellValue('W' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
+        $sheet->setCellValue('X' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
+        $sheet->setCellValue('Y' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
         $row++;
         $sequenceNumber++;
     }
