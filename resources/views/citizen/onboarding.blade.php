@@ -63,7 +63,7 @@
 
             <!-- Form Container -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <form method="POST" action="{{ route('citizen.onboarding.store') }}" @submit="handleSubmit" novalidate>
+                <form method="POST" action="{{ route('citizen.onboarding.store') }}" @submit="handleSubmit" @input.debounce.300ms="schedulePersist" @change.debounce.150ms="schedulePersist" novalidate>
                     @csrf
                     <input type="hidden" name="wizard_step" x-model="step">
                     <div class="px-6 pt-4">
@@ -795,6 +795,13 @@
             return {
                 step: Number(config.initialStep ?? 0),
                 submitting: false,
+                initialized: false,
+                persistTimer: null,
+                lastDraftSnapshot: '',
+                hasValidationErrors: @json($errors->any()),
+                draftKey: 'citizen-onboarding-draft:{{ auth()->id() }}',
+                draftVersion: 1,
+                draftMaxAgeMs: 1000 * 60 * 60 * 24 * 14,
                 errors: @json($errors->getMessages()),
                 steps: [
                     { title: '{{ __('messages.onboarding_form.step_address') }}' },
@@ -834,6 +841,123 @@
                     condition_notes: @json($prefill['condition_notes'])
                 },
                 members: @json($prefill['members']).map(member => ({ ...member, relation_to_head: 'son' })),
+
+                init() {
+                    this.restoreDraft();
+                    this.initialized = true;
+                    this.persistDraft();
+                },
+
+                emptyMember() {
+                    return {
+                        full_name: '',
+                        national_id: '',
+                        relation_to_head: 'son',
+                        gender: '',
+                        birth_date: '',
+                        has_war_injury: false,
+                        has_chronic_disease: false,
+                        has_disability: false,
+                        condition_type: '',
+                        health_notes: ''
+                    };
+                },
+
+                normalizeMember(member = {}) {
+                    const base = this.emptyMember();
+                    return {
+                        ...base,
+                        ...member,
+                        relation_to_head: 'son',
+                        has_war_injury: Boolean(member.has_war_injury),
+                        has_chronic_disease: Boolean(member.has_chronic_disease),
+                        has_disability: Boolean(member.has_disability),
+                    };
+                },
+
+                clampStep(value) {
+                    const parsed = Number(value);
+                    if (!Number.isFinite(parsed)) return 0;
+                    return Math.max(0, Math.min(3, parsed));
+                },
+
+                createDraftPayload() {
+                    return {
+                        v: this.draftVersion,
+                        saved_at: Date.now(),
+                        step: this.clampStep(this.step),
+                        formData: { ...this.formData },
+                        members: (this.members || []).map(member => this.normalizeMember(member)),
+                    };
+                },
+
+                schedulePersist() {
+                    if (!this.initialized) return;
+                    if (this.persistTimer) {
+                        clearTimeout(this.persistTimer);
+                    }
+                    this.persistTimer = setTimeout(() => this.persistDraft(), 220);
+                },
+
+                persistDraft() {
+                    if (!this.initialized) return;
+
+                    try {
+                        const payload = this.createDraftPayload();
+                        const snapshot = JSON.stringify(payload);
+
+                        if (snapshot === this.lastDraftSnapshot) {
+                            return;
+                        }
+
+                        localStorage.setItem(this.draftKey, snapshot);
+                        this.lastDraftSnapshot = snapshot;
+                    } catch (error) {
+                        // Ignore storage errors (private mode/quota issues).
+                    }
+                },
+
+                restoreDraft() {
+                    if (this.hasValidationErrors) {
+                        return;
+                    }
+
+                    try {
+                        const raw = localStorage.getItem(this.draftKey);
+                        if (!raw) return;
+
+                        const draft = JSON.parse(raw);
+                        if (!draft || draft.v !== this.draftVersion) return;
+
+                        const savedAt = Number(draft.saved_at || 0);
+                        if (!savedAt || (Date.now() - savedAt) > this.draftMaxAgeMs) {
+                            localStorage.removeItem(this.draftKey);
+                            return;
+                        }
+
+                        if (draft.formData && typeof draft.formData === 'object') {
+                            this.formData = {
+                                ...this.formData,
+                                ...draft.formData,
+                            };
+                        }
+
+                        if (Array.isArray(draft.members)) {
+                            this.members = draft.members.map(member => this.normalizeMember(member));
+                        }
+
+                        this.step = this.clampStep(draft.step);
+
+                        const selectedGov = this.formData.previous_governorate;
+                        const selectedArea = this.formData.previous_area;
+                        const availableAreas = this.allAreas[selectedGov] || {};
+                        if (selectedArea && !Object.prototype.hasOwnProperty.call(availableAreas, selectedArea)) {
+                            this.formData.previous_area = '';
+                        }
+                    } catch (error) {
+                        // Ignore malformed/corrupt draft data.
+                    }
+                },
 
                 fieldError(key) {
                     const messages = this.errors[key];
@@ -901,28 +1025,20 @@
                 nextStep() {
                     if (this.step < 3 && this.canProceed) {
                         this.step++;
+                        this.schedulePersist();
                     }
                 },
 
                 prevStep() {
                     if (this.step > 0) {
                         this.step--;
+                        this.schedulePersist();
                     }
                 },
 
                 addMember() {
-                    this.members.push({
-                        full_name: '',
-                        national_id: '',
-                        relation_to_head: 'son',
-                        gender: '',
-                        birth_date: '',
-                        has_war_injury: false,
-                        has_chronic_disease: false,
-                        has_disability: false,
-                        condition_type: '',
-                        health_notes: ''
-                    });
+                    this.members.push(this.emptyMember());
+                    this.schedulePersist();
 
                     this.$nextTick(() => {
                         const cards = document.querySelectorAll('[data-member-card]');
@@ -938,6 +1054,7 @@
 
                 removeMember(index) {
                     this.members.splice(index, 1);
+                    this.schedulePersist();
                 },
 
                 handleSubmit(e) {
@@ -982,6 +1099,7 @@
                         const idx = Number(event.target.name.match(/members\\[(\\d+)\\]/)[1]);
                         this.members[idx].national_id = digits;
                     }
+                    this.schedulePersist();
                 }
             }
         }
