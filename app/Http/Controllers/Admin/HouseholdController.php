@@ -85,11 +85,44 @@ class HouseholdController extends Controller
 
         $filters = $request->only(['search', 'status', 'region_id', 'housing_type', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'has_child_under_2', 'previous_governorate', 'previous_area', 'outside_al_qarara']);
 
-        $pendingUsers = User::where('is_staff', false)
-            ->whereNull('household_id')
+        $incompleteCitizenBaseQuery = User::query()
+            ->where('is_staff', false)
+            ->whereNull('household_id');
+
+        $pendingCitizenUsers = (clone $incompleteCitizenBaseQuery)
             ->latest()
-            ->limit(10)
-            ->get();
+            ->paginate(25, ['*'], 'incomplete_page')
+            ->withQueryString();
+
+        $matchedHouseholdsByNationalId = Household::query()
+            ->whereIn('head_national_id', $pendingCitizenUsers->pluck('national_id')->filter()->all())
+            ->get(['id', 'head_national_id', 'status', 'created_at'])
+            ->keyBy('head_national_id');
+
+        $incompleteRegistrations = $pendingCitizenUsers->through(function (User $user) use ($matchedHouseholdsByNationalId) {
+            $matchedHousehold = $matchedHouseholdsByNationalId->get($user->national_id);
+
+            return [
+                'user' => $user,
+                'classification' => $matchedHousehold ? 'household_exists_unlinked' : 'household_data_missing',
+                'matched_household' => $matchedHousehold,
+            ];
+        });
+
+        $incompleteTotal = (clone $incompleteCitizenBaseQuery)->count();
+        $incompleteUnlinked = (clone $incompleteCitizenBaseQuery)
+            ->whereExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('households')
+                    ->whereColumn('households.head_national_id', 'users.national_id');
+            })
+            ->count();
+
+        $incompleteRegistrationStats = [
+            'total' => $incompleteTotal,
+            'household_data_missing' => max(0, $incompleteTotal - $incompleteUnlinked),
+            'household_exists_unlinked' => $incompleteUnlinked,
+        ];
 
         return view('admin.households.index', [
             'households' => $households,
@@ -98,7 +131,8 @@ class HouseholdController extends Controller
             'hasActiveFilters' => collect($filters)->filter(function ($v) {
                 return $v !== null && $v !== '' && $v !== false;
             })->isNotEmpty(),
-            'pendingUsers' => $pendingUsers,
+            'incompleteRegistrations' => $incompleteRegistrations,
+            'incompleteRegistrationStats' => $incompleteRegistrationStats,
             'previousGovernorates' => __('messages.previous_governorates'),
             'previousAreas' => __('messages.previous_areas'),
         ]);
@@ -107,13 +141,23 @@ class HouseholdController extends Controller
     /**
      * Show the form for creating a new household.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
         $regions = $this->allowedCampRegionTree();
+        $prefillCitizen = null;
+
+        if ($request->filled('citizen_user_id')) {
+            $prefillCitizen = User::query()
+                ->whereKey((int) $request->input('citizen_user_id'))
+                ->where('is_staff', false)
+                ->whereNull('household_id')
+                ->first();
+        }
 
         return view('admin.households.create', [
             'regions' => $regions,
             'housingTypes' => ['owned', 'rented', 'family_hosted', 'other'],
+            'prefillCitizen' => $prefillCitizen,
             'previousGovernorates' => __('messages.previous_governorates'),
             'previousAreas' => __('messages.previous_areas'),
         ]);
@@ -137,6 +181,7 @@ class HouseholdController extends Controller
             'previous_area' => trim((string) $request->input('previous_area')),
         ]);
 
+        $citizenUser = null;
         $validator = Validator::make($request->all(), [
             'head_national_id' => ['required', 'digits:9', 'unique:households,head_national_id'],
             'head_name' => ['required', 'string', 'max:255'],
@@ -163,11 +208,12 @@ class HouseholdController extends Controller
             'condition_notes' => ['nullable', 'string', 'max:1000'],
             'previous_governorate' => ['required', Rule::in($previousGovernorates)],
             'previous_area' => ['required', 'string', 'max:100'],
+            'citizen_user_id' => ['nullable', 'integer', 'exists:users,id'],
         ], [
             'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
-        $validator->after(function ($validator) use ($request) {
+        $validator->after(function ($validator) use ($request, &$citizenUser) {
             $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
                 || $request->boolean('spouse_has_chronic_disease')
                 || $request->boolean('spouse_has_disability');
@@ -183,9 +229,26 @@ class HouseholdController extends Controller
             if ($gov !== '' && $area !== '' && !in_array($area, $validAreas, true)) {
                 $validator->errors()->add('previous_area', __('validation.in', ['attribute' => __('messages.onboarding_form.previous_area')]));
             }
+
+            if ($request->filled('citizen_user_id')) {
+                $citizenUser = User::query()
+                    ->whereKey((int) $request->input('citizen_user_id'))
+                    ->where('is_staff', false)
+                    ->first();
+
+                if (! $citizenUser || $citizenUser->household_id !== null) {
+                    $validator->errors()->add('citizen_user_id', __('messages.households_admin.link_target_invalid'));
+                    return;
+                }
+
+                if ((string) $citizenUser->national_id !== (string) $request->input('head_national_id')) {
+                    $validator->errors()->add('head_national_id', __('messages.households_admin.head_national_id_mismatch'));
+                }
+            }
         });
 
         $validated = $validator->validate();
+        unset($validated['citizen_user_id']);
 
         $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
             || $request->boolean('spouse_has_chronic_disease')
@@ -201,6 +264,13 @@ class HouseholdController extends Controller
         $validated['spouse_condition_type'] = $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null;
 
         $household = Household::create($validated);
+
+        if ($citizenUser && $citizenUser->household_id === null) {
+            $userBefore = $citizenUser->toArray();
+            $citizenUser->household_id = $household->id;
+            $citizenUser->save();
+            AuditLog::log('link_household_user', 'User', $citizenUser->id, $userBefore, $citizenUser->fresh()->toArray());
+        }
 
         AuditLog::log('create', 'Household', $household->id, null, $household->toArray());
 
@@ -360,6 +430,56 @@ class HouseholdController extends Controller
         AuditLog::log('verify', 'Household', $household->id, $before, $household->fresh()->toArray());
 
         return back()->with('success', 'Household verified successfully!');
+    }
+
+    /**
+     * Link pending user account with an existing household found by national ID.
+     */
+    public function linkPendingUserHousehold(User $user): RedirectResponse
+    {
+        if ($user->is_staff || $user->household_id !== null) {
+            return back()->with('error', __('messages.households_admin.link_target_invalid'));
+        }
+
+        $matchedHousehold = Household::query()
+            ->where('head_national_id', $user->national_id)
+            ->first();
+
+        if (! $matchedHousehold) {
+            return back()->with('error', __('messages.households_admin.household_not_found_for_link'));
+        }
+
+        $before = $user->toArray();
+        $user->household_id = $matchedHousehold->id;
+        $user->save();
+
+        AuditLog::log('link_pending_user_household', 'User', $user->id, $before, $user->fresh()->toArray());
+
+        return back()->with('success', __('messages.households_admin.link_success', ['name' => $user->full_name]));
+    }
+
+    /**
+     * Delete pending citizen account that has no household linked yet.
+     */
+    public function destroyPendingUser(User $user): RedirectResponse
+    {
+        if (auth()->id() === $user->id) {
+            return back()->with('error', __('messages.households_admin.pending_user_delete_self_forbidden'));
+        }
+
+        if ($user->is_staff || $user->household_id !== null) {
+            return back()->with('error', __('messages.households_admin.pending_user_delete_invalid'));
+        }
+
+        $before = $user->toArray();
+        $userId = $user->id;
+        $userName = $user->full_name;
+
+        $user->delete();
+
+        AuditLog::log('delete_pending_user', 'User', $userId, $before, null);
+
+        return back()->with('success', __('messages.households_admin.pending_user_deleted', ['name' => $userName]));
     }
 
     /**

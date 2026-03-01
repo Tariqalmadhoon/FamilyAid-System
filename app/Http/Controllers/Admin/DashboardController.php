@@ -18,10 +18,26 @@ class DashboardController extends Controller
      */
     public function index(): View
     {
+        $incompleteCitizenBaseQuery = User::query()
+            ->where('is_staff', false)
+            ->whereNull('household_id');
+
+        $incompleteCitizenRegistrations = (clone $incompleteCitizenBaseQuery)->count();
+        $unlinkedCitizenHouseholds = (clone $incompleteCitizenBaseQuery)
+            ->whereExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('households')
+                    ->whereColumn('households.head_national_id', 'users.national_id');
+            })
+            ->count();
+
         $stats = [
             'total_households' => Household::count(),
             'pending_households' => Household::pending()->count(),
             'verified_households' => Household::verified()->count(),
+            'incomplete_citizen_registrations' => $incompleteCitizenRegistrations,
+            'incomplete_missing_household_data' => max(0, $incompleteCitizenRegistrations - $unlinkedCitizenHouseholds),
+            'incomplete_unlinked_households' => $unlinkedCitizenHouseholds,
             'total_members' => HouseholdMember::count(),
             'active_programs' => AidProgram::active()->count(),
             'total_distributions' => Distribution::count(),
