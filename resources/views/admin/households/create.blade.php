@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">
         <div class="flex items-center">
             <a href="{{ route('admin.households.index') }}" class="text-gray-500 hover:text-gray-700 mr-3">
