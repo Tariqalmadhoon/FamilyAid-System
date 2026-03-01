@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -11,12 +11,7 @@
                 {{ __('messages.households_admin.add') }}
             </a>
         </div>
-    </x-slot>
-<style>
-    .flex{
-        gap: 5px;
-    }
-</style>
+</x-slot>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
