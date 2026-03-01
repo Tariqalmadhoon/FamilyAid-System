@@ -13,7 +13,7 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Stats Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
                 <!-- Total Households -->
                 <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-teal-500">
                     <div class="flex items-center justify-between">
@@ -43,6 +43,26 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Incomplete Citizen Registrations -->
+                <a href="{{ route('admin.households.index') }}#incomplete-registrations" class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-orange-500 hover:shadow-md transition block">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">{{ __('messages.households_admin.incomplete_registrations_stat') }}</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['incomplete_citizen_registrations']) }}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ __('messages.households_admin.incomplete_missing_household_data_short', ['count' => $stats['incomplete_missing_household_data']]) }}
+                                •
+                                {{ __('messages.households_admin.incomplete_unlinked_short', ['count' => $stats['incomplete_unlinked_households']]) }}
+                            </p>
+                        </div>
+                        <div class="p-3 bg-orange-100 rounded-full">
+                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M7 4h10l3 6v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8l3-6z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </a>
 
                 <!-- Active Programs -->
                 <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-blue-500">

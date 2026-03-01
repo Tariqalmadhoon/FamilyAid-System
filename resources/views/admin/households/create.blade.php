@@ -17,21 +17,36 @@
             <div class="bg-white rounded-lg shadow-sm">
                 <form method="POST" action="{{ route('admin.households.store') }}" class="p-6">
                     @csrf
+                    @php
+                        $prefillCitizenId = old('citizen_user_id', $prefillCitizen?->id);
+                    @endphp
+                    @if($prefillCitizenId)
+                        <input type="hidden" name="citizen_user_id" value="{{ $prefillCitizenId }}">
+                    @endif
+
+                    @if($prefillCitizen)
+                        <div class="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                            {{ __('messages.households_admin.prefill_from_pending_user') }}:
+                            <strong>{{ $prefillCitizen->full_name }}</strong>
+                            ({{ $prefillCitizen->national_id }})
+                        </div>
+                    @endif
+                    @error('citizen_user_id')<p class="mb-3 text-sm text-red-600">{{ $message }}</p>@enderror
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_national_id') }} <span class="text-red-500">*</span></label>
-                            <input type="tel" name="head_national_id" value="{{ old('head_national_id') }}" maxlength="9" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,9)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                            <input type="tel" name="head_national_id" value="{{ old('head_national_id', $prefillCitizen?->national_id ?? '') }}" maxlength="9" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,9)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             @error('head_national_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_name') }} <span class="text-red-500">*</span></label>
-                            <input type="text" name="head_name" value="{{ old('head_name') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                            <input type="text" name="head_name" value="{{ old('head_name', $prefillCitizen?->full_name ?? $prefillCitizen?->name ?? '') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             @error('head_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_birth_date') }} <span class="text-red-500">*</span></label>
-                            <input type="date" name="head_birth_date" value="{{ old('head_birth_date') }}" max="{{ now()->subDay()->toDateString() }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
+                            <input type="date" name="head_birth_date" value="{{ old('head_birth_date', optional($prefillCitizen?->birth_date)->toDateString() ?? '') }}" max="{{ now()->subDay()->toDateString() }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" required>
                             @error('head_birth_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
@@ -157,7 +172,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Primary Phone') }}</label>
-                            <input type="tel" name="primary_phone" value="{{ old('primary_phone') }}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                            <input type="tel" name="primary_phone" value="{{ old('primary_phone', $prefillCitizen?->phone ? substr(preg_replace('/\D+/', '', $prefillCitizen->phone), -10) : '') }}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Secondary Phone') }}</label>

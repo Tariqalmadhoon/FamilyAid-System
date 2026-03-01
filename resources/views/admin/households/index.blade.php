@@ -281,12 +281,17 @@
                 </div>
             </div>
 
-            <!-- Pending users without households -->
-            @if(! $hasActiveFilters && isset($pendingUsers) && $pendingUsers->count())
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden mt-6">
+            <!-- Incomplete citizen registrations -->
+            @if(! $hasActiveFilters && isset($incompleteRegistrations) && $incompleteRegistrations->count())
+                <div id="incomplete-registrations" class="bg-white rounded-lg shadow-sm overflow-hidden mt-6">
                     <div class="p-4 border-b flex items-center justify-between">
-                        <h3 class="font-medium text-gray-900">{{ __('messages.households_admin.pending_users_title') }}</h3>
-                        <p class="text-sm text-gray-500">{{ __('messages.households_admin.pending_users_hint') }}</p>
+                        <h3 class="font-medium text-gray-900">{{ __('messages.households_admin.incomplete_registrations_title') }}</h3>
+                        <p class="text-sm text-gray-500">{{ __('messages.households_admin.incomplete_registrations_hint') }}</p>
+                    </div>
+                    <div class="px-4 py-3 bg-amber-50 border-b border-amber-100 text-xs text-amber-800 flex flex-wrap items-center gap-4">
+                        <span>{{ __('messages.households_admin.incomplete_total', ['count' => $incompleteRegistrationStats['total'] ?? 0]) }}</span>
+                        <span>{{ __('messages.households_admin.incomplete_missing_data', ['count' => $incompleteRegistrationStats['household_data_missing'] ?? 0]) }}</span>
+                        <span>{{ __('messages.households_admin.incomplete_unlinked', ['count' => $incompleteRegistrationStats['household_exists_unlinked'] ?? 0]) }}</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -294,22 +299,71 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.head') }}</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.national_id') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.status') }}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.incomplete_classification') }}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.related_household') }}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('messages.households_admin.table.actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($pendingUsers as $user)
+                                @foreach($incompleteRegistrations as $entry)
+                                    @php
+                                        $user = $entry['user'];
+                                        $classification = $entry['classification'];
+                                        $matchedHousehold = $entry['matched_household'];
+                                    @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 text-sm text-gray-900">{{ $user->full_name ?? $user->name }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-500">{{ $user->national_id }}</td>
                                         <td class="px-6 py-4 text-xs">
-                                            <span class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">{{ __('messages.status.pending') }}</span>
+                                            <span class="px-2 py-1 rounded-full {{ $classification === 'household_exists_unlinked' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                                {{ __('messages.households_admin.incomplete_types.' . $classification) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-xs">
+                                            @if($matchedHousehold)
+                                                <a href="{{ route('admin.households.show', $matchedHousehold->id) }}" class="text-teal-700 hover:text-teal-900">
+                                                    #{{ $matchedHousehold->id }}
+                                                </a>
+                                                <span class="text-gray-400">•</span>
+                                                <span class="text-gray-600">{{ __('messages.status.' . $matchedHousehold->status) }}</span>
+                                            @else
+                                                <span class="text-gray-400">—</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 text-xs">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                @if($classification === 'household_exists_unlinked')
+                                                    <form method="POST" action="{{ route('admin.pending-users.link-household', $user) }}">
+                                                        @csrf
+                                                        <button type="submit" class="px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                                            {{ __('messages.households_admin.link_household_action') }}
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                                @if($classification === 'household_data_missing')
+                                                    <a href="{{ route('admin.households.create', ['citizen_user_id' => $user->id]) }}" class="px-2 py-1 rounded bg-teal-100 text-teal-800 hover:bg-teal-200">
+                                                        {{ __('messages.households_admin.complete_registration_action') }}
+                                                    </a>
+                                                @endif
+                                                <form method="POST" action="{{ route('admin.pending-users.destroy', $user) }}" onsubmit="return confirm('{{ __('messages.households_admin.pending_user_delete_confirm') }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200">
+                                                        {{ __('messages.households_admin.delete_pending_user_action') }}
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
+                    @if($incompleteRegistrations->hasPages())
+                        <div class="px-6 py-4 border-t">
+                            {{ $incompleteRegistrations->links() }}
+                        </div>
+                    @endif
                 </div>
             @endif
         </div>
