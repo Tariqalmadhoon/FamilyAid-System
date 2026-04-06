@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +18,7 @@ class Household extends Model
         'head_national_id',
         'head_name',
         'head_birth_date',
+        'citizen_head_name_updated_at',
         'spouse_full_name',
         'spouse_national_id',
         'spouse_birth_date',
@@ -47,6 +50,7 @@ class Household extends Model
         'status' => 'string',
         'housing_type' => 'string',
         'head_birth_date' => 'date',
+        'citizen_head_name_updated_at' => 'datetime',
         'has_war_injury' => 'boolean',
         'has_chronic_disease' => 'boolean',
         'has_disability' => 'boolean',
@@ -177,5 +181,33 @@ class Household extends Model
     public function hasAnyHealthCondition(): bool
     {
         return $this->has_war_injury || $this->has_chronic_disease || $this->has_disability;
+    }
+
+    /**
+     * Check whether the citizen can update the household head name now.
+     */
+    public function canCitizenUpdateHeadNameAt(CarbonInterface|string|null $moment = null): bool
+    {
+        if (!$this->citizen_head_name_updated_at) {
+            return true;
+        }
+
+        $moment = $moment ? Carbon::parse($moment) : now();
+
+        return $this->citizen_head_name_updated_at->format('Y-m') !== $moment->format('Y-m');
+    }
+
+    /**
+     * Get the next time when a citizen self-update becomes available again.
+     */
+    public function nextCitizenHeadNameUpdateAt(): ?CarbonInterface
+    {
+        if ($this->canCitizenUpdateHeadNameAt()) {
+            return null;
+        }
+
+        return $this->citizen_head_name_updated_at
+            ? $this->citizen_head_name_updated_at->copy()->startOfMonth()->addMonth()
+            : null;
     }
 }
