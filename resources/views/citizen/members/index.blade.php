@@ -48,9 +48,9 @@
                 </button>
             </div>
 
-            <div class="mb-4 bg-white border border-gray-100 rounded-lg shadow-sm p-4">
+            <div class="mb-4 bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
                 <div class="flex items-start justify-between gap-4">
-                    <div>
+                    <div class="min-w-0 flex-1">
                         <p class="text-xs text-gray-500 mb-1">{{ __('messages.onboarding_form.spouse_section_title') }}</p>
                         <p class="text-sm font-semibold text-gray-900">{{ $household->spouse_full_name ?? '-' }}</p>
                         <p class="text-xs text-gray-500 mt-1">{{ $household->spouse_national_id ?? '-' }}</p>
@@ -67,9 +67,17 @@
                             <p class="text-xs text-gray-500 mt-1">{{ $household->spouse_health_notes }}</p>
                         @endif
                     </div>
-                    <a href="{{ route('citizen.household.edit') }}" class="inline-flex items-center px-3 py-1.5 rounded-md border border-teal-200 bg-teal-50 text-teal-700 text-xs font-medium hover:bg-teal-100 transition">
-                        {{ __('messages.actions.edit') }}
-                    </a>
+                    <div class="shrink-0 self-start">
+                        <a
+                            href="{{ route('citizen.household.edit') }}"
+                            class="inline-flex min-w-[96px] items-center justify-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-100 hover:border-teal-300"
+                        >
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            <span>{{ __('messages.actions.update') }}</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
