@@ -1,4 +1,10 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100 shadow-sm">
+    @php
+        $navUser = auth()->user();
+        $displayName = $navUser->hasRole('citizen')
+            ? ($navUser->household?->head_name ?: $navUser->full_name)
+            : ($navUser->full_name ?: $navUser->name);
+    @endphp
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -17,7 +23,7 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-6 sm:-my-px sm:flex {{ app()->getLocale() === 'ar' ? 'sm:mr-10 sm:space-x-reverse' : 'sm:ml-10' }}">
-                    @if(auth()->user()->hasRole('citizen'))
+                    @if($navUser->hasRole('citizen'))
                         <x-nav-link :href="route('citizen.dashboard')" :active="request()->routeIs('citizen.dashboard')">
                             {{ __('messages.nav.dashboard') }}
                         </x-nav-link>
@@ -26,7 +32,7 @@
                         </x-nav-link>
                     @endif
 
-                    @if(auth()->user()->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor']))
+                    @if($navUser->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor']))
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                             {{ __('messages.nav.dashboard') }}
                         </x-nav-link>
@@ -63,7 +69,7 @@
                 <x-dropdown :align="app()->getLocale() === 'ar' ? 'left' : 'right'" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
-                            <div>{{ Auth::user()->name }}</div>
+                            <div>{{ $displayName }}</div>
                             <div class="{{ app()->getLocale() === 'ar' ? 'mr-1' : 'ml-1' }}">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -102,7 +108,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            @if(auth()->user()->hasRole('citizen'))
+            @if($navUser->hasRole('citizen'))
                 <x-responsive-nav-link :href="route('citizen.dashboard')" :active="request()->routeIs('citizen.dashboard')">
                     {{ __('messages.nav.dashboard') }}
                 </x-responsive-nav-link>
@@ -111,7 +117,7 @@
                 </x-responsive-nav-link>
             @endif
 
-            @if(auth()->user()->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor']))
+            @if($navUser->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor']))
                 <x-responsive-nav-link :href="route('admin.dashboard')">{{ __('messages.nav.dashboard') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.households.index')">{{ __('messages.nav.households') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.programs.index')">{{ __('messages.nav.programs') }}</x-responsive-nav-link>
@@ -123,8 +129,8 @@
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->national_id }}</div>
+                <div class="font-medium text-base text-gray-800">{{ $displayName }}</div>
+                <div class="font-medium text-sm text-gray-500">{{ $navUser->national_id }}</div>
             </div>
 
             <div class="mt-3 space-y-1">

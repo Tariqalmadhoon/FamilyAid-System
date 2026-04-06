@@ -9,6 +9,7 @@ use App\Models\Household;
 use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -72,6 +73,8 @@ class DashboardController extends Controller
         return view('citizen.household.edit', [
             'household' => $household,
             'regions' => $regions,
+            'canEditHeadName' => $household->canCitizenUpdateHeadNameAt(),
+            'nextHeadNameUpdateAt' => $household->nextCitizenHeadNameUpdateAt(),
             'housingTypes' => [
                 'owned' => __('messages.housing_types.owned'),
                 'rented' => __('messages.housing_types.rented'),
@@ -98,6 +101,7 @@ class DashboardController extends Controller
             ->all();
 
         $request->merge([
+            'head_name' => trim((string) $request->input('head_name')),
             'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
             'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
             'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
@@ -109,6 +113,7 @@ class DashboardController extends Controller
         ]);
 
         $validator = Validator::make($request->all(), [
+            'head_name' => ['required', 'string', 'max:255'],
             'region_id' => ['required', Rule::in($allowedRegionIds)],
             'spouse_full_name' => ['required', 'string', 'max:255'],
             'spouse_national_id' => [
@@ -156,26 +161,50 @@ class DashboardController extends Controller
             || $request->boolean('spouse_has_disability');
 
         $household = Household::find($user->household_id);
-        $before = $household->toArray();
+        $headNameChanged = ($validated['head_name'] ?? '') !== (string) $household->head_name;
 
-        $household->update(array_merge($validated, [
-            'has_war_injury' => $request->boolean('has_war_injury'),
-            'has_chronic_disease' => $request->boolean('has_chronic_disease'),
-            'has_disability' => $request->boolean('has_disability'),
-            'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
-            'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
-            'spouse_has_disability' => $request->boolean('spouse_has_disability'),
-            'spouse_condition_type' => $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null,
-        ]));
+        if ($headNameChanged && !$household->canCitizenUpdateHeadNameAt()) {
+            $nextAllowedAt = $household->nextCitizenHeadNameUpdateAt();
 
-        AuditLog::log(
-            'update',
-            'Household',
-            $household->id,
-            $before,
-            $household->fresh()->toArray()
-        );
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'head_name' => __('messages.citizen.head_name_update_locked_error', [
+                        'date' => optional($nextAllowedAt)->format('Y-m-d') ?? now()->addMonth()->startOfMonth()->format('Y-m-d'),
+                    ]),
+                ]);
+        }
 
-        return back()->with('success', 'Household information updated successfully!');
+        DB::transaction(function () use ($request, $validated, $spouseHasHealthFlag, $household, $headNameChanged) {
+            $before = $household->toArray();
+
+            $payload = array_merge($validated, [
+                'has_war_injury' => $request->boolean('has_war_injury'),
+                'has_chronic_disease' => $request->boolean('has_chronic_disease'),
+                'has_disability' => $request->boolean('has_disability'),
+                'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
+                'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
+                'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+                'spouse_condition_type' => $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null,
+            ]);
+
+            if ($headNameChanged) {
+                $payload['citizen_head_name_updated_at'] = now();
+            } else {
+                unset($payload['head_name']);
+            }
+
+            $household->update($payload);
+
+            AuditLog::log(
+                'update',
+                'Household',
+                $household->id,
+                $before,
+                $household->fresh()->toArray()
+            );
+        });
+
+        return back()->with('success', __('messages.citizen.household_update_success'));
     }
 }

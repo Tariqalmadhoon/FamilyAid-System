@@ -19,6 +19,49 @@
                     @csrf
                     @method('PUT')
 
+                    <!-- Head of Household -->
+                    <div class="mb-6 rounded-xl border border-teal-100 bg-teal-50/60 p-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">{{ __('messages.citizen.head_name_section_title') }}</h3>
+                                <p class="mt-1 text-sm text-gray-600">{{ __('messages.citizen.head_name_section_hint') }}</p>
+                            </div>
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $canEditHeadName ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                                {{ $canEditHeadName ? __('messages.citizen.head_name_update_available') : __('messages.citizen.head_name_update_locked_badge') }}
+                            </span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label for="head_name" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.head_name') }} <span class="text-red-500">*</span></label>
+                            <input
+                                type="text"
+                                id="head_name"
+                                name="head_name"
+                                value="{{ $canEditHeadName ? old('head_name', $household->head_name) : $household->head_name }}"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 {{ $canEditHeadName ? '' : 'bg-gray-100 text-gray-600' }}"
+                                placeholder="{{ __('messages.citizen.head_name_placeholder') }}"
+                                maxlength="255"
+                                {{ $canEditHeadName ? '' : 'readonly' }}
+                                required
+                            >
+                            @error('head_name')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mt-3 space-y-1 text-xs text-gray-600">
+                            <p>{{ __('messages.citizen.head_name_national_id_notice', ['national_id' => $household->head_national_id]) }}</p>
+                            @if($household->citizen_head_name_updated_at)
+                                <p>{{ __('messages.citizen.head_name_last_updated_at', ['date' => $household->citizen_head_name_updated_at->format('Y-m-d H:i')]) }}</p>
+                            @endif
+                            @if($canEditHeadName)
+                                <p>{{ __('messages.citizen.head_name_next_rule_hint') }}</p>
+                            @elseif($nextHeadNameUpdateAt)
+                                <p>{{ __('messages.citizen.head_name_locked_until', ['date' => $nextHeadNameUpdateAt->format('Y-m-d')]) }}</p>
+                            @endif
+                        </div>
+                    </div>
+
                     <!-- Region Select -->
                     <div class="mb-4">
                         <label for="region_id" class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.household.region') }} <span class="text-red-500">*</span></label>
