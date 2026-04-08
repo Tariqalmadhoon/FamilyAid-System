@@ -32,25 +32,34 @@
                         </x-nav-link>
                     @endif
 
-                    @if($navUser->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor']))
+                    @if($navUser->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor', 'camp_manager']))
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                             {{ __('messages.nav.dashboard') }}
                         </x-nav-link>
+                        @if($navUser->hasRole('admin'))
+                            <x-nav-link :href="route('admin.camp-managers.index')" :active="request()->routeIs('admin.camp-managers.*')">
+                                {{ __('مديرو المخيمات') }}
+                            </x-nav-link>
+                        @endif
                         <x-nav-link :href="route('admin.households.index')" :active="request()->routeIs('admin.households.*')">
                             {{ __('messages.nav.households') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('admin.programs.index')" :active="request()->routeIs('admin.programs.*')">
-                            {{ __('messages.nav.programs') }}
-                        </x-nav-link>
+                        @unless($navUser->isCampManager())
+                            <x-nav-link :href="route('admin.programs.index')" :active="request()->routeIs('admin.programs.*')">
+                                {{ __('messages.nav.programs') }}
+                            </x-nav-link>
+                        @endunless
                         <x-nav-link :href="route('admin.distributions.index')" :active="request()->routeIs('admin.distributions.*')">
                             {{ __('messages.nav.distributions') }}
                         </x-nav-link>
                         <x-nav-link :href="route('admin.import-export.index')" :active="request()->routeIs('admin.import-export.*')">
                             {{ __('messages.nav.import_export') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('admin.barcode-export')" :active="request()->routeIs('admin.barcode-export')">
-                            {{ __('messages.nav.barcode_export') }}
-                        </x-nav-link>
+                        @unless($navUser->isCampManager())
+                            <x-nav-link :href="route('admin.barcode-export')" :active="request()->routeIs('admin.barcode-export')">
+                                {{ __('messages.nav.barcode_export') }}
+                            </x-nav-link>
+                        @endunless
                     @endif
                 </div>
             </div>
@@ -117,12 +126,20 @@
                 </x-responsive-nav-link>
             @endif
 
-            @if($navUser->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor']))
+            @if($navUser->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor', 'camp_manager']))
                 <x-responsive-nav-link :href="route('admin.dashboard')">{{ __('messages.nav.dashboard') }}</x-responsive-nav-link>
+                @if($navUser->hasRole('admin'))
+                    <x-responsive-nav-link :href="route('admin.camp-managers.index')">{{ __('مديرو المخيمات') }}</x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('admin.households.index')">{{ __('messages.nav.households') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.programs.index')">{{ __('messages.nav.programs') }}</x-responsive-nav-link>
+                @unless($navUser->isCampManager())
+                    <x-responsive-nav-link :href="route('admin.programs.index')">{{ __('messages.nav.programs') }}</x-responsive-nav-link>
+                @endunless
                 <x-responsive-nav-link :href="route('admin.distributions.index')">{{ __('messages.nav.distributions') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.barcode-export')">{{ __('messages.nav.barcode_export') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.import-export.index')">{{ __('messages.nav.import_export') }}</x-responsive-nav-link>
+                @unless($navUser->isCampManager())
+                    <x-responsive-nav-link :href="route('admin.barcode-export')">{{ __('messages.nav.barcode_export') }}</x-responsive-nav-link>
+                @endunless
             @endif
         </div>
 

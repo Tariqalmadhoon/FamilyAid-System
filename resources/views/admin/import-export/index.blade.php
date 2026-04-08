@@ -1,4 +1,11 @@
 <x-app-layout>
+    @php
+        $viewer = auth()->user();
+        $canImportHouseholds = $viewer->hasManagementPermission('households.import');
+        $canExportHouseholds = $viewer->hasManagementPermission('households.export');
+        $canExportDistributions = $viewer->hasManagementPermission('distributions.export');
+    @endphp
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('messages.import_export.title') }}</h2>
     </x-slot>
@@ -16,7 +23,7 @@
             @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Import Section -->
+                @if($canImportHouseholds)
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <h3 class="font-medium text-gray-900 mb-4 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,8 +51,9 @@
                         <button type="submit" class="w-full py-2 px-4 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.import_export.import_btn') }}</button>
                     </form>
                 </div>
+                @endif
 
-                <!-- Export Section -->
+                @if($canExportHouseholds || $canExportDistributions)
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <h3 class="font-medium text-gray-900 mb-4 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,84 +63,118 @@
                     </h3>
 
                     <div class="space-y-4">
-                        <!-- Export Households -->
-                        <form action="/direct-export.php" method="GET" class="border-b pb-4">
-                            <input type="hidden" name="type" value="households">
-                            <p class="text-sm font-medium text-gray-700 mb-2">{{ __('messages.import_export.export_households') }}</p>
-                            <div class="grid grid-cols-2 gap-2 mb-2">
-                                <select name="status" class="text-sm rounded-md border-gray-300">
-                                    <option value="">{{ __('messages.import_export.all_status') }}</option>
-                                    <option value="verified">{{ __('messages.status.verified') }}</option>
-                                    <option value="pending">{{ __('messages.status.pending') }}</option>
-                                </select>
-                                <select name="region_id" class="text-sm rounded-md border-gray-300">
-                                    <option value="">{{ __('messages.import_export.all_regions') }}</option>
-                                    @foreach($regions as $region)
-                                        @foreach($region->children as $child)
-                                            <option value="{{ $child->id }}">{{ $child->name }}</option>
-                                        @endforeach
-                                    @endforeach
-                                </select>
-                            </div>
-                            <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">{{ __('messages.import_export.export_households') }}</button>
-                        </form>
+                        @if($canExportHouseholds)
+                            <form action="{{ route('admin.import-export.export-households') }}" method="GET" class="{{ $canExportDistributions ? 'border-b pb-4' : '' }}">
+                                <p class="text-sm font-medium text-gray-700 mb-2">{{ __('messages.import_export.export_households') }}</p>
+                                <div class="grid grid-cols-2 gap-2 mb-2">
+                                    <select name="status" class="text-sm rounded-md border-gray-300">
+                                        <option value="">{{ __('messages.import_export.all_status') }}</option>
+                                        <option value="verified">{{ __('messages.status.verified') }}</option>
+                                        <option value="pending">{{ __('messages.status.pending') }}</option>
+                                    </select>
+                                    @if($isCampManager)
+                                        <input type="hidden" name="region_id" value="{{ $managedRegionId }}">
+                                        <div class="text-sm rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700">
+                                            @foreach($regions as $region)
+                                                @foreach($region->children as $child)
+                                                    {{ $child->name }}
+                                                @endforeach
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <select name="region_id" class="text-sm rounded-md border-gray-300">
+                                            <option value="">{{ __('messages.import_export.all_regions') }}</option>
+                                            @foreach($regions as $region)
+                                                @foreach($region->children as $child)
+                                                    <option value="{{ $child->id }}">{{ $child->name }}</option>
+                                                @endforeach
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                                <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">{{ __('messages.import_export.export_households') }}</button>
+                            </form>
+                        @endif
 
-                        <!-- Export Distributions -->
-                        <form action="/direct-export.php" method="GET">
-                            <input type="hidden" name="type" value="distributions">
-                            <p class="text-sm font-medium text-gray-700 mb-2">{{ __('messages.import_export.export_distributions') }}</p>
-                            <div class="grid grid-cols-2 gap-2 mb-2">
-                                <input type="date" name="from_date" class="text-sm rounded-md border-gray-300" placeholder="{{ __('messages.import_export.from_date') }}">
-                                <input type="date" name="to_date" class="text-sm rounded-md border-gray-300" placeholder="{{ __('messages.import_export.to_date') }}">
-                            </div>
-                            <button type="submit" class="w-full py-2 px-4 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">{{ __('messages.import_export.export_distributions') }}</button>
-                        </form>
+                        @if($canExportDistributions)
+                            <form action="{{ route('admin.import-export.export-distributions') }}" method="GET">
+                                <p class="text-sm font-medium text-gray-700 mb-2">{{ __('messages.import_export.export_distributions') }}</p>
+                                <div class="grid grid-cols-2 gap-2 mb-2">
+                                    <input type="date" name="from_date" class="text-sm rounded-md border-gray-300" placeholder="{{ __('messages.import_export.from_date') }}">
+                                    <input type="date" name="to_date" class="text-sm rounded-md border-gray-300" placeholder="{{ __('messages.import_export.to_date') }}">
+                                </div>
+                                <div class="grid grid-cols-1 gap-2 mb-2">
+                                    @if($isCampManager)
+                                        <input type="hidden" name="region_id" value="{{ $managedRegionId }}">
+                                        <div class="text-sm rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700">
+                                            @foreach($regions as $region)
+                                                @foreach($region->children as $child)
+                                                    {{ $child->name }}
+                                                @endforeach
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <select name="region_id" class="text-sm rounded-md border-gray-300">
+                                            <option value="">{{ __('messages.import_export.all_regions') }}</option>
+                                            @foreach($regions as $region)
+                                                @foreach($region->children as $child)
+                                                    <option value="{{ $child->id }}">{{ $child->name }}</option>
+                                                @endforeach
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                                <button type="submit" class="w-full py-2 px-4 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">{{ __('messages.import_export.export_distributions') }}</button>
+                            </form>
+                        @endif
                     </div>
                 </div>
+                @endif
             </div>
 
-            <!-- Recent Imports -->
-            <div class="mt-6 bg-white rounded-lg shadow-sm">
-                <div class="p-4 border-b">
-                    <h3 class="font-medium text-gray-900">{{ __('messages.import_export.recent_imports') }}</h3>
-                </div>
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.file') }}</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.date') }}</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.user') }}</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.status') }}</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.result') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($recentImports as $import)
+            @if($canImportHouseholds)
+                <div class="mt-6 bg-white rounded-lg shadow-sm">
+                    <div class="p-4 border-b">
+                        <h3 class="font-medium text-gray-900">{{ __('messages.import_export.recent_imports') }}</h3>
+                    </div>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <td class="px-6 py-4 text-sm text-gray-900">{{ $import->file_name }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-500">{{ $import->created_at->format('M j, H:i') }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-500">{{ $import->user->name ?? __('messages.general.unknown') }}</td>
-                                <td class="px-6 py-4">
-                                    <span class="px-2 py-1 text-xs rounded-full
-                                        @if($import->status === 'completed') bg-green-100 text-green-800
-                                        @elseif($import->status === 'failed') bg-red-100 text-red-800
-                                        @else bg-yellow-100 text-yellow-800
-                                        @endif">
-                                        {{ __('messages.status.' . $import->status) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-500">
-                                    @if($import->status === 'completed')
-                                        {{ __('messages.import_export.result_ok_failed', ['ok' => $import->success_count, 'failed' => $import->error_count]) }}
-                                    @endif
-                                </td>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.file') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.date') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.user') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.status') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('messages.import_export.result') }}</th>
                             </tr>
-                        @empty
-                            <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">{{ __('messages.import_export.no_imports') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @forelse($recentImports as $import)
+                                <tr>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $import->file_name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ $import->created_at->format('M j, H:i') }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ $import->user->name ?? __('messages.general.unknown') }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 text-xs rounded-full
+                                            @if($import->status === 'completed') bg-green-100 text-green-800
+                                            @elseif($import->status === 'failed') bg-red-100 text-red-800
+                                            @else bg-yellow-100 text-yellow-800
+                                            @endif">
+                                            {{ __('messages.status.' . $import->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">
+                                        @if($import->status === 'completed')
+                                            {{ __('messages.import_export.result_ok_failed', ['ok' => $import->success_count, 'failed' => $import->error_count]) }}
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">{{ __('messages.import_export.no_imports') }}</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

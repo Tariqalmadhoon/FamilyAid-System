@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -60,5 +61,27 @@ class Distribution extends Model
     public function scopeForProgram($query, $programId)
     {
         return $query->where('aid_program_id', $programId);
+    }
+
+    /**
+     * Scope distributions visible to the given user.
+     */
+    public function scopeVisibleTo(Builder $query, ?User $user = null): Builder
+    {
+        $user ??= auth()->user();
+
+        if (! $user instanceof User || ! $user->isCampManager()) {
+            return $query;
+        }
+
+        $managedRegionId = $user->managedRegionId();
+
+        if ($managedRegionId === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('household', function (Builder $householdQuery) use ($managedRegionId) {
+            $householdQuery->where('region_id', $managedRegionId);
+        });
     }
 }

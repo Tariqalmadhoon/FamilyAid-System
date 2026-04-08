@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\DistributionsExport;
 use App\Exports\HouseholdsExport;
+use App\Http\Controllers\Admin\Concerns\InteractsWithCampAccess;
 use App\Http\Controllers\Controller;
 use App\Imports\HouseholdsImport;
 use App\Models\AuditLog;
@@ -16,29 +17,28 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ImportExportController extends Controller
 {
+    use InteractsWithCampAccess;
+
     /**
      * Show import/export page.
      */
     public function index(): View
     {
+        $this->ensureAny(['households.import', 'households.export', 'distributions.export']);
+
         $recentImports = ImportJob::with('user')
+            ->visibleTo($this->currentUser())
             ->latest()
             ->limit(10)
             ->get();
 
-        $regions = Region::query()
-            ->with(['children' => function ($query) {
-                $query->allowedCamps();
-            }])
-            ->whereNull('parent_id')
-            ->whereHas('children', function ($query) {
-                $query->allowedCamps();
-            })
-            ->get();
+        $regions = $this->visibleCampRegionTree();
 
         return view('admin.import-export.index', [
             'recentImports' => $recentImports,
             'regions' => $regions,
+            'isCampManager' => $this->isCampManager(),
+            'managedRegionId' => $this->managedRegionId(),
         ]);
     }
 
@@ -47,6 +47,8 @@ class ImportExportController extends Controller
      */
     public function downloadTemplate()
     {
+        $this->ensureCan('households.import');
+
         $headers = [
             'national_id',
             'head_name',
@@ -104,6 +106,8 @@ class ImportExportController extends Controller
      */
     public function import(Request $request): RedirectResponse
     {
+        $this->ensureCan('households.import');
+
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
         ]);
@@ -116,7 +120,7 @@ class ImportExportController extends Controller
         ]);
 
         try {
-            $import = new HouseholdsImport();
+            $import = new HouseholdsImport($this->currentUser());
             Excel::import($import, $request->file('file'));
 
             $successCount = $import->getSuccessCount();
@@ -157,20 +161,32 @@ class ImportExportController extends Controller
      */
     public function exportHouseholds(Request $request)
     {
+        $this->ensureCan('households.export');
+
         AuditLog::log('export', 'Household', null, null, [
-            'filters' => $request->only(['status', 'region_id']),
+            'filters' => [
+                ...$request->only(['status', 'region_id']),
+                'resolved_region_id' => $this->enforcedRegionId($request->input('region_id')),
+            ],
         ]);
 
         try {
-            $export = new HouseholdsExport($request);
+            $export = new HouseholdsExport($request, $this->currentUser());
             $filePath = $export->generate();
-            
             $filename = basename($filePath);
-            
-            return response()->download($filePath, $filename, [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            ])->deleteFileAfterSend(true);
+
+            $response = response()->download(
+                $filePath,
+                $filename,
+                [
+                    'Content-Type' => 'text/csv; charset=UTF-8',
+                    'X-Content-Type-Options' => 'nosniff',
+                ]
+            );
+
+            $response->setContentDisposition('attachment', $filename);
+
+            return $response->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
             return back()->with('error', 'Export failed: ' . $e->getMessage());
@@ -182,23 +198,36 @@ class ImportExportController extends Controller
      */
     public function exportDistributions(Request $request)
     {
+        $this->ensureCan('distributions.export');
+
         AuditLog::log('export', 'Distribution', null, null, [
-            'filters' => $request->only(['program_id', 'from_date', 'to_date']),
+            'filters' => [
+                ...$request->only(['program_id', 'from_date', 'to_date', 'region_id']),
+                'resolved_region_id' => $this->enforcedRegionId($request->input('region_id')),
+            ],
         ]);
 
         try {
-            $export = new DistributionsExport($request);
+            $export = new DistributionsExport($request, $this->currentUser());
             $filePath = $export->generate();
-            
             $filename = basename($filePath);
-            
-            return response()->download($filePath, $filename, [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            ])->deleteFileAfterSend(true);
+
+            $response = response()->download(
+                $filePath,
+                $filename,
+                [
+                    'Content-Type' => 'text/csv; charset=UTF-8',
+                    'X-Content-Type-Options' => 'nosniff',
+                ]
+            );
+
+            $response->setContentDisposition('attachment', $filename);
+
+            return $response->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
             return back()->with('error', 'Export failed: ' . $e->getMessage());
         }
     }
 }
+

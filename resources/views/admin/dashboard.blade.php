@@ -14,7 +14,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Stats Grid -->
             <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
-                <!-- Total Households -->
+                @if($canViewHouseholds)
                 <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-teal-500">
                     <div class="flex items-center justify-between">
                         <div>
@@ -29,7 +29,6 @@
                     </div>
                 </div>
 
-                <!-- Pending Verification -->
                 <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-yellow-500">
                     <div class="flex items-center justify-between">
                         <div>
@@ -43,8 +42,10 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Incomplete Citizen Registrations -->
+                @unless($isCampManager)
                 <a href="{{ route('admin.households.index') }}#incomplete-registrations" class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-orange-500 hover:shadow-md transition block">
                     <div class="flex items-center justify-between">
                         <div>
@@ -64,6 +65,7 @@
                     </div>
                 </a>
 
+                @endunless
                 <!-- Active Programs -->
                 <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-blue-500">
                     <div class="flex items-center justify-between">
@@ -79,7 +81,7 @@
                     </div>
                 </div>
 
-                <!-- This Month Distributions -->
+                @if($canViewDistributions)
                 <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-green-500">
                     <div class="flex items-center justify-between">
                         <div>
@@ -93,9 +95,11 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
 
             <!-- Camp Statistics -->
+            @if($canViewHouseholds)
             <div class="mb-8" x-data="{ open: false }">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <button
@@ -157,9 +161,11 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- Quick Actions -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                @if($canCreateHouseholds)
                 <a href="{{ route('admin.households.create') }}" class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition flex items-center">
                     <div class="p-2 bg-teal-100 rounded-lg mr-3">
                         <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,6 +174,8 @@
                     </div>
                     <span class="text-sm font-medium text-gray-700">{{ __('Add Household') }}</span>
                 </a>
+                @endif
+                @if($canCreateDistributions)
                 <a href="{{ route('admin.distributions.create') }}" class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition flex items-center">
                     <div class="p-2 bg-green-100 rounded-lg mr-3">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,6 +184,8 @@
                     </div>
                     <span class="text-sm font-medium text-gray-700">{{ __('Record Distribution') }}</span>
                 </a>
+                @endif
+                @unless($isCampManager)
                 <a href="{{ route('admin.programs.create') }}" class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition flex items-center">
                     <div class="p-2 bg-blue-100 rounded-lg mr-3">
                         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,6 +194,8 @@
                     </div>
                     <span class="text-sm font-medium text-gray-700">{{ __('New Program') }}</span>
                 </a>
+                @endunless
+                @if($canVerifyHouseholds)
                 <a href="{{ route('admin.households.index', ['status' => 'pending']) }}" class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition flex items-center">
                     <div class="p-2 bg-yellow-100 rounded-lg mr-3">
                         <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,6 +204,17 @@
                     </div>
                     <span class="text-sm font-medium text-gray-700">{{ __('Verify Pending') }}</span>
                 </a>
+                @endif
+                @if(auth()->user()->hasRole('admin'))
+                <a href="{{ route('admin.camp-managers.index') }}" class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition flex items-center">
+                    <div class="p-2 bg-indigo-100 rounded-lg mr-3">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H11a4 4 0 00-4 4v2m10 0H7m10-8a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">مديرو المخيمات</span>
+                </a>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

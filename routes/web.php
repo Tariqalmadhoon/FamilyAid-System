@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AidProgramController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BarcodeExportController;
+use App\Http\Controllers\Admin\CampManagerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DistributionController;
 use App\Http\Controllers\Admin\HouseholdController;
@@ -36,7 +37,7 @@ Route::get('/dashboard', function () {
         return redirect()->route('citizen.dashboard');
     }
     
-    if ($user->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor'])) {
+    if ($user->hasAnyRole(['admin', 'data_entry', 'auditor', 'distributor', 'camp_manager'])) {
         return redirect()->route('admin.dashboard');
     }
     
@@ -50,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Citizen routes
-Route::middleware(['auth', 'role:citizen'])->prefix('citizen')->name('citizen.')->group(function () {
+Route::middleware(['auth', 'redirect.section:citizen', 'role:citizen'])->prefix('citizen')->name('citizen.')->group(function () {
     // Onboarding wizard
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding');
     Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
@@ -70,10 +71,13 @@ Route::middleware(['auth', 'role:citizen'])->prefix('citizen')->name('citizen.')
 });
 
 // Admin routes
-Route::middleware(['auth', 'role:admin|data_entry|auditor|distributor'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'redirect.section:admin', 'role:admin|data_entry|auditor|distributor|camp_manager'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/barcode-export', [BarcodeExportController::class, 'index'])->name('barcode-export');
+
+    // Camp Managers
+    Route::resource('camp-managers', CampManagerController::class)->except(['show', 'destroy']);
     
     // Households
     Route::post('/households/bulk-destroy', [HouseholdController::class, 'bulkDestroy'])->name('households.bulk-destroy');

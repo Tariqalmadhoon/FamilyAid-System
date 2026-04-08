@@ -3,36 +3,25 @@
 namespace App\Exports;
 
 use App\Models\Household;
+use App\Models\User;
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class HouseholdsExport
 {
     protected Request $request;
+    protected ?User $user;
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, ?User $user = null)
     {
         $this->request = $request;
+        $this->user = $user;
     }
 
     /**
-     * Generate the Excel file and return the file path
+     * Generate a UTF-8 BOM CSV file that opens cleanly in Excel/WPS.
      */
     public function generate(): string
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Set RTL for Arabic content
-        $sheet->setRightToLeft(true);
-
-        // Set sheet title
-        $sheet->setTitle((string) __('messages.nav.households'));
-
-        // Define headers
         $headers = [
             __('messages.exports.households.national_id'),
             __('messages.exports.households.head_name'),
@@ -61,98 +50,72 @@ class HouseholdsExport
             __('messages.exports.households.registered_date'),
         ];
 
-        // Write headers
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y'];
-        foreach ($headers as $index => $header) {
-            $cell = $columns[$index] . '1';
-            $sheet->setCellValue($cell, $header);
-        }
-
-        // Style headers
-        $headerStyle = [
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '0D9488'],
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-            ],
-        ];
-        $sheet->getStyle('A1:Y1')->applyFromArray($headerStyle);
-
-        // Get data
-        $query = Household::with(['region', 'members']);
+        $query = Household::with(['region', 'members'])
+            ->visibleTo($this->user);
 
         if ($status = $this->request->input('status')) {
             $query->where('status', $status);
         }
 
-        if ($regionId = $this->request->input('region_id')) {
+        $regionId = $this->user?->isCampManager()
+            ? $this->user->managedRegionId()
+            : $this->request->input('region_id');
+
+        if ($regionId) {
             $query->where('region_id', $regionId);
         }
 
         $households = $query->orderBy('created_at', 'desc')->get();
-
-        // Load governorate/area translation maps for display
         $governorateLabels = __('messages.previous_governorates');
         $areaLabels = __('messages.previous_areas');
 
-        // Write data
-        $row = 2;
-        foreach ($households as $household) {
-            $sheet->setCellValue('A' . $row, $household->head_national_id ?? '');
-            $sheet->setCellValue('B' . $row, $household->head_name ?? '');
-            $sheet->setCellValue('C' . $row, $household->head_birth_date ? $household->head_birth_date->format('Y-m-d') : '');
-            $sheet->setCellValue('D' . $row, $household->spouse_full_name ?? '');
-            $sheet->setCellValue('E' . $row, $household->spouse_national_id ?? '');
-            $sheet->setCellValue('F' . $row, $household->spouse_birth_date ? $household->spouse_birth_date->format('Y-m-d') : '');
-            $sheet->setCellValue('G' . $row, $household->spouse_has_war_injury ? 1 : 0);
-            $sheet->setCellValue('H' . $row, $household->spouse_has_chronic_disease ? 1 : 0);
-            $sheet->setCellValue('I' . $row, $household->spouse_has_disability ? 1 : 0);
-            $sheet->setCellValue('J' . $row, $household->spouse_condition_type ?? '');
-            $sheet->setCellValue('K' . $row, $household->spouse_health_notes ?? '');
-            $sheet->setCellValue('L' . $row, $household->region->name ?? '');
-            $sheet->setCellValue('M' . $row, $household->address_text ?? '');
-            $sheet->setCellValue('N' . $row, $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '');
-            $sheet->setCellValue('O' . $row, $household->primary_phone ?? '');
-            $sheet->setCellValue('P' . $row, $household->secondary_phone ?? '');
-            $sheet->setCellValue('Q' . $row, $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '');
-            $sheet->setCellValue('R' . $row, $household->payment_account_number ?? '');
-            $sheet->setCellValue('S' . $row, $household->payment_account_holder_name ?? '');
-            $sheet->setCellValue('T' . $row, __('messages.status.' . $household->status));
-            $sheet->setCellValue('U' . $row, $household->members->count());
-            $sheet->setCellValue('V' . $row, $household->members->pluck('full_name')->implode(', '));
-            $sheet->setCellValue('W' . $row, $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''));
-            $sheet->setCellValue('X' . $row, $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''));
-            $sheet->setCellValue('Y' . $row, $household->created_at ? $household->created_at->format('Y-m-d') : '');
-            $row++;
-        }
-
-        // Auto-size columns
-        foreach ($columns as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
-
-        // Generate unique filename
-        $filename = 'households_' . date('Y-m-d_His') . '.xlsx';
+        $filename = 'households_' . date('Y-m-d_His') . '.csv';
         $filePath = storage_path('app/exports/' . $filename);
 
-        // Ensure directory exists
-        if (!is_dir(dirname($filePath))) {
+        if (! is_dir(dirname($filePath))) {
             mkdir(dirname($filePath), 0755, true);
         }
 
-        // Write file
-        $writer = new Xlsx($spreadsheet);
-        $writer->save($filePath);
+        $handle = fopen($filePath, 'wb');
 
-        // Clean up
-        $spreadsheet->disconnectWorksheets();
-        unset($spreadsheet);
+        if ($handle === false) {
+            throw new \RuntimeException('Unable to create households export file.');
+        }
+
+        fwrite($handle, "\xEF\xBB\xBF");
+        fputcsv($handle, $headers);
+
+        foreach ($households as $household) {
+            fputcsv($handle, [
+                $household->head_national_id ?? '',
+                $household->head_name ?? '',
+                $household->head_birth_date ? $household->head_birth_date->format('Y-m-d') : '',
+                $household->spouse_full_name ?? '',
+                $household->spouse_national_id ?? '',
+                $household->spouse_birth_date ? $household->spouse_birth_date->format('Y-m-d') : '',
+                $household->spouse_has_war_injury ? 1 : 0,
+                $household->spouse_has_chronic_disease ? 1 : 0,
+                $household->spouse_has_disability ? 1 : 0,
+                $household->spouse_condition_type ?? '',
+                $household->spouse_health_notes ?? '',
+                $household->region->name ?? '',
+                $household->address_text ?? '',
+                $household->housing_type ? __('messages.housing_types.' . $household->housing_type) : '',
+                $household->primary_phone ?? '',
+                $household->secondary_phone ?? '',
+                $household->payment_account_type ? __('messages.account_types.' . $household->payment_account_type) : '',
+                $household->payment_account_number ?? '',
+                $household->payment_account_holder_name ?? '',
+                __('messages.status.' . $household->status),
+                $household->members->count(),
+                $household->members->pluck('full_name')->implode(', '),
+                $governorateLabels[$household->previous_governorate] ?? ($household->previous_governorate ?? ''),
+                $areaLabels[$household->previous_governorate][$household->previous_area] ?? ($household->previous_area ?? ''),
+                $household->created_at ? $household->created_at->format('Y-m-d') : '',
+            ]);
+        }
+
+        fclose($handle);
 
         return $filePath;
     }
