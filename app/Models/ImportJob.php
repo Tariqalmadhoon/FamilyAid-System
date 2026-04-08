@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,5 +78,19 @@ class ImportJob extends Model
             return 0;
         }
         return round(($this->success_count / $this->total_rows) * 100, 2);
+    }
+
+    /**
+     * Scope import jobs visible to the given user.
+     */
+    public function scopeVisibleTo(Builder $query, ?User $user = null): Builder
+    {
+        $user ??= auth()->user();
+
+        if (! $user instanceof User || ! $user->isCampManager()) {
+            return $query;
+        }
+
+        return $query->where('user_id', $user->id);
     }
 }

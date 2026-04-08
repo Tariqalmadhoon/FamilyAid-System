@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\InteractsWithCampAccess;
 use App\Http\Controllers\Controller;
 use App\Models\AidProgram;
 use App\Models\AuditLog;
@@ -14,12 +15,17 @@ use Illuminate\View\View;
 
 class DistributionController extends Controller
 {
+    use InteractsWithCampAccess;
+
     /**
      * Display a listing of distributions.
      */
     public function index(Request $request): View
     {
-        $query = Distribution::with(['household', 'aidProgram', 'distributor']);
+        $this->ensureCan('distributions.view');
+
+        $query = Distribution::with(['household', 'aidProgram', 'distributor'])
+            ->visibleTo($this->currentUser());
 
         // Filter by program
         if ($programId = $request->input('program_id')) {
@@ -58,12 +64,20 @@ class DistributionController extends Controller
      */
     public function create(Request $request): View
     {
+        $this->ensureCan('distributions.create');
+
         $programs = AidProgram::active()->get();
         $household = null;
 
         // Pre-fill household if provided
         if ($householdId = $request->input('household_id')) {
-            $household = Household::find($householdId);
+            $household = Household::query()
+                ->visibleTo($this->currentUser())
+                ->find($householdId);
+
+            if (! $household) {
+                abort(403);
+            }
         }
 
         return view('admin.distributions.create', [
@@ -77,15 +91,21 @@ class DistributionController extends Controller
      */
     public function searchHousehold(Request $request): JsonResponse
     {
+        $this->ensureCan('distributions.view');
+
         $query = $request->input('q');
 
         if (strlen($query) < 2) {
             return response()->json([]);
         }
 
-        $households = Household::where('head_national_id', 'like', "%{$query}%")
-            ->orWhere('head_name', 'like', "%{$query}%")
-            ->orWhere('primary_phone', 'like', "%{$query}%")
+        $households = Household::query()
+            ->visibleTo($this->currentUser())
+            ->where(function ($householdQuery) use ($query) {
+                $householdQuery->where('head_national_id', 'like', "%{$query}%")
+                    ->orWhere('head_name', 'like', "%{$query}%")
+                    ->orWhere('primary_phone', 'like', "%{$query}%");
+            })
             ->with('region')
             ->limit(10)
             ->get()
@@ -107,8 +127,18 @@ class DistributionController extends Controller
      */
     public function checkEligibility(Request $request): JsonResponse
     {
+        $this->ensureCan('distributions.view');
+
         $householdId = $request->input('household_id');
         $programId = $request->input('program_id');
+
+        $household = Household::query()
+            ->visibleTo($this->currentUser())
+            ->find($householdId);
+
+        if (! $household) {
+            return response()->json(['eligible' => false, 'message' => 'Household not found']);
+        }
 
         $program = AidProgram::find($programId);
         
@@ -116,7 +146,9 @@ class DistributionController extends Controller
             return response()->json(['eligible' => false, 'message' => 'Program not found']);
         }
 
-        $existingDistribution = Distribution::where('household_id', $householdId)
+        $existingDistribution = Distribution::query()
+            ->visibleTo($this->currentUser())
+            ->where('household_id', $householdId)
             ->where('aid_program_id', $programId)
             ->first();
 
@@ -138,6 +170,8 @@ class DistributionController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $this->ensureCan('distributions.create');
+
         $validated = $request->validate([
             'household_id' => ['required', 'exists:households,id'],
             'aid_program_id' => ['required', 'exists:aid_programs,id'],
@@ -146,8 +180,18 @@ class DistributionController extends Controller
         ]);
 
         // Check for duplicates
+        $household = Household::query()
+            ->visibleTo($this->currentUser())
+            ->find($validated['household_id']);
+
+        if (! $household) {
+            abort(403);
+        }
+
         $program = AidProgram::find($validated['aid_program_id']);
-        $existing = Distribution::where('household_id', $validated['household_id'])
+        $existing = Distribution::query()
+            ->visibleTo($this->currentUser())
+            ->where('household_id', $validated['household_id'])
             ->where('aid_program_id', $validated['aid_program_id'])
             ->first();
 
@@ -170,6 +214,8 @@ class DistributionController extends Controller
      */
     public function show(Distribution $distribution): View
     {
+        $this->ensureCan('distributions.view');
+        $this->enforceDistributionAccess($distribution);
         $distribution->load(['household.members', 'aidProgram', 'distributor']);
 
         return view('admin.distributions.show', [
@@ -182,6 +228,8 @@ class DistributionController extends Controller
      */
     public function destroy(Distribution $distribution): RedirectResponse
     {
+        $this->ensureCan('distributions.delete');
+        $this->enforceDistributionAccess($distribution);
         $before = $distribution->toArray();
         $distributionId = $distribution->id;
         $distribution->delete();
@@ -192,3 +240,4 @@ class DistributionController extends Controller
             ->with('success', 'Distribution deleted successfully!');
     }
 }
+

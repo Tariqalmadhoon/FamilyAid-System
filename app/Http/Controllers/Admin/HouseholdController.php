@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\InteractsWithCampAccess;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Household;
 use App\Models\HouseholdMember;
 use App\Models\Region;
 use App\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -16,12 +18,17 @@ use Illuminate\View\View;
 
 class HouseholdController extends Controller
 {
+    use InteractsWithCampAccess;
+
     /**
      * Display a listing of households.
      */
     public function index(Request $request): View
     {
-        $query = Household::with(['region', 'members']);
+        $this->ensureCan('households.view');
+
+        $query = Household::with(['region', 'members'])
+            ->visibleTo($this->currentUser());
 
         // Search
         if ($search = $request->input('search')) {
@@ -38,7 +45,7 @@ class HouseholdController extends Controller
         }
 
         // Filter by region
-        if ($regionId = $request->input('region_id')) {
+        if ($regionId = $this->enforcedRegionId($request->input('region_id'))) {
             $query->where('region_id', $regionId);
         }
 
@@ -81,60 +88,86 @@ class HouseholdController extends Controller
 
         $households = $query->latest()->paginate(15)->withQueryString();
 
-        $regions = $this->allowedCampRegionTree();
+        $regions = $this->visibleCampRegionTree();
 
-        $filters = $request->only(['search', 'status', 'region_id', 'housing_type', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'has_child_under_2', 'previous_governorate', 'previous_area', 'outside_al_qarara']);
+        $filters = $request->only(['search', 'status', 'housing_type', 'has_war_injury', 'has_chronic_disease', 'has_disability', 'has_child_under_2', 'previous_governorate', 'previous_area', 'outside_al_qarara']);
+        $filters['region_id'] = $this->enforcedRegionId($request->input('region_id'));
 
-        $incompleteCitizenBaseQuery = User::query()
-            ->where('is_staff', false)
-            ->whereNull('household_id');
-
-        $pendingCitizenUsers = (clone $incompleteCitizenBaseQuery)
-            ->latest()
-            ->paginate(25, ['*'], 'incomplete_page')
-            ->withQueryString();
-
-        $matchedHouseholdsByNationalId = Household::query()
-            ->whereIn('head_national_id', $pendingCitizenUsers->pluck('national_id')->filter()->all())
-            ->get(['id', 'head_national_id', 'status', 'created_at'])
-            ->keyBy('head_national_id');
-
-        $incompleteRegistrations = $pendingCitizenUsers->through(function (User $user) use ($matchedHouseholdsByNationalId) {
-            $matchedHousehold = $matchedHouseholdsByNationalId->get($user->national_id);
-
-            return [
-                'user' => $user,
-                'classification' => $matchedHousehold ? 'household_exists_unlinked' : 'household_data_missing',
-                'matched_household' => $matchedHousehold,
-            ];
-        });
-
-        $incompleteTotal = (clone $incompleteCitizenBaseQuery)->count();
-        $incompleteUnlinked = (clone $incompleteCitizenBaseQuery)
-            ->whereExists(function ($query) {
-                $query->selectRaw('1')
-                    ->from('households')
-                    ->whereColumn('households.head_national_id', 'users.national_id');
-            })
-            ->count();
+        $incompleteRegistrations = new LengthAwarePaginator(
+            [],
+            0,
+            25,
+            LengthAwarePaginator::resolveCurrentPage('incomplete_page'),
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+                'pageName' => 'incomplete_page',
+            ]
+        );
 
         $incompleteRegistrationStats = [
-            'total' => $incompleteTotal,
-            'household_data_missing' => max(0, $incompleteTotal - $incompleteUnlinked),
-            'household_exists_unlinked' => $incompleteUnlinked,
+            'total' => 0,
+            'household_data_missing' => 0,
+            'household_exists_unlinked' => 0,
         ];
+
+        if (! $this->isCampManager()) {
+            $incompleteCitizenBaseQuery = User::query()
+                ->where('is_staff', false)
+                ->whereNull('household_id');
+
+            $pendingCitizenUsers = (clone $incompleteCitizenBaseQuery)
+                ->latest()
+                ->paginate(25, ['*'], 'incomplete_page')
+                ->withQueryString();
+
+            $matchedHouseholdsByNationalId = Household::query()
+                ->whereIn('head_national_id', $pendingCitizenUsers->pluck('national_id')->filter()->all())
+                ->get(['id', 'head_national_id', 'status', 'created_at'])
+                ->keyBy('head_national_id');
+
+            $incompleteRegistrations = $pendingCitizenUsers->through(function (User $user) use ($matchedHouseholdsByNationalId) {
+                $matchedHousehold = $matchedHouseholdsByNationalId->get($user->national_id);
+
+                return [
+                    'user' => $user,
+                    'classification' => $matchedHousehold ? 'household_exists_unlinked' : 'household_data_missing',
+                    'matched_household' => $matchedHousehold,
+                ];
+            });
+
+            $incompleteTotal = (clone $incompleteCitizenBaseQuery)->count();
+            $incompleteUnlinked = (clone $incompleteCitizenBaseQuery)
+                ->whereExists(function ($query) {
+                    $query->selectRaw('1')
+                        ->from('households')
+                        ->whereColumn('households.head_national_id', 'users.national_id');
+                })
+                ->count();
+
+            $incompleteRegistrationStats = [
+                'total' => $incompleteTotal,
+                'household_data_missing' => max(0, $incompleteTotal - $incompleteUnlinked),
+                'household_exists_unlinked' => $incompleteUnlinked,
+            ];
+        }
 
         return view('admin.households.index', [
             'households' => $households,
             'regions' => $regions,
             'filters' => $filters,
-            'hasActiveFilters' => collect($filters)->filter(function ($v) {
+            'hasActiveFilters' => collect($filters)
+                ->when($this->isCampManager(), function ($collection) {
+                    return $collection->except(['region_id']);
+                })
+                ->filter(function ($v) {
                 return $v !== null && $v !== '' && $v !== false;
             })->isNotEmpty(),
             'incompleteRegistrations' => $incompleteRegistrations,
             'incompleteRegistrationStats' => $incompleteRegistrationStats,
             'previousGovernorates' => __('messages.previous_governorates'),
             'previousAreas' => __('messages.previous_areas'),
+            'isCampManager' => $this->isCampManager(),
         ]);
     }
 
@@ -143,10 +176,14 @@ class HouseholdController extends Controller
      */
     public function create(Request $request): View
     {
-        $regions = $this->allowedCampRegionTree();
+        $this->ensureCan('households.create');
+
+        $regions = $this->visibleCampRegionTree();
         $prefillCitizen = null;
 
         if ($request->filled('citizen_user_id')) {
+            $this->denyCampManagers();
+
             $prefillCitizen = User::query()
                 ->whereKey((int) $request->input('citizen_user_id'))
                 ->where('is_staff', false)
@@ -168,7 +205,9 @@ class HouseholdController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $allowedRegionIds = $this->allowedCampRegionIds();
+        $this->ensureCan('households.create');
+
+        $allowedRegionIds = $this->visibleCampRegionIds();
         $previousGovernorates = array_keys((array) __('messages.previous_governorates'));
         $request->merge([
             'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
@@ -283,6 +322,8 @@ class HouseholdController extends Controller
      */
     public function show(Household $household): View
     {
+        $this->ensureCan('households.view');
+        $this->enforceHouseholdAccess($household);
         $household->load(['region', 'members', 'distributions.aidProgram', 'user']);
 
         return view('admin.households.show', [
@@ -295,7 +336,9 @@ class HouseholdController extends Controller
      */
     public function edit(Household $household): View
     {
-        $regions = $this->allowedCampRegionTree();
+        $this->ensureCan('households.update');
+        $this->enforceHouseholdAccess($household);
+        $regions = $this->visibleCampRegionTree();
 
         return view('admin.households.edit', [
             'household' => $household,
@@ -311,7 +354,9 @@ class HouseholdController extends Controller
      */
     public function update(Request $request, Household $household): RedirectResponse
     {
-        $allowedRegionIds = $this->allowedCampRegionIds();
+        $this->ensureCan('households.update');
+        $this->enforceHouseholdAccess($household);
+        $allowedRegionIds = $this->visibleCampRegionIds();
         $previousGovernorates = array_keys((array) __('messages.previous_governorates'));
         $request->merge([
             'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
@@ -407,6 +452,8 @@ class HouseholdController extends Controller
      */
     public function destroy(Household $household): RedirectResponse
     {
+        $this->ensureCan('households.delete');
+        $this->enforceHouseholdAccess($household);
         $before = $household->toArray();
         $householdId = $household->id;
         
@@ -424,6 +471,8 @@ class HouseholdController extends Controller
      */
     public function verify(Household $household): RedirectResponse
     {
+        $this->ensureCan('households.verify');
+        $this->enforceHouseholdAccess($household);
         $before = $household->toArray();
         $household->update(['status' => 'verified']);
 
@@ -437,6 +486,8 @@ class HouseholdController extends Controller
      */
     public function linkPendingUserHousehold(User $user): RedirectResponse
     {
+        $this->denyCampManagers();
+
         if ($user->is_staff || $user->household_id !== null) {
             return back()->with('error', __('messages.households_admin.link_target_invalid'));
         }
@@ -463,6 +514,8 @@ class HouseholdController extends Controller
      */
     public function destroyPendingUser(User $user): RedirectResponse
     {
+        $this->denyCampManagers();
+
         if (auth()->id() === $user->id) {
             return back()->with('error', __('messages.households_admin.pending_user_delete_self_forbidden'));
         }
@@ -488,12 +541,21 @@ class HouseholdController extends Controller
      */
     public function bulkDestroy(Request $request): RedirectResponse
     {
+        $this->ensureCan('households.delete');
+
         $request->validate([
             'ids'   => ['required', 'array', 'min:1'],
             'ids.*' => ['integer', 'exists:households,id'],
         ]);
 
-        $households = Household::whereIn('id', $request->input('ids'))->get();
+        $households = Household::query()
+            ->visibleTo($this->currentUser())
+            ->whereIn('id', $request->input('ids'))
+            ->get();
+
+        if ($households->count() !== count($request->input('ids'))) {
+            abort(403);
+        }
 
         // Safety gate: verify every household is Outside Al-Qarara
         foreach ($households as $household) {
@@ -521,25 +583,5 @@ class HouseholdController extends Controller
         return redirect()->route('admin.households.index')
             ->with('success', __('messages.households_admin.bulk_delete_success', ['count' => $count]));
     }
-
-    private function allowedCampRegionTree()
-    {
-        return Region::query()
-            ->with(['children' => function ($query) {
-                $query->allowedCamps();
-            }])
-            ->whereNull('parent_id')
-            ->whereHas('children', function ($query) {
-                $query->allowedCamps();
-            })
-            ->get();
-    }
-
-    private function allowedCampRegionIds(): array
-    {
-        return Region::query()
-            ->allowedCamps()
-            ->pluck('id')
-            ->all();
-    }
 }
+

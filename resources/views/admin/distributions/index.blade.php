@@ -1,13 +1,21 @@
 <x-app-layout>
+    @php
+        $viewer = auth()->user();
+        $canCreateDistributions = $viewer->hasManagementPermission('distributions.create');
+        $canDeleteDistributions = $viewer->hasManagementPermission('distributions.delete');
+    @endphp
+
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('messages.distributions.title') }}</h2>
-            <a href="{{ route('admin.distributions.create') }}" class="inline-flex items-center px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                {{ __('messages.distributions.record') }}
-            </a>
+            @if($canCreateDistributions)
+                <a href="{{ route('admin.distributions.create') }}" class="inline-flex items-center px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    {{ __('messages.distributions.record') }}
+                </a>
+            @endif
         </div>
     </x-slot>
     <style>
@@ -75,15 +83,17 @@
                                 <td class="px-6 py-4 text-sm text-gray-500">{{ $dist->distribution_date->format('M j, Y') }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-500">{{ $dist->distributor->name ?? __('messages.general.system') }}</td>
                                 <td class="px-6 py-4 text-right">
-                                    <form action="{{ route('admin.distributions.destroy', $dist) }}" method="POST" class="inline" onsubmit="return confirm('{{ __('messages.distributions.delete_confirm') }}')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:text-red-700">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
-                                    </form>
+                                    @if($canDeleteDistributions)
+                                        <form action="{{ route('admin.distributions.destroy', $dist) }}" method="POST" class="inline" onsubmit="return confirm('{{ __('messages.distributions.delete_confirm') }}')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-500 hover:text-red-700">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

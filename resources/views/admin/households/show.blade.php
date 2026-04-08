@@ -1,4 +1,11 @@
 <x-app-layout>
+    @php
+        $viewer = auth()->user();
+        $canUpdateHouseholds = $viewer->hasManagementPermission('households.update');
+        $canVerifyHouseholds = $viewer->hasManagementPermission('households.verify');
+        $canCreateDistributions = $viewer->hasManagementPermission('distributions.create');
+    @endphp
+
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center">
@@ -26,12 +33,13 @@
             @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Main Info -->
                 <div class="lg:col-span-2 space-y-6">
                     <div class="bg-white rounded-lg shadow-sm p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-medium text-gray-900">{{ __('messages.households_admin.details') ?? 'تفاصيل الأسرة' }}</h3>
-                            <a href="{{ route('admin.households.edit', $household) }}" class="text-teal-600 hover:text-teal-800 text-sm">{{ __('messages.actions.edit') ?? 'تعديل' }}</a>
+                            @if($canUpdateHouseholds)
+                                <a href="{{ route('admin.households.edit', $household) }}" class="text-teal-600 hover:text-teal-800 text-sm">{{ __('messages.actions.edit') ?? 'تعديل' }}</a>
+                            @endif
                         </div>
                         <dl class="grid grid-cols-2 gap-4">
                             <div><dt class="text-xs text-gray-500 uppercase">{{ __('messages.household.head_national_id') ?? 'الرقم الوطني لرب الأسرة' }}</dt><dd class="font-medium">{{ $household->head_national_id }}</dd></div>
@@ -66,7 +74,7 @@
                                     <dd class="font-medium">
                                         {{ __('messages.previous_governorates.' . $household->previous_governorate) }}
                                         @if($household->previous_area)
-                                            — {{ __('messages.previous_areas.' . $household->previous_governorate . '.' . $household->previous_area) }}
+                                            - {{ __('messages.previous_areas.' . $household->previous_governorate . '.' . $household->previous_area) }}
                                         @endif
                                     </dd>
                                 </div>
@@ -115,7 +123,6 @@
                         </dl>
                     </div>
 
-                    <!-- Members -->
                     <div class="bg-white rounded-lg shadow-sm p-6">
                         <h3 class="font-medium text-gray-900 mb-4">{{ __('messages.household.members') ?? 'أفراد الأسرة' }} ({{ $household->members->count() }})</h3>
                         @if($household->members->count() > 0)
@@ -124,7 +131,7 @@
                                     <div class="py-3 flex items-center justify-between">
                                         <div>
                                             <p class="font-medium">{{ $member->full_name }}</p>
-                                            <p class="text-sm text-gray-500 capitalize">{{ $member->relation_to_head }} @if($member->national_id) • {{ $member->national_id }} @endif</p>
+                                            <p class="text-sm text-gray-500 capitalize">{{ $member->relation_to_head }} @if($member->national_id) - {{ $member->national_id }} @endif</p>
                                             <div class="mt-2 text-xs text-gray-700 border rounded-lg divide-y">
                                                 <div class="flex items-center justify-between px-2 py-1.5">
                                                     <span>{{ __('messages.health.has_war_injury') }}</span>
@@ -164,11 +171,12 @@
                         @endif
                     </div>
 
-                    <!-- Distributions -->
                     <div class="bg-white rounded-lg shadow-sm p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-medium text-gray-900">{{ __('messages.distributions.history') ?? 'سجل التوزيعات' }}</h3>
-                            <a href="{{ route('admin.distributions.create', ['household_id' => $household->id]) }}" class="text-teal-600 hover:text-teal-800 text-sm">+ {{ __('messages.distributions.record') ?? 'تسجيل' }}</a>
+                            @if($canCreateDistributions)
+                                <a href="{{ route('admin.distributions.create', ['household_id' => $household->id]) }}" class="text-teal-600 hover:text-teal-800 text-sm">+ {{ __('messages.distributions.record') ?? 'تسجيل' }}</a>
+                            @endif
                         </div>
                         @if($household->distributions->count() > 0)
                             <div class="divide-y">
@@ -187,19 +195,22 @@
                     </div>
                 </div>
 
-                <!-- Sidebar -->
                 <div class="space-y-6">
                     <div class="bg-white rounded-lg shadow-sm p-6">
                         <h3 class="font-medium text-gray-900 mb-4">{{ __('messages.actions.title') ?? 'الإجراءات' }}</h3>
                         <div class="space-y-2">
-                            @if($household->status === 'pending')
+                            @if($household->status === 'pending' && $canVerifyHouseholds)
                                 <form action="{{ route('admin.households.verify', $household) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="w-full py-2 px-4 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">{{ __('messages.households_admin.verify') ?? 'توثيق الأسرة' }}</button>
                                 </form>
                             @endif
-                            <a href="{{ route('admin.distributions.create', ['household_id' => $household->id]) }}" class="block text-center py-2 px-4 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.households_admin.record_distribution') ?? 'تسجيل توزيع' }}</a>
-                            <a href="{{ route('admin.households.edit', $household) }}" class="block text-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.edit') ?? 'تعديل' }}</a>
+                            @if($canCreateDistributions)
+                                <a href="{{ route('admin.distributions.create', ['household_id' => $household->id]) }}" class="block text-center py-2 px-4 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700">{{ __('messages.households_admin.record_distribution') ?? 'تسجيل توزيع' }}</a>
+                            @endif
+                            @if($canUpdateHouseholds)
+                                <a href="{{ route('admin.households.edit', $household) }}" class="block text-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('messages.actions.edit') ?? 'تعديل' }}</a>
+                            @endif
                         </div>
                     </div>
 

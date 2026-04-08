@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Household;
 use App\Models\HouseholdMember;
 use App\Models\Region;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -22,6 +23,12 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
     private array $errors = [];
     private int $successCount = 0;
     private int $failureCount = 0;
+    private ?User $user;
+
+    public function __construct(?User $user = null)
+    {
+        $this->user = $user;
+    }
 
     public function collection(Collection $rows)
     {
@@ -38,6 +45,12 @@ class HouseholdsImport implements ToCollection, WithHeadingRow, WithValidation, 
                 
                 if (!$region) {
                     $this->errors[] = "Row {$rowNum}: Region '{$row['region']}' not found";
+                    $this->failureCount++;
+                    continue;
+                }
+
+                if ($this->user?->isCampManager() && ! $this->user->canAccessRegion($region->id)) {
+                    $this->errors[] = "Row {$rowNum}: Region '{$row['region']}' is outside your assigned camp";
                     $this->failureCount++;
                     continue;
                 }

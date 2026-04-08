@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\InteractsWithCampAccess;
 use App\Http\Controllers\Controller;
 use App\Models\AidProgram;
 use App\Models\AuditLog;
@@ -11,11 +12,15 @@ use Illuminate\View\View;
 
 class AidProgramController extends Controller
 {
+    use InteractsWithCampAccess;
+
     /**
      * Display a listing of aid programs.
      */
     public function index(Request $request): View
     {
+        $this->denyCampManagers();
+
         $query = AidProgram::withCount('distributions');
 
         if ($request->input('active_only')) {
@@ -34,6 +39,8 @@ class AidProgramController extends Controller
      */
     public function create(): View
     {
+        $this->denyCampManagers();
+
         return view('admin.programs.create');
     }
 
@@ -42,6 +49,8 @@ class AidProgramController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $this->denyCampManagers();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -67,6 +76,7 @@ class AidProgramController extends Controller
      */
     public function show(AidProgram $program): View
     {
+        $this->denyCampManagers();
         $program->loadCount('distributions');
         
         $distributions = $program->distributions()
@@ -85,6 +95,8 @@ class AidProgramController extends Controller
      */
     public function edit(AidProgram $program): View
     {
+        $this->denyCampManagers();
+
         return view('admin.programs.edit', [
             'program' => $program,
         ]);
@@ -95,6 +107,8 @@ class AidProgramController extends Controller
      */
     public function update(Request $request, AidProgram $program): RedirectResponse
     {
+        $this->denyCampManagers();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -121,6 +135,8 @@ class AidProgramController extends Controller
      */
     public function destroy(AidProgram $program): RedirectResponse
     {
+        $this->denyCampManagers();
+
         if ($program->distributions()->exists()) {
             return back()->with('error', 'Cannot delete program with existing distributions.');
         }

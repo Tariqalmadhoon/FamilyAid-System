@@ -63,6 +63,22 @@ class DemoDataSeeder extends Seeder
         // Get regions
         $regions = Region::whereNotNull('parent_id')->get();
 
+        if ($regions->isNotEmpty()) {
+            $campManager = User::firstOrCreate(
+                ['national_id' => '900000004'],
+                [
+                    'name' => 'Camp Manager',
+                    'password' => Hash::make('password'),
+                    'phone' => '0500000004',
+                    'is_staff' => true,
+                    'region_id' => $regions->first()->id,
+                    'security_question' => 'What is your favorite color?',
+                    'security_answer_hash' => Hash::make('yellow'),
+                ]
+            );
+            $campManager->assignRole('camp_manager');
+        }
+
         // Create Aid Programs
         $programs = [
             ['name' => 'Ramadan Food Basket 2026', 'description' => 'Monthly food basket distribution during Ramadan', 'is_active' => true],
@@ -155,5 +171,6 @@ class DemoDataSeeder extends Seeder
         $this->command->info('Admin login: ADMIN001 / password');
         $this->command->info('Data Entry login: DATA001 / password');
         $this->command->info('Distributor login: DIST001 / password');
+        $this->command->info('Camp Manager login: 900000004 / password');
     }
 }

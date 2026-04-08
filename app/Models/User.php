@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Collection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
@@ -35,6 +36,7 @@ class User extends Authenticatable
         'security_answer_hash',
         'is_staff',
         'region_id',
+        'camp_permissions_configured',
     ];
 
     /**
@@ -56,6 +58,7 @@ class User extends Authenticatable
     protected $casts = [
         'birth_date' => 'date',
         'is_staff' => 'boolean',
+        'camp_permissions_configured' => 'boolean',
     ];
 
     /**
@@ -131,6 +134,129 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         return $this->is_staff;
+    }
+
+    /**
+     * Check if user is a camp manager.
+     */
+    public function isCampManager(): bool
+    {
+        return $this->hasRole('camp_manager');
+    }
+
+    /**
+     * Get the managed camp region id for a camp manager account.
+     */
+    public function managedRegionId(): ?int
+    {
+        if (! $this->isCampManager()) {
+            return null;
+        }
+
+        return $this->region_id ? (int) $this->region_id : null;
+    }
+
+    /**
+     * Check whether the user can access a specific camp region.
+     */
+    public function canAccessRegion(?int $regionId): bool
+    {
+        if (! $this->isCampManager()) {
+            return true;
+        }
+
+        return $this->managedRegionId() !== null
+            && $regionId !== null
+            && $this->managedRegionId() === (int) $regionId;
+    }
+
+    /**
+     * Permissions that can be configured for camp managers from the UI.
+     */
+    public static function configurableCampManagerPermissions(): array
+    {
+        return [
+            'households.view',
+            'households.create',
+            'households.update',
+            'households.delete',
+            'households.verify',
+            'households.import',
+            'households.export',
+            'members.view',
+            'members.create',
+            'members.update',
+            'members.delete',
+            'distributions.view',
+            'distributions.create',
+            'distributions.delete',
+            'distributions.export',
+        ];
+    }
+
+    /**
+     * Whether this camp manager has an explicit permission profile configured by super admin.
+     */
+    public function usesConfiguredCampPermissions(): bool
+    {
+        return $this->isCampManager() && (bool) $this->camp_permissions_configured;
+    }
+
+    /**
+     * Check application permission with camp-manager overrides.
+     */
+    public function hasManagementPermission(string $permission): bool
+    {
+        if ($this->hasRole('admin')) {
+            return true;
+        }
+
+        if ($this->isCampManager()) {
+            if ($this->usesConfiguredCampPermissions()) {
+                return $this->hasDirectPermission($permission);
+            }
+
+            return $this->hasPermissionTo($permission);
+        }
+
+        return $this->hasPermissionTo($permission);
+    }
+
+    /**
+     * Check whether the user has any of the provided permissions.
+     */
+    public function hasAnyManagementPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasManagementPermission($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Return the effective camp-manager permissions for display in the UI.
+     */
+    public function effectiveCampManagerPermissions(): Collection
+    {
+        $availablePermissions = collect(self::configurableCampManagerPermissions());
+
+        if (! $this->isCampManager()) {
+            return collect();
+        }
+
+        if ($this->usesConfiguredCampPermissions()) {
+            return $this->getDirectPermissions()
+                ->pluck('name')
+                ->intersect($availablePermissions)
+                ->values();
+        }
+
+        return $availablePermissions
+            ->filter(fn (string $permission) => $this->hasPermissionTo($permission))
+            ->values();
     }
 
     /**

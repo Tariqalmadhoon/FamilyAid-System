@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\InteractsWithCampAccess;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
@@ -9,11 +10,15 @@ use Illuminate\View\View;
 
 class AuditLogController extends Controller
 {
+    use InteractsWithCampAccess;
+
     /**
      * Display a listing of audit logs.
      */
     public function index(Request $request): View
     {
+        $this->denyCampManagers();
+
         $query = AuditLog::with('user');
 
         // Filter by entity type
@@ -58,6 +63,7 @@ class AuditLogController extends Controller
      */
     public function show(AuditLog $auditLog): View
     {
+        $this->denyCampManagers();
         $auditLog->load('user');
 
         return view('admin.audit-logs.show', [
