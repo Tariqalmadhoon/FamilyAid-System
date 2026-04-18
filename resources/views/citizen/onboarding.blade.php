@@ -66,6 +66,7 @@
                 <form method="POST" action="{{ route('citizen.onboarding.store') }}" @submit="handleSubmit" @input.debounce.300ms="schedulePersist" @change.debounce.150ms="schedulePersist" novalidate>
                     @csrf
                     <input type="hidden" name="wizard_step" x-model="step">
+                    <input type="hidden" name="no_spouse" :value="formData.no_spouse ? 1 : 0">
                     <div class="px-6 pt-4">
                         <p class="text-xs text-gray-500">
                             <span class="text-red-500">*</span> {{ __('messages.onboarding_form.required_fields_hint') }}
@@ -382,103 +383,143 @@
                             </div>
                         </div>
 
-                        <div class="mb-6 rounded-lg border p-4" :class="fieldError('spouse_full_name') || fieldError('spouse_national_id') || fieldError('spouse_birth_date') || fieldError('spouse_condition_type') ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'">
-                            <h4 class="text-sm font-semibold text-gray-800 mb-3">{{ __('messages.onboarding_form.spouse_section_title') }}</h4>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="sm:col-span-3">
-                                    <label for="spouse_full_name" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_full_name') }} <span class="text-red-500">*</span></label>
-                                    <input
-                                        id="spouse_full_name"
-                                        type="text"
-                                        name="spouse_full_name"
-                                        x-model="formData.spouse_full_name"
-                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                        :class="fieldError('spouse_full_name') ? 'border-red-300' : 'border-gray-300'"
-                                        placeholder="{{ __('messages.onboarding_form.spouse_full_name_placeholder') }}"
-                                        required
-                                    >
-                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_full_name')" x-text="fieldError('spouse_full_name')"></p>
-                                </div>
-
+                        <div class="mb-6 rounded-2xl border p-4 shadow-sm transition-all duration-300" :class="formData.no_spouse ? 'border-emerald-200 bg-emerald-50/80' : (fieldError('spouse_full_name') || fieldError('spouse_national_id') || fieldError('spouse_birth_date') || fieldError('spouse_condition_type') ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50')">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
-                                    <label for="spouse_national_id" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_national_id') }} <span class="text-red-500">*</span></label>
-                                    <input
-                                        id="spouse_national_id"
-                                        type="text"
-                                        name="spouse_national_id"
-                                        x-model="formData.spouse_national_id"
-                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                        :class="fieldError('spouse_national_id') ? 'border-red-300' : 'border-gray-300'"
-                                        placeholder="{{ __('messages.onboarding_form.spouse_national_id_placeholder') }}"
-                                        maxlength="9"
-                                        inputmode="numeric"
-                                        @input="filterDigits($event, 9)"
-                                        required
-                                    >
-                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_national_id')" x-text="fieldError('spouse_national_id')"></p>
+                                    <h4 class="text-sm font-semibold text-gray-800">{{ __('messages.onboarding_form.spouse_section_title') }}</h4>
+                                    <p class="mt-1 text-xs" :class="formData.no_spouse ? 'text-emerald-700' : 'text-gray-500'" x-text="formData.no_spouse ? '{{ __('messages.onboarding_form.spouse_none_badge') }}' : '{{ __('messages.onboarding_form.spouse_condition_type_required_hint') }}'"></p>
                                 </div>
-
-                                <div>
-                                    <label for="spouse_birth_date" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_birth_date') }} <span class="text-red-500">*</span></label>
-                                    <input
-                                        id="spouse_birth_date"
-                                        type="date"
-                                        name="spouse_birth_date"
-                                        x-model="formData.spouse_birth_date"
-                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                        :class="fieldError('spouse_birth_date') ? 'border-red-300' : 'border-gray-300'"
-                                        required
-                                    >
-                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_birth_date')" x-text="fieldError('spouse_birth_date')"></p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" @click="setNoSpouse(false)" class="inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold transition-all duration-300" :class="!formData.no_spouse ? 'bg-teal-600 text-white shadow-sm shadow-teal-200' : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'">
+                                        {{ __('messages.onboarding_form.spouse_toggle_has') }}
+                                    </button>
+                                    <button type="button" @click="setNoSpouse(true)" class="inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold transition-all duration-300" :class="formData.no_spouse ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-200' : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'">
+                                        {{ __('messages.onboarding_form.spouse_toggle_none') }}
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <p class="text-xs font-semibold text-gray-700 mb-2">{{ __('messages.onboarding_form.spouse_health_title') }}</p>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                    <label class="flex items-center gap-2 text-xs text-gray-700">
-                                        <input type="checkbox" name="spouse_has_war_injury" x-model="formData.spouse_has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                        <span>{{ __('messages.health.has_war_injury') }}</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 text-xs text-gray-700">
-                                        <input type="checkbox" name="spouse_has_chronic_disease" x-model="formData.spouse_has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                        <span>{{ __('messages.health.has_chronic_disease') }}</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 text-xs text-gray-700">
-                                        <input type="checkbox" name="spouse_has_disability" x-model="formData.spouse_has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                        <span>{{ __('messages.health.has_disability') }}</span>
-                                    </label>
-                                </div>
+                            <div
+                                x-show="formData.no_spouse"
+                                x-transition:enter="transform transition ease-out duration-300"
+                                x-transition:enter-start="opacity-0 -translate-y-2 scale-[0.98]"
+                                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                x-transition:leave="transform transition ease-in duration-200"
+                                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                x-transition:leave-end="opacity-0 -translate-y-1 scale-[0.98]"
+                                class="mt-4 rounded-xl border border-emerald-200 bg-white/80 p-4 text-sm text-emerald-900 shadow-sm"
+                            >
+                                <p class="font-semibold">{{ __('messages.onboarding_form.spouse_none_summary') }}</p>
+                                <p class="mt-1 leading-6">{{ __('messages.onboarding_form.spouse_none_helper') }}</p>
+                            </div>
 
-                                <p class="mt-2 text-xs text-gray-500">{{ __('messages.onboarding_form.spouse_condition_type_required_hint') }}</p>
+                            <div
+                                x-show="!formData.no_spouse"
+                                x-transition:enter="transform transition ease-out duration-300"
+                                x-transition:enter-start="opacity-0 translate-y-3 scale-[0.98]"
+                                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                x-transition:leave="transform transition ease-in duration-200"
+                                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                x-transition:leave-end="opacity-0 translate-y-2 scale-[0.98]"
+                                class="mt-4"
+                            >
+                                <fieldset :disabled="formData.no_spouse" class="space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div class="sm:col-span-3">
+                                            <label for="spouse_full_name" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_full_name') }} <span class="text-red-500">*</span></label>
+                                            <input
+                                                id="spouse_full_name"
+                                                type="text"
+                                                name="spouse_full_name"
+                                                x-model="formData.spouse_full_name"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError('spouse_full_name') ? 'border-red-300' : 'border-gray-300'"
+                                                placeholder="{{ __('messages.onboarding_form.spouse_full_name_placeholder') }}"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_full_name')" x-text="fieldError('spouse_full_name')"></p>
+                                        </div>
 
-                                <div x-show="spouseNeedsConditionType()" x-transition class="mt-3">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                                        {{ __('messages.onboarding_form.spouse_condition_type') }} <span class="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="spouse_condition_type"
-                                        x-model="formData.spouse_condition_type"
-                                        :required="spouseNeedsConditionType()"
-                                        class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                        :class="fieldError('spouse_condition_type') ? 'border-red-300' : 'border-gray-300'"
-                                        placeholder="{{ __('messages.onboarding_form.spouse_condition_type_placeholder') }}"
-                                    >
-                                    <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_condition_type')" x-text="fieldError('spouse_condition_type')"></p>
-                                </div>
+                                        <div>
+                                            <label for="spouse_national_id" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_national_id') }} <span class="text-red-500">*</span></label>
+                                            <input
+                                                id="spouse_national_id"
+                                                type="text"
+                                                name="spouse_national_id"
+                                                x-model="formData.spouse_national_id"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError('spouse_national_id') ? 'border-red-300' : 'border-gray-300'"
+                                                placeholder="{{ __('messages.onboarding_form.spouse_national_id_placeholder') }}"
+                                                maxlength="9"
+                                                inputmode="numeric"
+                                                @input="filterDigits($event, 9)"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_national_id')" x-text="fieldError('spouse_national_id')"></p>
+                                        </div>
 
-                                <div class="mt-3">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_health_notes') }}</label>
-                                    <textarea
-                                        name="spouse_health_notes"
-                                        x-model="formData.spouse_health_notes"
-                                        rows="2"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                        placeholder="{{ __('messages.onboarding_form.spouse_health_notes_placeholder') }}"
-                                    ></textarea>
-                                </div>
+                                        <div>
+                                            <label for="spouse_birth_date" class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_birth_date') }} <span class="text-red-500">*</span></label>
+                                            <input
+                                                id="spouse_birth_date"
+                                                type="date"
+                                                name="spouse_birth_date"
+                                                x-model="formData.spouse_birth_date"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError('spouse_birth_date') ? 'border-red-300' : 'border-gray-300'"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_birth_date')" x-text="fieldError('spouse_birth_date')"></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-4 border-t border-gray-200">
+                                        <p class="text-xs font-semibold text-gray-700 mb-2">{{ __('messages.onboarding_form.spouse_health_title') }}</p>
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            <label class="flex items-center gap-2 text-xs text-gray-700">
+                                                <input type="checkbox" name="spouse_has_war_injury" x-model="formData.spouse_has_war_injury" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <span>{{ __('messages.health.has_war_injury') }}</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs text-gray-700">
+                                                <input type="checkbox" name="spouse_has_chronic_disease" x-model="formData.spouse_has_chronic_disease" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <span>{{ __('messages.health.has_chronic_disease') }}</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs text-gray-700">
+                                                <input type="checkbox" name="spouse_has_disability" x-model="formData.spouse_has_disability" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                                <span>{{ __('messages.health.has_disability') }}</span>
+                                            </label>
+                                        </div>
+
+                                        <p class="mt-2 text-xs text-gray-500">{{ __('messages.onboarding_form.spouse_condition_type_required_hint') }}</p>
+
+                                        <div x-show="spouseNeedsConditionType()" x-transition class="mt-3">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                {{ __('messages.onboarding_form.spouse_condition_type') }} <span class="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="spouse_condition_type"
+                                                x-model="formData.spouse_condition_type"
+                                                :required="spouseNeedsConditionType()"
+                                                class="block w-full rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                :class="fieldError('spouse_condition_type') ? 'border-red-300' : 'border-gray-300'"
+                                                placeholder="{{ __('messages.onboarding_form.spouse_condition_type_placeholder') }}"
+                                            >
+                                            <p class="mt-1 text-xs text-red-600" x-show="fieldError('spouse_condition_type')" x-text="fieldError('spouse_condition_type')"></p>
+                                        </div>
+
+                                        <div class="mt-3">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('messages.onboarding_form.spouse_health_notes') }}</label>
+                                            <textarea
+                                                name="spouse_health_notes"
+                                                x-model="formData.spouse_health_notes"
+                                                rows="2"
+                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                                placeholder="{{ __('messages.onboarding_form.spouse_health_notes_placeholder') }}"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                </fieldset>
                             </div>
                         </div>
 
@@ -697,18 +738,27 @@
 
                                 <div class="mb-3 p-3 rounded border border-gray-200 bg-white text-sm">
                                     <p class="font-medium text-gray-800 mb-1">{{ __('messages.onboarding_form.spouse_section_title') }}</p>
-                                    <p class="text-gray-700" x-text="formData.spouse_full_name || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
-                                    <p class="text-gray-500 mt-1" x-text="formData.spouse_national_id || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
-                                    <p class="text-gray-500 mt-1" x-text="formData.spouse_birth_date || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
-                                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                                        <span x-show="formData.spouse_has_war_injury" class="px-2 py-1 rounded-full bg-red-50 text-red-700">{{ __('messages.health.war_injury') }}</span>
-                                        <span x-show="formData.spouse_has_chronic_disease" class="px-2 py-1 rounded-full bg-amber-50 text-amber-700">{{ __('messages.health.chronic_disease') }}</span>
-                                        <span x-show="formData.spouse_has_disability" class="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ __('messages.health.disability') }}</span>
-                                    </div>
-                                    <p class="text-gray-500 mt-2" x-show="formData.spouse_condition_type">
-                                        <span class="font-medium">{{ __('messages.onboarding_form.spouse_condition_type') }}:</span>
-                                        <span x-text="formData.spouse_condition_type"></span>
-                                    </p>
+                                    <template x-if="formData.no_spouse">
+                                        <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-emerald-900">
+                                            <p class="font-medium">{{ __('messages.onboarding_form.spouse_none_summary') }}</p>
+                                        </div>
+                                    </template>
+                                    <template x-if="!formData.no_spouse">
+                                        <div>
+                                            <p class="text-gray-700" x-text="formData.spouse_full_name || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
+                                            <p class="text-gray-500 mt-1" x-text="formData.spouse_national_id || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
+                                            <p class="text-gray-500 mt-1" x-text="formData.spouse_birth_date || '{{ __('messages.onboarding_form.not_provided') }}'"></p>
+                                            <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                                <span x-show="formData.spouse_has_war_injury" class="px-2 py-1 rounded-full bg-red-50 text-red-700">{{ __('messages.health.war_injury') }}</span>
+                                                <span x-show="formData.spouse_has_chronic_disease" class="px-2 py-1 rounded-full bg-amber-50 text-amber-700">{{ __('messages.health.chronic_disease') }}</span>
+                                                <span x-show="formData.spouse_has_disability" class="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ __('messages.health.disability') }}</span>
+                                            </div>
+                                            <p class="text-gray-500 mt-2" x-show="formData.spouse_condition_type">
+                                                <span class="font-medium">{{ __('messages.onboarding_form.spouse_condition_type') }}:</span>
+                                                <span x-text="formData.spouse_condition_type"></span>
+                                            </p>
+                                        </div>
+                                    </template>
                                 </div>
 
                                 <div class="text-sm font-medium text-gray-700 mb-2">
@@ -800,7 +850,7 @@
                 lastDraftSnapshot: '',
                 hasValidationErrors: @json($errors->any()),
                 draftKey: 'citizen-onboarding-draft:{{ auth()->id() }}',
-                draftVersion: 1,
+                draftVersion: 2,
                 draftMaxAgeMs: 1000 * 60 * 60 * 24 * 14,
                 errors: @json($errors->getMessages()),
                 steps: [
@@ -817,6 +867,7 @@
                 },
                 formData: {
                     region_id: '{{ $prefill['region_id'] }}',
+                    no_spouse: Boolean({{ $prefill['no_spouse'] ? 'true' : 'false' }}),
                     spouse_full_name: @json($prefill['spouse_full_name']),
                     spouse_national_id: '{{ $prefill['spouse_national_id'] }}',
                     spouse_birth_date: '{{ $prefill['spouse_birth_date'] }}',
@@ -844,6 +895,9 @@
 
                 init() {
                     this.restoreDraft();
+                    if (this.formData.no_spouse) {
+                        this.clearSpouseFields(false);
+                    }
                     this.initialized = true;
                     this.persistDraft();
                 },
@@ -873,6 +927,37 @@
                         has_chronic_disease: Boolean(member.has_chronic_disease),
                         has_disability: Boolean(member.has_disability),
                     };
+                },
+
+                clearSpouseFields(shouldPersist = true) {
+                    this.formData.spouse_full_name = '';
+                    this.formData.spouse_national_id = '';
+                    this.formData.spouse_birth_date = '';
+                    this.formData.spouse_has_war_injury = false;
+                    this.formData.spouse_has_chronic_disease = false;
+                    this.formData.spouse_has_disability = false;
+                    this.formData.spouse_condition_type = '';
+                    this.formData.spouse_health_notes = '';
+
+                    if (shouldPersist) {
+                        this.schedulePersist();
+                    }
+                },
+
+                setNoSpouse(value) {
+                    const nextValue = Boolean(value);
+
+                    if (this.formData.no_spouse === nextValue) {
+                        return;
+                    }
+
+                    this.formData.no_spouse = nextValue;
+
+                    if (nextValue) {
+                        this.clearSpouseFields(false);
+                    }
+
+                    this.schedulePersist();
                 },
 
                 clampStep(value) {
@@ -940,6 +1025,11 @@
                                 ...this.formData,
                                 ...draft.formData,
                             };
+
+                            this.formData.no_spouse = Boolean(this.formData.no_spouse);
+                            if (this.formData.no_spouse) {
+                                this.clearSpouseFields(false);
+                            }
                         }
 
                         if (Array.isArray(draft.members)) {
@@ -976,7 +1066,7 @@
                 },
 
                 spouseNeedsConditionType() {
-                    return Boolean(this.formData.spouse_has_war_injury || this.formData.spouse_has_chronic_disease || this.formData.spouse_has_disability);
+                    return !this.formData.no_spouse && Boolean(this.formData.spouse_has_war_injury || this.formData.spouse_has_chronic_disease || this.formData.spouse_has_disability);
                 },
 
                 get canProceed() {
@@ -997,12 +1087,14 @@
                         return this.formData.housing_type && digits.length === 10 && (!needsConditionType || hasConditionType);
                     }
                     if (this.step === 2) {
-                        const spouseIdDigits = (this.formData.spouse_national_id || '').replace(/\D/g, '');
-                        const spouseReady = String(this.formData.spouse_full_name || '').trim().length > 0
-                            && spouseIdDigits.length === 9
-                            && String(this.formData.spouse_birth_date || '').trim().length > 0;
-                        if (!spouseReady) return false;
-                        if (this.spouseNeedsConditionType() && String(this.formData.spouse_condition_type || '').trim().length === 0) return false;
+                        if (!this.formData.no_spouse) {
+                            const spouseIdDigits = (this.formData.spouse_national_id || '').replace(/\D/g, '');
+                            const spouseReady = String(this.formData.spouse_full_name || '').trim().length > 0
+                                && spouseIdDigits.length === 9
+                                && String(this.formData.spouse_birth_date || '').trim().length > 0;
+                            if (!spouseReady) return false;
+                            if (this.spouseNeedsConditionType() && String(this.formData.spouse_condition_type || '').trim().length === 0) return false;
+                        }
 
                         if (this.members.length === 0) return true;
                         return this.members.every(member => {
@@ -1080,6 +1172,11 @@
                             national_id: cleaned,
                         };
                     });
+                    if (this.formData.no_spouse) {
+                        this.clearSpouseFields(false);
+                    } else {
+                        this.formData.spouse_national_id = normalize(this.formData.spouse_national_id).replace(/\D/g, '');
+                    }
                 },
 
                 filterDigits(event, max) {

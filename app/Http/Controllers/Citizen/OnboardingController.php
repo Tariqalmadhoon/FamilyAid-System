@@ -58,6 +58,14 @@ class OnboardingController extends Controller
 
         $prefill = [
             'region_id' => old('region_id', $existingHousehold?->region_id ?? ''),
+            'no_spouse' => (bool) old(
+                'no_spouse',
+                $existingHousehold
+                    ? blank($existingHousehold->spouse_full_name)
+                        && blank($existingHousehold->spouse_national_id)
+                        && blank(optional($existingHousehold->spouse_birth_date)->toDateString())
+                    : false
+            ),
             'spouse_full_name' => old('spouse_full_name', $existingHousehold?->spouse_full_name ?? ''),
             'spouse_national_id' => old('spouse_national_id', $existingHousehold?->spouse_national_id ?? ''),
             'spouse_birth_date' => old('spouse_birth_date', optional($existingHousehold?->spouse_birth_date)->toDateString() ?? ''),
@@ -118,6 +126,7 @@ class OnboardingController extends Controller
     {
         $user = auth()->user();
         $allowedRegionIds = $this->allowedOnboardingRegions()->pluck('id')->all();
+        $noSpouse = $request->boolean('no_spouse');
 
         // Locate any household that may already belong to this user (linked or orphaned)
         $existingHouseholdId = $user->household_id
@@ -125,15 +134,18 @@ class OnboardingController extends Controller
 
         // Normalize boolean inputs (checkboxes send "on")
         $request->merge([
+            'no_spouse' => $noSpouse,
             'has_war_injury' => $request->boolean('has_war_injury'),
             'has_chronic_disease' => $request->boolean('has_chronic_disease'),
             'has_disability' => $request->boolean('has_disability'),
-            'spouse_full_name' => trim((string) $request->input('spouse_full_name')),
-            'spouse_national_id' => preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
-            'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
-            'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
-            'spouse_has_disability' => $request->boolean('spouse_has_disability'),
-            'spouse_condition_type' => trim((string) $request->input('spouse_condition_type')),
+            'spouse_full_name' => $noSpouse ? null : trim((string) $request->input('spouse_full_name')),
+            'spouse_national_id' => $noSpouse ? null : preg_replace('/\D+/', '', (string) $request->input('spouse_national_id', '')),
+            'spouse_birth_date' => $noSpouse ? null : $request->input('spouse_birth_date'),
+            'spouse_has_war_injury' => $noSpouse ? false : $request->boolean('spouse_has_war_injury'),
+            'spouse_has_chronic_disease' => $noSpouse ? false : $request->boolean('spouse_has_chronic_disease'),
+            'spouse_has_disability' => $noSpouse ? false : $request->boolean('spouse_has_disability'),
+            'spouse_condition_type' => $noSpouse ? null : trim((string) $request->input('spouse_condition_type')),
+            'spouse_health_notes' => $noSpouse ? null : trim((string) $request->input('spouse_health_notes')),
             'payment_account_number' => preg_replace('/\D+/', '', (string) $request->input('payment_account_number', '')),
             'payment_account_holder_name' => trim((string) $request->input('payment_account_holder_name')),
             'condition_type' => trim((string) $request->input('condition_type')),
@@ -155,14 +167,15 @@ class OnboardingController extends Controller
         $validator = Validator::make($request->all(), [
             // Step 1: Region & Address
             'region_id' => ['required', Rule::in($allowedRegionIds)],
-            'spouse_full_name' => ['required', 'string', 'max:255'],
+            'no_spouse' => ['nullable', 'boolean'],
+            'spouse_full_name' => [$noSpouse ? 'nullable' : 'required', 'string', 'max:255'],
             'spouse_national_id' => [
-                'required',
+                $noSpouse ? 'nullable' : 'required',
                 'digits:9',
                 Rule::notIn([$user->national_id]),
                 Rule::unique('households', 'spouse_national_id')->ignore($existingHouseholdId),
             ],
-            'spouse_birth_date' => ['required', 'date', 'before:today'],
+            'spouse_birth_date' => [$noSpouse ? 'nullable' : 'required', 'date', 'before:today'],
             'spouse_has_war_injury' => ['nullable', 'boolean'],
             'spouse_has_chronic_disease' => ['nullable', 'boolean'],
             'spouse_has_disability' => ['nullable', 'boolean'],
@@ -209,7 +222,7 @@ class OnboardingController extends Controller
             'region_id.in' => __('messages.onboarding_form.region_not_allowed'),
         ]);
 
-        $validator->after(function ($validator) use ($request) {
+        $validator->after(function ($validator) use ($request, $noSpouse) {
             $householdHasHealthFlag = $request->boolean('has_war_injury')
                 || $request->boolean('has_chronic_disease')
                 || $request->boolean('has_disability');
@@ -218,9 +231,11 @@ class OnboardingController extends Controller
                 $validator->errors()->add('condition_type', __('validation.required', ['attribute' => __('messages.health.condition_type')]));
             }
 
-            $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+            $spouseHasHealthFlag = ! $noSpouse && (
+                $request->boolean('spouse_has_war_injury')
                 || $request->boolean('spouse_has_chronic_disease')
-                || $request->boolean('spouse_has_disability');
+                || $request->boolean('spouse_has_disability')
+            );
 
             if ($spouseHasHealthFlag && blank($request->input('spouse_condition_type'))) {
                 $validator->errors()->add('spouse_condition_type', __('validation.required', ['attribute' => __('messages.onboarding_form.spouse_condition_type')]));
@@ -241,27 +256,29 @@ class OnboardingController extends Controller
 
         $validated = $validator->validate();
 
-        DB::transaction(function () use ($user, $validated, $request, $existingHouseholdId) {
+        DB::transaction(function () use ($user, $validated, $request, $existingHouseholdId, $noSpouse) {
             $householdHasHealthFlag = $request->boolean('has_war_injury')
                 || $request->boolean('has_chronic_disease')
                 || $request->boolean('has_disability');
-            $spouseHasHealthFlag = $request->boolean('spouse_has_war_injury')
+            $spouseHasHealthFlag = ! $noSpouse && (
+                $request->boolean('spouse_has_war_injury')
                 || $request->boolean('spouse_has_chronic_disease')
-                || $request->boolean('spouse_has_disability');
+                || $request->boolean('spouse_has_disability')
+            );
 
             $payload = [
                 'head_national_id' => $user->national_id,
                 'head_name' => $user->full_name,
                 'head_birth_date' => $user->birth_date
                     ?? Household::whereKey($existingHouseholdId)->value('head_birth_date'),
-                'spouse_full_name' => $validated['spouse_full_name'],
-                'spouse_national_id' => $validated['spouse_national_id'],
-                'spouse_birth_date' => $validated['spouse_birth_date'],
-                'spouse_has_war_injury' => $request->boolean('spouse_has_war_injury'),
-                'spouse_has_chronic_disease' => $request->boolean('spouse_has_chronic_disease'),
-                'spouse_has_disability' => $request->boolean('spouse_has_disability'),
+                'spouse_full_name' => $noSpouse ? null : $validated['spouse_full_name'],
+                'spouse_national_id' => $noSpouse ? null : $validated['spouse_national_id'],
+                'spouse_birth_date' => $noSpouse ? null : $validated['spouse_birth_date'],
+                'spouse_has_war_injury' => $noSpouse ? false : $request->boolean('spouse_has_war_injury'),
+                'spouse_has_chronic_disease' => $noSpouse ? false : $request->boolean('spouse_has_chronic_disease'),
+                'spouse_has_disability' => $noSpouse ? false : $request->boolean('spouse_has_disability'),
                 'spouse_condition_type' => $spouseHasHealthFlag ? ($validated['spouse_condition_type'] ?? null) : null,
-                'spouse_health_notes' => $validated['spouse_health_notes'] ?? null,
+                'spouse_health_notes' => $noSpouse ? null : ($validated['spouse_health_notes'] ?? null),
                 'region_id' => $validated['region_id'],
                 'address_text' => $validated['address_text'],
                 'previous_governorate' => $validated['previous_governorate'],

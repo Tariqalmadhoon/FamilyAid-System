@@ -110,6 +110,7 @@ class CitizenHeadNameUpdateTest extends TestCase
     {
         return array_merge([
             'head_name' => $household->head_name,
+            'no_spouse' => 0,
             'region_id' => $household->region_id,
             'address_text' => $household->address_text,
             'spouse_full_name' => $household->spouse_full_name,
@@ -237,5 +238,32 @@ class CitizenHeadNameUpdateTest extends TestCase
 
         $this->assertSame('May Saved Name', $household->head_name);
         $this->assertSame('2026-05-02 10:00:00', $household->citizen_head_name_updated_at?->format('Y-m-d H:i:s'));
+    }
+
+    public function test_citizen_can_clear_spouse_information_when_marked_as_no_spouse(): void
+    {
+        $user = $this->makeCitizen();
+        $household = $this->makeHousehold($user);
+
+        $response = $this->actingAs($user)->from(route('citizen.household.edit'))->put(
+            route('citizen.household.update'),
+            $this->payload($household, [
+                'no_spouse' => 1,
+            ])
+        );
+
+        $response->assertRedirect(route('citizen.household.edit'));
+        $response->assertSessionDoesntHaveErrors();
+
+        $household->refresh();
+
+        $this->assertNull($household->spouse_full_name);
+        $this->assertNull($household->spouse_national_id);
+        $this->assertNull($household->spouse_birth_date);
+        $this->assertNull($household->spouse_condition_type);
+        $this->assertNull($household->spouse_health_notes);
+        $this->assertFalse($household->spouse_has_war_injury);
+        $this->assertFalse($household->spouse_has_chronic_disease);
+        $this->assertFalse($household->spouse_has_disability);
     }
 }
