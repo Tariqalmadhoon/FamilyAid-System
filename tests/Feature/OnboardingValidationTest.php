@@ -60,6 +60,7 @@ class OnboardingValidationTest extends TestCase
     {
         return array_merge([
             'region_id' => $this->region->id,
+            'no_spouse' => 1,
             'address_text' => '123 Test Street',
             'previous_governorate' => 'north_gaza',
             'previous_area' => 'jabalia',
@@ -89,8 +90,52 @@ class OnboardingValidationTest extends TestCase
 
         $this->assertDatabaseHas('households', [
             'head_national_id' => $user->national_id,
+            'spouse_full_name' => null,
             'condition_type' => null,
         ]);
+    }
+
+    public function test_spouse_fields_are_cleared_when_no_spouse_is_selected(): void
+    {
+        $user = $this->makeCitizen();
+        $payload = $this->basePayload([
+            'spouse_full_name' => 'Should Be Cleared',
+            'spouse_national_id' => '987654321',
+            'spouse_birth_date' => '1992-03-10',
+            'spouse_has_chronic_disease' => 1,
+            'spouse_condition_type' => 'Asthma',
+            'spouse_health_notes' => 'Legacy note',
+        ]);
+
+        $response = $this->actingAs($user)->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertRedirect(route('citizen.dashboard'));
+
+        $this->assertDatabaseHas('households', [
+            'head_national_id' => $user->national_id,
+            'spouse_full_name' => null,
+            'spouse_national_id' => null,
+            'spouse_birth_date' => null,
+            'spouse_condition_type' => null,
+            'spouse_health_notes' => null,
+        ]);
+    }
+
+    public function test_spouse_fields_remain_required_when_no_spouse_is_not_selected(): void
+    {
+        $user = $this->makeCitizen();
+        $payload = $this->basePayload([
+            'no_spouse' => 0,
+        ]);
+
+        $response = $this->actingAs($user)->from(route('citizen.onboarding'))->post(route('citizen.onboarding.store'), $payload);
+
+        $response->assertSessionHasErrors([
+            'spouse_full_name',
+            'spouse_national_id',
+            'spouse_birth_date',
+        ]);
+        $this->assertDatabaseCount('households', 0);
     }
 
     public function test_condition_type_required_when_any_household_flag_set(): void
@@ -220,7 +265,7 @@ class OnboardingValidationTest extends TestCase
         ]);
     }
 
-    public function test_member_relation_must_be_son_only(): void
+    public function test_member_relation_is_normalized_to_son(): void
     {
         $user = $this->makeCitizen();
         $payload = $this->basePayload([
@@ -240,8 +285,12 @@ class OnboardingValidationTest extends TestCase
 
         $response = $this->actingAs($user)->from(route('citizen.onboarding'))->post(route('citizen.onboarding.store'), $payload);
 
-        $response->assertSessionHasErrors(['members.0.relation_to_head']);
-        $this->assertDatabaseCount('households', 0);
+        $response->assertRedirect(route('citizen.dashboard'));
+
+        $this->assertDatabaseHas('household_members', [
+            'full_name' => 'Member One',
+            'relation_to_head' => 'son',
+        ]);
     }
 
     public function test_member_national_id_is_required(): void
