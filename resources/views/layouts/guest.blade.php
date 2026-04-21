@@ -90,7 +90,7 @@
         <!-- Logo -->
         <div class="mb-8 animate-enter">
             <a href="/" class="flex items-center gap-3">
-                <img  width="60px" height="60px" src="{{asset('build/assets/Al-Qararalogo-1.png')}}" alt="">
+                <img  width="60px" height="60px" src="{{asset('branding/Al-Qararalogo-1.png')}}" alt="">
                 <span class="text-2xl font-bold text-slate-800">{{ __('messages.app_name') }}</span>
             </a>
         </div>

@@ -12,7 +12,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                        <img  width="45px" height="60px" src="{{asset('build/assets/Al-Qararalogo-1.png')}}" alt="">
+                        <img  width="45px" height="60px" src="{{asset('branding/Al-Qararalogo-1.png')}}" alt="">
                         <span class="font-bold text-gray-800">{{ __('messages.app_name') }}</span>
                     </a>
                 </div>

@@ -1,1 +1,1 @@
-<img  width="60px" height="60px" src="{{asset('build/assets/Al-Qararalogo-1.png')}}" alt="">
+<img  width="60px" height="60px" src="{{asset('branding/Al-Qararalogo-1.png')}}" alt="">
