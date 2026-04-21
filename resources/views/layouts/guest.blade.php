@@ -90,11 +90,7 @@
         <!-- Logo -->
         <div class="mb-8 animate-enter">
             <a href="/" class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/25">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                </div>
+                <img  width="60px" height="60px" src="{{asset('build/assets/Al-Qararalogo-1.png')}}" alt="">
                 <span class="text-2xl font-bold text-slate-800">{{ __('messages.app_name') }}</span>
             </a>
         </div>

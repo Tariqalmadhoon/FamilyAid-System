@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="officialMarkTitle">
+  <title id="officialMarkTitle">Al-Qarara Returnees Camps Association</title>
+  <defs>
+    <path id="figure" d="M200 58c17.673 0 32 14.327 32 32 0 5.45-1.367 10.579-3.776 15.065 19.663 6.278 35.264 21.363 41.79 41.57 1.558 4.824-2.044 9.78-7.113 9.78h-24.144c-5.372-13.271-20.18-22.686-38.757-22.686-18.577 0-33.385 9.415-38.757 22.686h-24.144c-5.069 0-8.671-4.956-7.113-9.78 6.526-20.207 22.127-35.292 41.79-41.57A31.93 31.93 0 0 1 168 90c0-17.673 14.327-32 32-32Z"/>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="200" cy="200" r="76" fill="#fff"/>
+    <g fill="#2ec5d0"><use href="#figure" transform="rotate(0 200 200)"/></g>
+    <g fill="#3dc7c0"><use href="#figure" transform="rotate(36 200 200)"/></g>
+    <g fill="#74c844"><use href="#figure" transform="rotate(72 200 200)"/></g>
+    <g fill="#ffc51f"><use href="#figure" transform="rotate(108 200 200)"/></g>
+    <g fill="#ff8f1f"><use href="#figure" transform="rotate(144 200 200)"/></g>
+    <g fill="#ea5b78"><use href="#figure" transform="rotate(180 200 200)"/></g>
+    <g fill="#b45db9"><use href="#figure" transform="rotate(216 200 200)"/></g>
+    <g fill="#2d68c4"><use href="#figure" transform="rotate(252 200 200)"/></g>
+    <g fill="#6ea7e8"><use href="#figure" transform="rotate(288 200 200)"/></g>
+    <g fill="#65d2de"><use href="#figure" transform="rotate(324 200 200)"/></g>
+  </g>
+</svg>

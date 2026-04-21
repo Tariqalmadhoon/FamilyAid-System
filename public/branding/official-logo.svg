@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 920" role="img" aria-labelledby="officialLogoTitle officialLogoDesc">
+  <title id="officialLogoTitle">Al-Qarara Returnees Camps Association</title>
+  <desc id="officialLogoDesc">Official bilingual logo for the Al-Qarara Returnees Camps Association.</desc>
+  <defs>
+    <path id="figure" d="M600 96c30.928 0 56 25.072 56 56 0 9.538-2.392 18.514-6.608 26.364 34.411 10.986 61.719 37.385 73.142 72.747 2.726 8.438-3.577 17.113-12.445 17.113h-42.252c-9.402-23.224-35.316-39.699-67.837-39.699s-58.435 16.475-67.837 39.699h-42.252c-8.868 0-15.171-8.675-12.445-17.113 11.423-35.362 38.731-61.761 73.142-72.747A55.877 55.877 0 0 1 544 152c0-30.928 25.072-56 56-56Z"/>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="600" cy="280" r="132" fill="#fff"/>
+    <g fill="#2ec5d0"><use href="#figure" transform="rotate(0 600 280)"/></g>
+    <g fill="#3dc7c0"><use href="#figure" transform="rotate(36 600 280)"/></g>
+    <g fill="#74c844"><use href="#figure" transform="rotate(72 600 280)"/></g>
+    <g fill="#ffc51f"><use href="#figure" transform="rotate(108 600 280)"/></g>
+    <g fill="#ff8f1f"><use href="#figure" transform="rotate(144 600 280)"/></g>
+    <g fill="#ea5b78"><use href="#figure" transform="rotate(180 600 280)"/></g>
+    <g fill="#b45db9"><use href="#figure" transform="rotate(216 600 280)"/></g>
+    <g fill="#2d68c4"><use href="#figure" transform="rotate(252 600 280)"/></g>
+    <g fill="#6ea7e8"><use href="#figure" transform="rotate(288 600 280)"/></g>
+    <g fill="#65d2de"><use href="#figure" transform="rotate(324 600 280)"/></g>
+    <text x="600" y="650" text-anchor="middle" direction="rtl" unicode-bidi="plaintext" font-family="Tajawal, Arial, sans-serif" font-size="92" font-weight="700" fill="#22252b">&#x62A;&#x62C;&#x645;&#x639;&#x20;&#x645;&#x62E;&#x64A;&#x645;&#x627;&#x62A;&#x20;&#x627;&#x644;&#x639;&#x627;&#x626;&#x62F;&#x64A;&#x646;&#x20;&#x2D;&#x20;&#x627;&#x644;&#x642;&#x631;&#x627;&#x631;&#x629;</text>
+    <text x="600" y="742" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="54" fill="#2b2f36">Al-Qarara Returnees Camps Association</text>
+  </g>
+</svg>
